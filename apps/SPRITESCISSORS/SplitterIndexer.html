@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doom Suite: Sprite Toolkit & DECORATE Generator</title>
+<style>
+/* Classic Win95 Teal Background */
+body {
+  font-family: "MS Sans Serif", "Arial", sans-serif;
+  background-color: #114499; 
+  color: #000;
+  padding: 10px;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+*, *:before, *:after { box-sizing: inherit; }
+
+.window {
+  background-color: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  box-shadow: 1px 1px 0 0 #000000;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 2px;
+}
+
+.title-bar {
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: white;
+  padding: 4px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.content { 
+  padding: 8px; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  gap: 12px;
+}
+
+@media(max-width: 1024px) {
+  .workspace-grid { grid-template-columns: 1fr; }
+}
+
+h3 { margin-top: 0; font-size: 12px; margin-bottom: 8px; font-weight: bold; }
+
+.group-box {
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  padding: 10px;
+  background-color: #c0c0c0;
+  margin-bottom: 4px;
+}
+
+.controls-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.control-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 11px;
+}
+
+.inline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+input[type="text"], input[type="number"], select {
+  background-color: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  padding: 2px 4px;
+  font-family: monospace;
+  font-size: 12px;
+  height: 24px;
+  outline: none;
+}
+
+input:disabled, select:disabled {
+  background-color: #e0e0e0;
+  color: #808080;
+  cursor: not-allowed;
+}
+
+button {
+  background-color: #c0c0c0;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  box-shadow: 1px 1px 0 0 #000;
+  padding: 4px 10px;
+  cursor: pointer;
+  outline: none;
+  font-size: 11px;
+  font-weight: bold;
+  height: 24px;
+}
+
+button:active {
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  box-shadow: none;
+}
+
+.canvas-viewport {
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  background-color: #555555;
+  overflow: auto;
+  width: 100%;
+  height: 240px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 4px;
+}
+
+canvas { background-color: #333; display: block; }
+
+.output-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 440px;
+}
+
+.output-textarea {
+  width: 100%;
+  flex: 1;
+  background-color: #000;
+  color: #00ff00;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  padding: 8px;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.preview-timeline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  background-color: #fff;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  padding: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.frame-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #dcdcdc;
+  border: 1px solid #808080;
+  padding: 4px;
+  width: 105px;
+  font-size: 10px;
+  font-family: monospace;
+  text-align: center;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.frame-card canvas {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  background-color: #222;
+  border: 1px solid #808080;
+  margin-bottom: 4px;
+}
+
+.state-badge {
+  padding: 1px 2px;
+  color: white;
+  font-weight: bold;
+  font-size: 9px;
+  text-transform: uppercase;
+  margin-top: 2px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keep-container {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9px;
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+}
+
+.badge-Ready { background-color: #008000; }
+.badge-Select { background-color: #0000ff; }
+.badge-Deselect { background-color: #a0522d; }
+.badge-Fire { background-color: #ff0000; }
+.badge-Reload { background-color: #800080; }
+.badge-Spawn { background-color: #4682b4; }
+.badge-See { background-color: #008080; }
+.badge-Missile { background-color: #d2691e; }
+.badge-Pain { background-color: #b22222; }
+.badge-Death { background-color: #000000; }
+.badge-XDeath { background-color: #4b0082; }
+.badge-Raise { background-color: #2e8b57; }
+.badge-Unassigned { background-color: #808080; }
+</style>
+</head>
+<body>
+
+<div class="window">
+  <div class="title-bar"><span>DoomSuite_SpriteToolkit_DECORATE.exe</span></div>
+  
+  <div class="content">
+    <div class="workspace-grid">
+      
+      <div style="display: flex; flex-direction: column; gap: 10px; overflow: hidden;">
+        
+        <div class="group-box">
+          <h3>1. Splitter (Slice Single Sprite Sheet Image)</h3>
+          <div class="inline-controls" style="margin-bottom: 8px;">
+            <input type="file" id="splitInput" accept="image/*" style="width: 100%;">
+          </div>
+          <div class="controls-grid">
+            <div class="control-item">
+              <label>Rows:</label>
+              <input type="number" id="rows" value="4">
+            </div>
+            <div class="control-item">
+              <label>Columns:</label>
+              <input type="number" id="cols" value="4">
+            </div>
+            <div class="control-item">
+              <label>Pad X (Gap):</label>
+              <input type="number" id="splitPadX" value="0">
+            </div>
+            <div class="control-item">
+              <label>Pad Y (Gap):</label>
+              <input type="number" id="splitPadY" value="0">
+            </div>
+            <div class="control-item" style="flex-direction: row; align-items: center; gap: 4px; grid-column: span 2;">
+              <input type="checkbox" id="useSplitBg">
+              <label style="font-size: 11px;">Use BG:</label>
+              <input type="color" id="splitBg" value="#ffffff" style="width:35px; padding:0; height:20px;">
+              <button onclick="splitSheet()" style="margin-left: auto;">Split & Preview</button>
+              <button onclick="downloadZip()">ZIP</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-box">
+          <h3>2. Stitcher (Load Loose Frames)</h3>
+          <div class="inline-controls" style="margin-bottom: 8px;">
+            <input type="file" id="stitchInput" accept="image/*" multiple style="width: 100%;">
+          </div>
+          <div class="controls-grid">
+            <div class="control-item">
+              <label>Columns:</label>
+              <input type="number" id="stitchCols" value="5">
+            </div>
+            <div class="control-item">
+              <label>Rows (0=Auto):</label>
+              <input type="number" id="stitchRows" value="0">
+            </div>
+            <div class="control-item">
+              <label>Pad X / Y:</label>
+              <div style="display:flex; gap:2px;">
+                <input type="number" id="padX" value="0" style="width:50%;">
+                <input type="number" id="padY" value="0" style="width:50%;">
+              </div>
+            </div>
+            <div class="control-item" style="flex-direction: row; align-items: center; gap: 4px;">
+              <input type="checkbox" id="useStitchBg">
+              <input type="color" id="stitchBg" value="#ffffff" style="width:30px; padding:0; height:20px;">
+              <button onclick="stitchSprites()" style="font-size:10px;">Stitch</button>
+              <button onclick="downloadStitched()" style="font-size:10px;">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-box">
+          <h3>3. DECORATE Character Rules & WAD Mirror Systems</h3>
+          <div class="controls-grid">
+            <div class="control-item">
+              <label id="ruleLabel1">Row 1 Filter Char(s):</label>
+              <input type="text" id="row1Chars" value="AB" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label id="ruleLabel2">Row 2 Filter Char(s):</label>
+              <input type="text" id="row2Chars" value="C" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label id="ruleLabel3">Row 3 Filter Char(s):</label>
+              <input type="text" id="row3Chars" value="Y" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label id="ruleLabel4">Row 4 Filter Char(s):</label>
+              <input type="text" id="row4Chars" value="D" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label id="ruleLabel5">Row 5 Filter Char(s):</label>
+              <input type="text" id="row5Chars" value="FGHIJKL" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label>Bright Frame Limits:</label>
+              <input type="number" id="brightFrames" value="7" min="0" oninput="liveUpdate()">
+            </div>
+
+            <div class="control-item">
+              <label style="font-weight:bold; color:#005500;">Rotations Mode:</label>
+              <select id="rotationMode" onchange="liveUpdate()">
+                <option value="1">1 Angle (0 - Directionless/Frontal)</option>
+                <option value="8" selected>8 Angles (1-8 Standard Directional)</option>
+                <option value="16">16 Angles (1-G Advanced Precise)</option>
+              </select>
+            </div>
+            <div class="control-item">
+              <label style="font-weight:bold; color:#005500;">Mirror Pooling Math:</label>
+              <select id="mirrorMode" onchange="liveUpdate()">
+                <option value="none" selected>No Mirroring (Separate Files)</option>
+                <option value="self">Self Mirroring (e.g. A2A8)</option>
+                <option value="cross">Cross Boundary Mirror (e.g. A2C8)</option>
+                <option value="max">Max Compaction Mirror (e.g. A1C1)</option>
+              </select>
+            </div>
+            
+            <div class="control-item full-width" style="margin-top: 4px; padding-top: 6px; border-top: 1px dotted #808080;">
+              <label style="font-weight: bold; color: #000080;">Sprite Prefix Name Identifier (4 Chars Max):</label>
+              <input type="text" id="spritePrefix" value="W07E" placeholder="e.g. W07E" oninput="liveUpdate()">
+            </div>
+
+            <div class="control-item full-width">
+              <label style="font-weight: bold; color: #000080;">Select Target Extraction State Loop View:</label>
+              <select id="activeStateMenu" onchange="liveUpdate()">
+                </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="group-box">
+          <h3>4. Actor Sizing & Blueprint Parameters</h3>
+          <div class="controls-grid">
+            <div class="control-item full-width">
+              <label style="font-weight: bold; color: #800000;">Actor Configuration Type Blueprint:</label>
+              <select id="actorType" onchange="toggleActorFields(); liveUpdate();">
+                <option value="Weapon" selected>Weapon Actor</option>
+                <option value="Monster">Monster Actor</option>
+                <option value="Decoration">Shootable Decoration Actor</option>
+                <option value="StaticDeco">Static Decoration Actor</option>
+                <option value="Projectile">Projectile Actor</option>
+              </select>
+            </div>
+
+            <div class="control-item">
+              <label>Actor Class Name:</label>
+              <input type="text" id="actorName" value="CustomWeapon" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label>DoomEd Editor Number:</label>
+              <input type="number" id="doomEd" value="30000" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label>Radius Size:</label>
+              <input type="number" id="actorRadius" value="20" oninput="liveUpdate()">
+            </div>
+            <div class="control-item">
+              <label>Height Size:</label>
+              <input type="number" id="actorHeight" value="56" oninput="liveUpdate()">
+            </div>
+
+            <div class="control-item weapon-field">
+              <label>Inherits From:</label>
+              <input type="text" id="actorInherit" value="Weapon" oninput="liveUpdate()">
+            </div>
+            <div class="control-item weapon-field">
+              <label>Weapon Select Slot:</label>
+              <input type="number" id="weaponSlot" value="2" min="1" max="9" oninput="liveUpdate()">
+            </div>
+            <div class="control-item weapon-field">
+              <label>Ammo Type:</label>
+              <input type="text" id="ammoType" value="Clip" oninput="liveUpdate()">
+            </div>
+            <div class="control-item weapon-field">
+              <label>Ammo Per Shot:</label>
+              <input type="number" id="ammoUse" value="1" oninput="liveUpdate()">
+            </div>
+
+            <div class="control-item monster-deco-field" style="display:none;">
+              <label>Health Points:</label>
+              <input type="number" id="actorHealth" value="20" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-deco-field" style="display:none;">
+              <label>Mass Weight:</label>
+              <input type="number" id="actorMass" value="100" oninput="liveUpdate()">
+            </div>
+            
+            <div class="control-item sounds-field" style="display:none;">
+              <label>Death Sound String:</label>
+              <input type="text" id="soundDeath" value="grunt/death" oninput="liveUpdate()">
+            </div>
+            <div class="control-item sounds-field" style="display:none;">
+              <label>See / Launch Sound:</label>
+              <input type="text" id="soundSee" value="grunt/sight" oninput="liveUpdate()">
+            </div>
+
+            <div class="control-item projectile-field" style="display:none;">
+              <label>Impact Damage:</label>
+              <input type="number" id="projectileDamage" value="5" oninput="liveUpdate()">
+            </div>
+            <div class="control-item projectile-field" style="display:none;">
+              <label>Travel Speed:</label>
+              <input type="number" id="projectileSpeed" value="10" oninput="liveUpdate()">
+            </div>
+            <div class="control-item projectile-field" style="display:none;">
+              <label>Render Style Code:</label>
+              <input type="text" id="projectileRender" value="Add" oninput="liveUpdate()">
+            </div>
+            <div class="control-item projectile-field" style="display:none;">
+              <label>Alpha Translucency (0-1):</label>
+              <input type="text" id="projectileAlpha" value="1" oninput="liveUpdate()">
+            </div>
+            
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Speed Rating:</label>
+              <input type="number" id="actorSpeed" value="8" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Pain Chance (0-255):</label>
+              <input type="number" id="actorPainChance" value="200" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Attack Blast Sound:</label>
+              <input type="text" id="soundAttack" value="grunt/attack" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Pain Whimper Sound:</label>
+              <input type="text" id="soundPain" value="grunt/pain" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Active Idle Sound:</label>
+              <input type="text" id="soundActive" value="grunt/active" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Spawn Drop Item ID:</label>
+              <input type="text" id="dropItemClass" value="Clip" oninput="liveUpdate()">
+            </div>
+            <div class="control-item monster-only-field" style="display:none;">
+              <label>Drop Chance (0-256):</label>
+              <input type="number" id="dropItemProbability" value="256" oninput="liveUpdate()">
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; overflow: hidden;">
+        
+        <div class="group-box">
+          <h3>Sprite Sheet Viewport</h3>
+          <div class="canvas-viewport">
+            <canvas id="mainCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="group-box output-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <h3>Compiled DECORATE Actor Output Lump</h3>
+            <div style="display: flex; gap: 4px;">
+              <button onclick="generateDecorate()">Compile Code</button>
+              <button onclick="exportFramesZip()" style="background-color: #008000; color: white;">Export Frames ZIP</button>
+              <button onclick="clearAllWorkspace()" style="background-color: #800000; color: white;">Clear All</button>
+              <button onclick="copyToClipboard()" style="background-color: #000080; color: white;">Copy Script</button>
+            </div>
+          </div>
+          <textarea id="outputCode" class="output-textarea" readonly placeholder="Parsed loops will generate here..."></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="group-box" style="width: 100%;">
+      <h3>Dynamic Sprite Frame Cut Previewer (Live Extracted Canvas View)</h3>
+      <div class="preview-timeline" id="previewTimeline">
+        <div style="color: #555; font-style: italic; width: 100%; text-align: center; padding-top: 20px;">Load files to preview asset data...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+let currentImg = new Image();
+let slices = [];
+let loadedWorkspaceFrames = []; 
+
+const stateFilterCache = {
+  Weapon: { r1: "AB", r2: "C", r3: "Y", r4: "D", r5: "FGHIJKL" },
+  Monster: { r1: "AABBCCDD", r2: "EF", r3: "AB", r4: "G", r5: "HIJKL" },
+  Decoration: { r1: "", r2: "", r3: "A", r4: "", r5: "BCD" },
+  StaticDeco: { r1: "", r2: "", r3: "ABC", r4: "", r5: "" },
+  Projectile: { r1: "", r2: "", r3: "AB", r4: "", r5: "CDE" }
+};
+
+let currentProfileType = "Weapon";
+
+function toggleActorFields() {
+  stateFilterCache[currentProfileType].r1 = document.getElementById('row1Chars').value;
+  stateFilterCache[currentProfileType].r2 = document.getElementById('row2Chars').value;
+  stateFilterCache[currentProfileType].r3 = document.getElementById('row3Chars').value;
+  stateFilterCache[currentProfileType].r4 = document.getElementById('row4Chars').value;
+  stateFilterCache[currentProfileType].r5 = document.getElementById('row5Chars').value;
+
+  const type = document.getElementById('actorType').value;
+  currentProfileType = type;
+
+  const menu = document.getElementById('activeStateMenu');
+  const oldVal = menu.value;
+
+  const weaponFields = document.querySelectorAll('.weapon-field');
+  const monsterDecoFields = document.querySelectorAll('.monster-deco-field');
+  const monsterOnlyFields = document.querySelectorAll('.monster-only-field');
+  const projectileFields = document.querySelectorAll('.projectile-field');
+  const soundsFields = document.querySelectorAll('.sounds-field');
+
+  const l1 = document.getElementById('ruleLabel1');
+  const l2 = document.getElementById('ruleLabel2');
+  const l3 = document.getElementById('ruleLabel3');
+  const l4 = document.getElementById('ruleLabel4');
+  const l5 = document.getElementById('ruleLabel5');
+
+  const i1 = document.getElementById('row1Chars');
+  const i2 = document.getElementById('row2Chars');
+  const i3 = document.getElementById('row3Chars');
+  const i4 = document.getElementById('row4Chars');
+  const i5 = document.getElementById('row5Chars');
+
+  menu.innerHTML = '';
+  i1.disabled = false; i2.disabled = false; i3.disabled = false; i4.disabled = false; i5.disabled = false;
+
+  weaponFields.forEach(f => f.style.display = 'none');
+  monsterDecoFields.forEach(f => f.style.display = 'none');
+  monsterOnlyFields.forEach(f => f.style.display = 'none');
+  projectileFields.forEach(f => f.style.display = 'none');
+  soundsFields.forEach(f => f.style.display = 'none');
+
+  if (type === "Weapon") {
+    weaponFields.forEach(f => f.style.display = 'flex');
+    l1.innerText = "Select / Raise Char(s):";
+    l2.innerText = "Deselect / Lower Char(s):";
+    l3.innerText = "Ready Loop Char(s):";
+    l4.innerText = "Fire Sequence Char(s):";
+    l5.innerText = "Reload State Char(s):";
+    ["Ready", "Fire", "Select", "Deselect", "Reload"].forEach(s => menu.options.add(new Option(`${s} State Loop`, s)));
+    document.getElementById('spritePrefix').value = "W07E";
+    document.getElementById('actorName').value = "CustomWeapon";
+  } else if (type === "Monster") {
+    monsterDecoFields.forEach(f => f.style.display = 'flex');
+    monsterOnlyFields.forEach(f => f.style.display = 'flex');
+    soundsFields.forEach(f => f.style.display = 'flex');
+    l1.innerText = "See Chase Loop Char(s):";
+    l2.innerText = "Missile Attack Char(s):";
+    l3.innerText = "Spawn Idle Char(s):";
+    l4.innerText = "Pain Flinch Char(s):";
+    l5.innerText = "Death State Char(s):";
+    ["Spawn", "See", "Missile", "Pain", "Death"].forEach(s => menu.options.add(new Option(`${s} State Loop`, s)));
+    document.getElementById('spritePrefix').value = "POSS";
+    document.getElementById('actorName').value = "ZombieClone";
+  } else if (type === "Decoration") {
+    monsterDecoFields.forEach(f => f.style.display = 'flex');
+    soundsFields.forEach(f => f.style.display = 'flex');
+    l1.innerText = "--- (Unused Row):"; i1.disabled = true;
+    l2.innerText = "--- (Unused Row):"; i2.disabled = true;
+    l3.innerText = "Spawn Frame Char(s):";
+    l4.innerText = "--- (Unused Row):"; i4.disabled = true;
+    l5.innerText = "Death Breakdown Char(s):";
+    ["Spawn", "Death"].forEach(s => menu.options.add(new Option(`${s} State Loop`, s)));
+    document.getElementById('spritePrefix').value = "HAWA";
+    document.getElementById('actorName').value = "FloorLamp";
+  } else if (type === "StaticDeco") {
+    l1.innerText = "--- (Unused Row):"; i1.disabled = true;
+    l2.innerText = "--- (Unused Row):"; i2.disabled = true;
+    l3.innerText = "Spawn Frame Char(s):";
+    l4.innerText = "--- (Unused Row):"; i4.disabled = true;
+    l5.innerText = "--- (Unused Row):"; i5.disabled = true;
+    ["Spawn"].forEach(s => menu.options.add(new Option(`${s} State Loop`, s)));
+    document.getElementById('spritePrefix').value = "HAW6";
+    document.getElementById('actorName').value = "CEye";
+    document.getElementById('actorRadius').value = "20";
+    document.getElementById('actorHeight').value = "40";
+  } else if (type === "Projectile") {
+    projectileFields.forEach(f => f.style.display = 'flex');
+    soundsFields.forEach(f => f.style.display = 'flex');
+    l1.innerText = "--- (Unused Row):"; i1.disabled = true;
+    l2.innerText = "--- (Unused Row):"; i2.disabled = true;
+    l3.innerText = "Spawn Travel Char(s):";
+    l4.innerText = "--- (Unused Row):"; i4.disabled = true;
+    l5.innerText = "Death Impact Char(s):";
+    ["Spawn", "Death"].forEach(s => menu.options.add(new Option(`${s} State Loop`, s)));
+    document.getElementById('spritePrefix').value = "WS16";
+    document.getElementById('actorName').value = "BlueShot02";
+    document.getElementById('actorRadius').value = "6";
+    document.getElementById('actorHeight').value = "8";
+  }
+
+  i1.value = stateFilterCache[type].r1;
+  i2.value = stateFilterCache[type].r2;
+  i3.value = stateFilterCache[type].r3;
+  i4.value = stateFilterCache[type].r4;
+  i5.value = stateFilterCache[type].r5;
+
+  if ([...menu.options].some(o => o.value === oldVal)) menu.value = oldVal;
+}
+
+toggleActorFields();
+
+function resetCanvasToSrc() {
+  if (!currentImg.src) return;
+  canvas.width = currentImg.width;
+  canvas.height = currentImg.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(currentImg, 0, 0);
+}
+
+document.getElementById('splitInput').onchange = (e) => {
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    currentImg.onload = () => resetCanvasToSrc();
+    currentImg.src = evt.target.result;
+  };
+  reader.readAsDataURL(e.target.files[0]);
+};
+
+function splitSheet() {
+  if (!currentImg.src) return alert("Select sheet first.");
+  const persistentFrames = loadedWorkspaceFrames.filter(f => f.persistent === true);
+  const rows = parseInt(document.getElementById('rows').value) || 1;
+  const cols = parseInt(document.getElementById('cols').value) || 1;
+  const padX = parseInt(document.getElementById('splitPadX').value) || 0;
+  const padY = parseInt(document.getElementById('splitPadY').value) || 0;
+  const useBg = document.getElementById('useSplitBg').checked;
+  const bgColor = document.getElementById('splitBg').value;
+  
+  const w = (currentImg.width - ((cols - 1) * padX)) / cols;
+  const h = (currentImg.height - ((rows - 1) * padY)) / rows;
+  if (w <= 0 || h <= 0) return alert("Check values.");
+
+  slices = []; 
+  canvas.width = currentImg.width;
+  canvas.height = currentImg.height;
+  ctx.drawImage(currentImg, 0, 0);
+  ctx.strokeStyle = "red"; ctx.lineWidth = 1;
+
+  loadedWorkspaceFrames = [...persistentFrames];
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const srcX = x * (w + padX); const srcY = y * (h + padY);
+      const tc = document.createElement('canvas'); tc.width = w; tc.height = h;
+      const tCtx = tc.getContext('2d');
+      if (useBg) { tCtx.fillStyle = bgColor; tCtx.fillRect(0, 0, w, h); }
+      tCtx.drawImage(currentImg, srcX, srcY, w, h, 0, 0, w, h);
+      tc.toBlob(blob => slices.push({ name: `tile_${y}_${x}.png`, blob }), 'image/png');
+
+      let fallbackSortingChar = 'A';
+      if (y === 1) fallbackSortingChar = 'C';
+      else if (y === 2) fallbackSortingChar = 'Y';
+      else if (y === 3) fallbackSortingChar = 'D';
+      else if (y >= 4) fallbackSortingChar = 'F';
+
+      loadedWorkspaceFrames.push({
+        frameLetter: alphabet.charAt(x % 26), sortingChar: fallbackSortingChar, name: `SPRITE_R${y}_C${x}`, canvasElement: tc, persistent: false
+      });
+      ctx.strokeRect(srcX, srcY, w, h);
+    }
+  }
+  liveUpdate();
+}
+
+async function downloadZip() {
+  if (!slices.length) return alert("Split first.");
+  const zip = new JSZip(); slices.forEach(s => zip.file(s.name, s.blob));
+  const content = await zip.generateAsync({type:"blob"});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(content);
+  a.download = "sprites.zip"; a.click();
+}
+
+async function stitchSprites() {
+  const files = Array.from(document.getElementById('stitchInput').files);
+  const persistentFrames = loadedWorkspaceFrames.filter(f => f.persistent === true);
+  if (!files.length) {
+    if (persistentFrames.length > 0) { loadedWorkspaceFrames = [...persistentFrames]; liveUpdate(); }
+    return alert("Select items.");
+  }
+
+  const images = await Promise.all(files.map(file => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => resolve({ img, fileName: file.name.split('.').slice(0, -1).join('.').toUpperCase() });
+      img.src = URL.createObjectURL(file);
+    });
+  }));
+
+  loadedWorkspaceFrames = [...persistentFrames];
+  let cols = parseInt(document.getElementById('stitchCols').value) || 1;
+  let rows = parseInt(document.getElementById('stitchRows').value) || 0;
+  if (rows > 0) cols = Math.ceil(images.length / rows);
+  else rows = Math.ceil(images.length / cols);
+
+  const padX = parseInt(document.getElementById('padX').value) || 0;
+  const padY = parseInt(document.getElementById('padY').value) || 0;
+  const useBg = document.getElementById('useStitchBg').checked;
+  const bgColor = document.getElementById('stitchBg').value;
+
+  const tileW = images[0].img.width; const tileH = images[0].img.height;
+  canvas.width = (cols * tileW) + ((cols - 1) * padX);
+  canvas.height = (rows * tileH) + ((rows - 1) * padY);
+
+  if (useBg) { ctx.fillStyle = bgColor; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+
+  images.forEach((imgObj, i) => {
+    const x = (i % cols) * (tileW + padX); const y = Math.floor(i / cols) * (tileH + padY);
+    ctx.drawImage(imgObj.img, x, y);
+    const tc = document.createElement('canvas'); tc.width = tileW; tc.height = tileH;
+    tc.getContext('2d').drawImage(imgObj.img, 0, 0);
+
+    const sortingChar = imgObj.fileName.charAt(3) || 'A';
+    const frameLetter = imgObj.fileName.charAt(4) || 'A';
+
+    loadedWorkspaceFrames.push({
+      frameLetter: frameLetter, sortingChar: sortingChar, name: imgObj.fileName, canvasElement: tc, persistent: false
+    });
+  });
+  liveUpdate();
+}
+
+function downloadStitched() {
+  const a = document.createElement('a'); a.href = canvas.toDataURL("image/png");
+  a.download = "stitched_sheet.png"; a.click();
+}
+
+function clearAllWorkspace() {
+  loadedWorkspaceFrames = []; slices = []; currentImg = new Image();
+  document.getElementById('splitInput').value = ""; document.getElementById('stitchInput').value = "";
+  document.getElementById('outputCode').value = ""; canvas.width = 300; canvas.height = 150;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById('previewTimeline').innerHTML = '<div style="color: #555; font-style: italic; width: 100%; text-align: center; padding-top: 20px;">Load files to preview asset data...</div>';
+}
+
+function liveUpdate() { renderPreviewerTimeline(); }
+
+// Helper implementing knowledgebank mirroring algorithms
+function computeLumpName(prefix, stateIndex, rotMode, mirrorMode) {
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const rot16Chars = ["1","2","3","4","5","6","7","8","9","A","B","C","D","E","F","G"];
+  
+  let frameCharIndex = Math.floor(stateIndex / (rotMode === "1" ? 1 : (mirrorMode !== "none" ? Math.ceil(parseInt(rotMode)/2)+1 : parseInt(rotMode))));
+  let baseFrame = alphabet.charAt(frameCharIndex % 26);
+  let stepInFrame = stateIndex % (rotMode === "1" ? 1 : (mirrorMode !== "none" ? Math.ceil(parseInt(rotMode)/2)+1 : parseInt(rotMode)));
+
+  if (rotMode === "1") return `${prefix}${baseFrame}0`;
+
+  if (mirrorMode === "none") {
+    let rotChar = rotMode === "16" ? rot16Chars[stepInFrame % 16] : (stepInFrame + 1).toString();
+    return `${prefix}${baseFrame}${rotChar}`;
+  }
+
+  // Knowledge Bank Rule Implementation: Reducing files via Mirror tokens
+  if (mirrorMode === "self") {
+    // Layout: A1, A2A8, A3A7, A4A6, A5
+    if (stepInFrame === 0) return `${prefix}${baseFrame}1`;
+    if (stepInFrame === 1) return `${prefix}${baseFrame}2${baseFrame}8`;
+    if (stepInFrame === 2) return `${prefix}${baseFrame}3${baseFrame}7`;
+    if (stepInFrame === 3) return `${prefix}${baseFrame}4${baseFrame}6`;
+    if (stepInFrame === 4) return `${prefix}${baseFrame}5`;
+  }
+  
+  if (mirrorMode === "cross") {
+    // Layout: A1, A2C8, A3C7... Crossing matching movement offsets
+    let companionFrame = alphabet.charAt((frameCharIndex + 2) % 26); // Shift forward 2 frames (A<->C, B<->D)
+    if (frameCharIndex % 4 >= 2) companionFrame = alphabet.charAt((frameCharIndex - 2) % 26);
+
+    if (stepInFrame === 0) return `${prefix}${baseFrame}1`;
+    if (stepInFrame === 1) return `${prefix}${baseFrame}2${companionFrame}8`;
+    if (stepInFrame === 2) return `${prefix}${baseFrame}3${companionFrame}7`;
+    if (stepInFrame === 3) return `${prefix}${baseFrame}4${companionFrame}6`;
+    if (stepInFrame === 4) return `${prefix}${baseFrame}5`;
+  }
+
+  if (mirrorMode === "max") {
+    // Layout Optimization Layout: A1C1, A2C8, A3C7... Cuts files exactly down by 50%
+    let companionFrame = alphabet.charAt((frameCharIndex + 2) % 26);
+    if (frameCharIndex % 4 >= 2) companionFrame = alphabet.charAt((frameCharIndex - 2) % 26);
+
+    if (stepInFrame === 0) return `${prefix}${baseFrame}1${companionFrame}1`;
+    if (stepInFrame === 1) return `${prefix}${baseFrame}2${companionFrame}8`;
+    if (stepInFrame === 2) return `${prefix}${baseFrame}3${companionFrame}7`;
+    if (stepInFrame === 3) return `${prefix}${baseFrame}4${companionFrame}6`;
+    if (stepInFrame === 4) return `${prefix}${baseFrame}5${companionFrame}5`;
+  }
+
+  return `${prefix}${baseFrame}1`;
+}
+
+function renderPreviewerTimeline() {
+  const timeline = document.getElementById('previewTimeline'); timeline.innerHTML = '';
+  if (loadedWorkspaceFrames.length === 0) {
+    timeline.innerHTML = '<div style="color: #555; font-style: italic; width: 100%; text-align: center; padding-top: 20px;">Load files to preview asset data...</div>';
+    return;
+  }
+
+  const customPrefix = document.getElementById('spritePrefix').value.toUpperCase().trim() || "W07E";
+  const selectedTargetState = document.getElementById('activeStateMenu').value;
+  const actorType = document.getElementById('actorType').value;
+  const rotMode = document.getElementById('rotationMode').value;
+  const mirrorMode = document.getElementById('mirrorMode').value;
+
+  const r1 = document.getElementById('row1Chars').value.toUpperCase().split('');
+  const r2 = document.getElementById('row2Chars').value.toUpperCase().split('');
+  const r3 = document.getElementById('row3Chars').value.toUpperCase().split('');
+  const r4 = document.getElementById('row4Chars').value.toUpperCase().split('');
+  const r5 = document.getElementById('row5Chars').value.toUpperCase().split('');
+
+  let rules = {};
+  if (actorType === "Weapon") rules = { Select: r1, Deselect: r2, Ready: r3, Fire: r4, Reload: r5 };
+  else if (actorType === "Monster") rules = { See: r1, Missile: r2, Spawn: r3, Pain: r4, Death: r5 };
+  else if (actorType === "Decoration") rules = { Spawn: r3, Death: r5 };
+  else if (actorType === "StaticDeco") rules = { Spawn: r3 };
+  else if (actorType === "Projectile") rules = { Spawn: r3, Death: r5 };
+
+  let targetIndexCounter = 0;
+
+  loadedWorkspaceFrames.forEach((frameObj) => {
+    let detectedState = "Unassigned";
+    for (let state in rules) {
+      if (rules[state].includes(frameObj.sortingChar)) { detectedState = state; break; }
+    }
+
+    const card = document.createElement('div'); card.className = 'frame-card';
+    const tc = document.createElement('canvas'); tc.width = 64; tc.height = 64;
+    tc.getContext('2d').drawImage(frameObj.canvasElement, 0, 0, frameObj.canvasElement.width, frameObj.canvasElement.height, 0, 0, 64, 64);
+
+    const lbl = document.createElement('div'); lbl.style.fontWeight = 'bold'; lbl.style.fontSize = '9px';
+    let computedFinalName = "";
+    
+    if (detectedState === selectedTargetState) {
+      computedFinalName = computeLumpName(customPrefix, targetIndexCounter, rotMode, mirrorMode);
+      lbl.innerText = computedFinalName;
+      targetIndexCounter++;
+    } else {
+      lbl.innerText = `---`;
+    }
+    
+    frameObj.computedFinalName = computedFinalName;
+
+    const badge = document.createElement('div'); badge.className = `state-badge badge-${detectedState}`;
+    badge.innerText = detectedState;
+
+    const keepBox = document.createElement('div'); keepBox.className = 'keep-container';
+    const chk = document.createElement('input'); chk.type = 'checkbox';
+    chk.checked = frameObj.persistent || false; chk.style.margin = '0';
+    chk.onchange = (e) => { frameObj.persistent = e.target.checked; };
+    const chkLabel = document.createElement('label'); chkLabel.innerText = "Keep";
+    
+    keepBox.appendChild(chk); keepBox.appendChild(chkLabel);
+    card.appendChild(tc); card.appendChild(lbl); card.appendChild(badge); card.appendChild(keepBox);
+    timeline.appendChild(card);
+  });
+}
+
+function copyToClipboard() {
+  const textarea = document.getElementById('outputCode'); textarea.select();
+  document.execCommand('copy');
+}
+
+function exportFramesZip() {
+  if (loadedWorkspaceFrames.length === 0) return alert("No active workspace frames.");
+  const customPrefix = document.getElementById('spritePrefix').value.trim();
+  if (!customPrefix) return alert("Specify prefix.");
+
+  const zip = new JSZip(); let addedCount = 0;
+
+  loadedWorkspaceFrames.forEach((frameObj) => {
+    if (frameObj.computedFinalName && frameObj.computedFinalName !== "") {
+      const dataUrl = frameObj.canvasElement.toDataURL("image/png");
+      const base64Data = dataUrl.replace(/^data:image\/(png|jpg);base64,/, "");
+      zip.file(`${frameObj.computedFinalName}.png`, base64Data, { base64: true });
+      addedCount++;
+    }
+  });
+
+  if (addedCount === 0) return alert("No matching state frames discovered to package.");
+
+  zip.generateAsync({ type: "blob" }).then(function (content) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(content);
+    a.download = `${customPrefix}_Optimized_Graphics.zip`; a.click();
+  });
+}
+
+function generateDecorate() {
+  if (loadedWorkspaceFrames.length === 0) return alert("No active frames inside workspace.");
+  const customPrefix = document.getElementById('spritePrefix').value.trim().toUpperCase();
+  if (!customPrefix) return alert("Specify prefix.");
+
+  const actorType = document.getElementById('actorType').value;
+  const actName = document.getElementById('actorName').value.trim();
+  const edNum = document.getElementById('doomEd').value.trim();
+  const rad = document.getElementById('actorRadius').value.trim();
+  const hgt = document.getElementById('actorHeight').value.trim();
+
+  const r1 = document.getElementById('row1Chars').value.toUpperCase().split('');
+  const r2 = document.getElementById('row2Chars').value.toUpperCase().split('');
+  const r3 = document.getElementById('row3Chars').value.toUpperCase().split('');
+  const r4 = document.getElementById('row4Chars').value.toUpperCase().split('');
+  const r5 = document.getElementById('row5Chars').value.toUpperCase().split('');
+
+  let rules = {};
+  if (actorType === "Weapon") rules = { Select: r1, Deselect: r2, Ready: r3, Fire: r4, Reload: r5 };
+  else if (actorType === "Monster") rules = { See: r1, Missile: r2, Spawn: r3, Pain: r4, Death: r5 };
+  else if (actorType === "Decoration") rules = { Spawn: r3, Death: r5 };
+  else if (actorType === "StaticDeco") rules = { Spawn: r3 };
+  else if (actorType === "Projectile") rules = { Spawn: r3, Death: r5 };
+
+  const categorized = {};
+  for (let key in rules) categorized[key] = [];
+
+  loadedWorkspaceFrames.forEach(f => {
+    for (let state in rules) {
+      if (rules[state].includes(f.sortingChar)) { categorized[state].push(f); break; }
+    }
+  });
+
+  const baseAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const limitMax = parseInt(document.getElementById('brightFrames').value) || 0;
+
+  // Knowledge Bank String Guard Rules: Quotes strings that utilize special bracket character symbols
+  function cleanToken(frameChar) {
+    if (["[", "\\", "]"].includes(frameChar)) return `"${customPrefix} ${frameChar}"`;
+    return `${customPrefix} ${frameChar}`;
+  }
+
+  function buildStateBlock(frameArray, defaultLine, actionStr = "", forceBright = false, baseTic = "5") {
+    if (!frameArray || frameArray.length === 0) return `    ${defaultLine}`;
+    let outputLines = [];
+    let count = 0;
+    
+    // Group loops by virtual frame steps depending on directional requirements
+    let distinctFramesCount = Math.ceil(frameArray.length / (document.getElementById('rotationMode').value === "1" ? 1 : 8));
+    if (distinctFramesCount === 0) distinctFramesCount = 1;
+
+    for(let i=0; i<distinctFramesCount; i++) {
+      let letter = baseAlphabet.charAt(i % 26);
+      let bright = (forceBright || (limitMax > 0 && count < limitMax)) ? " Bright" : "";
+      let act = actionStr ? ` ${actionStr}` : "";
+      outputLines.push(`    ${cleanToken(letter)} ${baseTic}${bright}${act}`);
+      count++;
+    }
+    return outputLines.join('\n');
+  }
+
+  let code = "";
+
+  if (actorType === "Weapon") {
+    const actInherit = document.getElementById('actorInherit').value.trim();
+    const wSlot = document.getElementById('weaponSlot').value.trim();
+    const amType = document.getElementById('ammoType').value.trim();
+    const amUse = document.getElementById('ammoUse').value.trim();
+
+    code = `actor ${actName} : ${actInherit} ${edNum}\n{\n`;
+    code += `  Weapon.SlotNumber ${wSlot}\n  Weapon.AmmoType "${amType}"\n  Weapon.AmmoUse ${amUse}\n`;
+    code += `  Radius ${rad}\n  Height ${hgt}\n  States\n  {\n`;
+    code += `  Spawn:\n    ${cleanToken('A')} -1\n    Stop\n\n`;
+    code += `  Ready:\n${buildStateBlock(categorized.Ready, cleanToken('A') + " 1 A_WeaponReady", "A_WeaponReady", false, "1")}\n    Loop\n\n`;
+    code += `  Deselect:\n${buildStateBlock(categorized.Deselect, cleanToken('A') + " 1 A_Lower", "A_Lower", false, "1")}\n    Loop\n\n`;
+    code += `  Select:\n${buildStateBlock(categorized.Select, cleanToken('A') + " 1 A_Raise", "A_Raise", false, "1")}\n    Loop\n\n`;
+    code += `  Fire:\n${buildStateBlock(categorized.Fire, cleanToken('A') + " 1", "", true, "1")}\n    Goto Ready\n\n`;
+    code += `  Reload:\n${buildStateBlock(categorized.Reload, cleanToken('A') + " 1 A_WeaponReady", "A_WeaponReady", false, "1")}\n    Goto Ready\n  }\n}`;
+
+  } else if (actorType === "Monster") {
+    const hp = document.getElementById('actorHealth').value.trim();
+    const mass = document.getElementById('actorMass').value.trim();
+    const speed = document.getElementById('actorSpeed').value.trim();
+    const painCh = document.getElementById('actorPainChance').value.trim();
+    const sSee = document.getElementById('soundSee').value.trim();
+    const sAtt = document.getElementById('soundAttack').value.trim();
+    const sPain = document.getElementById('soundPain').value.trim();
+    const sDth = document.getElementById('soundDeath').value.trim();
+    const sAct = document.getElementById('soundActive').value.trim();
+    const dropItem = document.getElementById('dropItemClass').value.trim();
+    const dropChance = document.getElementById('dropItemProbability').value.trim();
+
+    code = `actor ${actName} ${edNum}\n{\n`;
+    code += `  Health ${hp}\n  Radius ${rad}\n  Height ${hgt}\n  Mass ${mass}\n  Speed ${speed}\n  PainChance ${painCh}\n`;
+    if (sSee) code += `  SeeSound "${sSee}"\n`;
+    if (sAtt) code += `  AttackSound "${sAtt}"\n`;
+    if (sPain) code += `  PainSound "${sPain}"\n`;
+    if (sDth) code += `  DeathSound "${sDth}"\n`;
+    if (sAct) code += `  ActiveSound "${sAct}"\n`;
+    if (dropItem) code += `  DropItem "${dropItem}" ${dropChance}\n`;
+    code += `  Monster\n  +FLOORCLIP\n  States\n  {\n`;
+    code += `  Spawn:\n${buildStateBlock(categorized.Spawn, "POSS AB 10 A_Look", "A_Look", false, "10")}\n    Loop\n\n`;
+    code += `  See:\n${buildStateBlock(categorized.See, "POSS AABBCCDD 4 A_Chase", "A_Chase", false, "4")}\n    Loop\n\n`;
+    
+    if (categorized.Missile && categorized.Missile.length > 0) {
+      let mLines = [];
+      let steps = Math.ceil(categorized.Missile.length / 8); if (steps === 0) steps = 2;
+      for(let i=0; i<steps; i++){
+        let ch = baseAlphabet.charAt(i%26);
+        if (i === 0) mLines.push(`    ${cleanToken(ch)} 10 A_FaceTarget`);
+        else if (i === 1) mLines.push(`    ${cleanToken(ch)} 8 A_PosAttack`);
+        else mLines.push(`    ${cleanToken(ch)} 8`);
+      }
+      mLines.push(`    Goto See`);
+      code += `  Missile:\n${mLines.join('\n')}\n\n`;
+    } else {
+      code += `  Missile:\n    ${cleanToken('E')} 10 A_FaceTarget\n    ${cleanToken('F')} 8 A_PosAttack\n    ${cleanToken('E')} 8\n    Goto See\n\n`;
+    }
+
+    code += `  Pain:\n${buildStateBlock(categorized.Pain, "POSS G 3 A_Pain", "A_Pain", false, "3")}\n    Goto See\n\n`;
+    
+    if (categorized.Death && categorized.Death.length >= 3) {
+      let lines = [];
+      let steps = Math.ceil(categorized.Death.length / 8); if(steps < 3) steps = 3;
+      for (let i = 0; i < steps; i++) {
+        let ch = baseAlphabet.charAt(i % 26);
+        let act = "";
+        if (i === 1) act = " A_Scream";
+        if (i === 2) act = " A_NoBlocking";
+        lines.push(`    ${cleanToken(ch)} ${i === steps - 1 ? "-1" : "5"}${act}`);
+      }
+      code += `  Death:\n${lines.join('\n')}\n    Stop\n\n`;
+    } else {
+      code += `  Death:\n    ${cleanToken('H')} 5\n    ${cleanToken('I')} 5 A_Scream\n    ${cleanToken('J')} 5 A_NoBlocking\n    ${cleanToken('K')} 5\n    ${cleanToken('L')} -1\n    Stop\n\n`;
+    }
+    code += `  XDeath:\n    ${cleanToken('M')} 5\n    ${cleanToken('N')} 5 A_XScream\n    ${cleanToken('O')} 5 A_NoBlocking\n    ${cleanToken('P')} 5\n    ${cleanToken('Q')} -1\n    Stop\n  }\n}`;
+
+  } else if (actorType === "Decoration") {
+    const hp = document.getElementById('actorHealth').value.trim();
+    const mass = document.getElementById('actorMass').value.trim();
+    const sDth = document.getElementById('soundDeath').value.trim();
+
+    code = `actor ${actName} ${edNum}\n{\n  Health ${hp}\n  Radius ${rad}\n  Height ${hgt}\n  Mass ${mass}\n`;
+    if (sDth) code += `  DeathSound "${sDth}"\n`;
+    code += `  +SHOOTABLE\n  +SOLID\n  +NOBLOOD\n  States\n  {\n`;
+    code += `  Spawn:\n${buildStateBlock(categorized.Spawn, "HAWA A -1 Bright", "Bright", true, "-1")}\n    Loop\n\n`;
+    code += `  Death:\n${buildStateBlock(categorized.Death, "HAWA B 11 A_Scream", "A_Scream", false, "11")}\n    Stop\n  }\n}`;
+
+  } else if (actorType === "StaticDeco") {
+    code = `actor ${actName} ${edNum}\n{\n  Height ${hgt}\n  Radius ${rad}\n  +SOLID\n  States\n  {\n  Spawn:\n`;
+    if (categorized.Spawn && categorized.Spawn.length > 0) {
+      let lines = [];
+      let totalItems = Math.ceil(categorized.Spawn.length / (document.getElementById('rotationMode').value === "1" ? 1 : 8));
+      for(let i=0; i<totalItems; i++) {
+        let ltr = baseAlphabet.charAt(i % 26);
+        let brightStr = (i % 2 === 1) ? " Bright" : "";
+        lines.push(`    ${cleanToken(ltr)} 10${brightStr}`);
+      }
+      code += `${lines.join('\n')}\n    Loop\n  }\n}`;
+    } else {
+      code += `    ${cleanToken('A')} 10\n    ${cleanToken('B')} 10 Bright\n    ${cleanToken('C')} 10\n    Loop\n  }\n}`;
+    }
+
+  } else if (actorType === "Projectile") {
+    const dmg = document.getElementById('projectileDamage').value.trim();
+    const spd = document.getElementById('projectileSpeed').value.trim();
+    const rend = document.getElementById('projectileRender').value.trim();
+    const alpha = document.getElementById('projectileAlpha').value.trim();
+    const sSee = document.getElementById('soundSee').value.trim();
+    const sDth = document.getElementById('soundDeath').value.trim();
+
+    code = `actor ${actName} ${edNum}\n{\n  height ${hgt}\n  radius ${rad}\n  damage ${dmg}\n  speed ${spd}\n`;
+    if (rend) code += `  renderstyle ${rend}\n`;
+    if (alpha) code += `  alpha ${alpha}\n`;
+    if (sSee) code += `  seesound "${sSee}"\n`;
+    if (sDth) code += `  deathsound "${sDth}"\n`;
+    code += `  PROJECTILE\n  +RANDOMIZE\n  states\n  {\n`;
+    code += `  Spawn:\n${buildStateBlock(categorized.Spawn, "WS16 AB 4 bright", "bright", true, "4")}\n    loop\n\n`;
+    code += `  Death:\n${buildStateBlock(categorized.Death, "WS16 CDE 6 bright", "bright", true, "6")}\n    stop\n  }\n}`;
+  }
+
+  document.getElementById('outputCode').value = code;
+}
+</script>
+</body>
+</html>

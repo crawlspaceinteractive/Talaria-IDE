@@ -1,0 +1,62 @@
+{
+  "id": "phase2",
+  "icon": "🧟",
+  "title": "Phase 2 – Core Gameplay Loop",
+  "systems": [
+    {
+      "name": "2.1 Enemy AI & Behaviour",
+      "status": "in‑progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Refine zombie pathfinding, attack patterns, and special abilities. Add variability: some zombies rush, some throw projectiles, some explode on death.",
+      "tasks": [
+        "Implement multiple enemy types (grunt, spitter, charger, bloater)",
+        "Add enemy‑specific attack animations and timings",
+        "Flocking behaviour: enemies avoid clustering and surround player",
+        "Boss battles every 3rd wave with unique mechanics"
+      ]
+    },
+    {
+      "name": "2.2 Weapons & Combat Feel",
+      "status": "in‑progress",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Add more weapon variety beyond the starting pistol. Shotgun, assault rifle, grenade launcher, melee. Each with distinct feedback, reload, and ammo management.",
+      "tasks": [
+        "Add weapon pickup system (ground loot or shop)",
+        "Implement alt‑fire for each weapon",
+        "Add hit markers, damage numbers, and screen shake",
+        "Balance ammo drops and weapon damage per wave"
+      ]
+    },
+    {
+      "name": "2.3 Player Abilities & Progression",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_1"],
+      "notes": "Introduce a simple upgrade system: earn points to buy temporary power‑ups (speed boost, double damage, healing totem). Add a dash or dodge mechanic.",
+      "tasks": [
+        "Dash ability with cooldown and invulnerability frames",
+        "Power‑up station that spawns between waves",
+        "Persistent currency (gold) earned from kills",
+        "Shop menu during intermission"
+      ]
+    },
+    {
+      "name": "2.4 Wave Scaling & Pacing",
+      "status": "in‑progress",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase2_0"],
+      "notes": "Ensure wave difficulty scales smoothly with player count and wave number. Add mini‑bosses, increasing spawn rates, and environmental hazards.",
+      "tasks": [
+        "Tune HP and speed multipliers per wave",
+        "Add random special wave events (fog, darkness, double enemies)",
+        "Implement grace period between waves for healing/ammo"
+      ]
+    }
+  ]
+}

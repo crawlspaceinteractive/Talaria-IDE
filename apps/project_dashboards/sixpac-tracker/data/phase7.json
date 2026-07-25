@@ -1,0 +1,33 @@
+{
+  "id": "phase7",
+  "icon": "📦",
+  "title": "Phase 7 – Emulator & Distribution",
+  "systems": [
+    {
+      "name": "7.1 ROM Packaging & Playtesting",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "Assemble final ROM image, test on multiple Dragon Palm emulators and real hardware if possible. Ensure compatibility.",
+      "tasks": [
+        "Build ROM with proper header",
+        "Test on emulator (e.g., custom toolchain)",
+        "Burn to physical EEPROM for console testing"
+      ]
+    },
+    {
+      "name": "7.2 Documentation & Source Release",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "Write a README with assembly instructions, memory map, and control scheme. Publish source on GitHub.",
+      "tasks": [
+        "Create README.md with build instructions",
+        "Comment the final source code thoroughly",
+        "Release under an open‑source license"
+      ]
+    }
+  ]
+}

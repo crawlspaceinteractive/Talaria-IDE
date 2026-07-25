@@ -1,0 +1,49 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Polish & Release",
+  "systems": [
+    {
+      "name": "7.1 Performance Optimization",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Ensure smooth 60fps on all target devices. Optimize sprite rendering and audio.",
+      "tasks": [
+        "Profile and reduce GC pressure",
+        "Sprite atlas batching",
+        "Mobile browser compatibility",
+        "Frame pacing and delta time fix"
+      ]
+    },
+    {
+      "name": "7.2 Bug Fixing & Balance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting with multiple players. Tweak damage values, enemy HP, and special costs.",
+      "tasks": [
+        "Damage and HP balance pass",
+        "Collision edge case fixes",
+        "Multiplayer stability testing",
+        "Input lag and dropped frames"
+      ]
+    },
+    {
+      "name": "7.3 Distribution & Launch",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package as web app, deploy to itch.io and GitHub Pages. Prepare press kit.",
+      "tasks": [
+        "Offline‑friendly build",
+        "itch.io page with trailer",
+        "GitHub Pages deployment",
+        "Press kit and screenshots"
+      ]
+    }
+  ]
+}

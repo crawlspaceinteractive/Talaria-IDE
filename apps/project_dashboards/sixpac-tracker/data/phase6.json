@@ -1,0 +1,32 @@
+{
+  "id": "phase6",
+  "icon": "⚡",
+  "title": "Phase 6 – Performance & Code Optimization",
+  "systems": [
+    {
+      "name": "6.1 Code Size Reduction",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "The current collision detection and input handling are very repetitive. Refactor into loops or subroutines to free ROM space for new features.",
+      "tasks": [
+        "Replace cascading input bit checks with a loop over an input‑mask table",
+        "Generalize collision detection into a single subroutine",
+        "Remove duplicate sprite‑draw call stubs by using a jump table"
+      ]
+    },
+    {
+      "name": "6.2 Cycle Counting & Frame Rate Stability",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Ensure the game runs at a stable frame rate even with many sprites. Profile worst‑case paths and optimize hot loops.",
+      "tasks": [
+        "Count cycles in DRAW_SPRITE and optimize pixel write",
+        "Implement a simple frame limiter (wait for VBLANK) if available"
+      ]
+    }
+  ]
+}

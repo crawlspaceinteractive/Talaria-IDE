@@ -1,0 +1,78 @@
+{
+  "id": "phase3",
+  "icon": "💀",
+  "title": "Phase 3 – DOOM-Level Content & Features",
+  "systems": [
+    {
+      "name": "3.1 Advanced Level Geometry",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase2_0"],
+      "notes": "Add support for pillars, ledges, platforms, and multi-height rooms. Enable sky windows and open areas.",
+      "tasks": [
+        "Pillars and columns (non-separating geometry)",
+        "Ledges and balconies",
+        "Platforms at different heights in same room",
+        "Sky windows (texture that draws sky)",
+        "Outdoor areas with sky ceiling"
+      ]
+    },
+    {
+      "name": "3.2 Keycards & Locked Doors",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_1"],
+      "notes": "Implement DOOM-style keycard progression: red/blue/yellow keys and matching locked doors.",
+      "tasks": [
+        "Key item pickups",
+        "Locked door segments that require specific key",
+        "HUD key indicator",
+        "Sound feedback"
+      ]
+    },
+    {
+      "name": "3.3 Multi-Level Episode Flow",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase2_3"],
+      "notes": "Create campaign structure: exit switches, intermission screen, cumulative stats.",
+      "tasks": [
+        "Exit switch at end of level",
+        "Intermission screen (kills, items, secrets)",
+        "Carry over weapons/health between levels",
+        "Episode completion screen"
+      ]
+    },
+    {
+      "name": "3.4 Monster Variety & AI",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Add more enemy types beyond the current ones. Improve pathfinding and monster closets.",
+      "tasks": [
+        "Design 3-5 new enemy types with unique behaviors",
+        "Animated spritesheets for new enemies",
+        "Monster closet triggers (line-of-sight, sound)",
+        "Basic pathfinding around obstacles"
+      ]
+    },
+    {
+      "name": "3.5 Weapons & Combat Polish",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase3_4"],
+      "notes": "Balance all weapons, add alt-fires, improve feedback (screen shake, blood particles).",
+      "tasks": [
+        "Add remaining weapons from shop (cannon, double plasma blaster)",
+        "Alt-fire modes for existing weapons",
+        "Screen shake on explosions",
+        "Enemy pain and death animations"
+      ]
+    }
+  ]
+}

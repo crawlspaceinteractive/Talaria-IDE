@@ -1,0 +1,56 @@
+{
+  "id": "phase1",
+  "icon": "🚀",
+  "title": "Phase 1 – Getting Started",
+  "systems": [
+    {
+      "name": "1.1 Installation & Setup",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 0.5,
+      "dependencies": [],
+      "notes": "Download and install Blockbench from blockbench.net. Works on Windows, macOS, and Linux.",
+      "tasks": [
+        {
+          "text": "Download Blockbench from the official site",
+          "link": "https://www.blockbench.net/download"
+        },
+        {
+          "text": "Install and launch the application",
+          "notes": "No admin rights needed – just unpack and run."
+        }
+      ]
+    },
+    {
+      "name": "1.2 Interface & Navigation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 1,
+      "dependencies": [],
+      "notes": "Learn the viewport, outliner, toolbar, and keybindings.",
+      "tasks": [
+        {
+          "text": "Watch the official Quick Start video",
+          "link": "https://www.youtube.com/watch?v=jU4bAbNxV7s"
+        },
+        "Practise rotating/panning/zooming the 3D view",
+        "Locate the Outliner, UV Panel, and Animation panel",
+        "Customise the interface layout to your liking"
+      ]
+    },
+    {
+      "name": "1.3 First Simple Model",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 1.5,
+      "dependencies": ["phase1_0"],
+      "notes": "Create a basic cube model, add a texture, and export it.",
+      "tasks": [
+        "Create a new generic model project",
+        "Add a cube and resize it",
+        "Apply a simple colour (per‑face or texture)",
+        "Export as .glb or .obj"
+      ]
+    }
+  ]
+}

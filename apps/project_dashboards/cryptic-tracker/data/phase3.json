@@ -1,0 +1,49 @@
+{
+  "id": "phase3",
+  "icon": "🎒",
+  "title": "Phase 3 – Player & Inventory",
+  "systems": [
+    {
+      "name": "3.1 Player State & Health",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_3"],
+      "notes": "Finite health (no regeneration), damage reaction, death animation. Health items (herbs, first‑aid) and temporary status (poison).",
+      "tasks": [
+        "Health value and damage system",
+        "Player hurt animation and invincibility frames",
+        "Poison status (slow HP drain)",
+        "Death screen and continue"
+      ]
+    },
+    {
+      "name": "3.2 Inventory System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_1"],
+      "notes": "Grid‑based or list inventory. Examine, use, combine items. Limited capacity. Classic horror item management.",
+      "tasks": [
+        "Inventory UI panel (overlay or menu)",
+        "Item pickup with description",
+        "Combine items (e.g., gem + scepter)",
+        "Discard / storage box functionality"
+      ]
+    },
+    {
+      "name": "3.3 Weapons & Combat",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 14,
+      "dependencies": ["phase3_0", "phase4_0"],
+      "notes": "Limited ammo, manual aiming (press aim button, then fire). Melee weapons as backup. Ammo conservation is key.",
+      "tasks": [
+        "Equip weapon and aim mode",
+        "Bullet projectile with collision",
+        "Melee weapon swing arc",
+        "Ammo management and reload"
+      ]
+    }
+  ]
+}

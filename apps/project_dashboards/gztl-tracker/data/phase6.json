@@ -1,0 +1,45 @@
+{
+  "id": "phase6",
+  "icon": "🛠️",
+  "title": "Phase 6 – Editor Integration & Tooling",
+  "systems": [
+    {
+      "name": "6.1 Godot Editor Plugin Enhancements",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Improve the in-editor experience: live lump preview, property inspectors for DECORATE actors, map metadata editors.",
+      "tasks": [
+        "Add lump content preview panels",
+        "DECORATE actor property inspector",
+        "MAPINFO visual editor for episode flow"
+      ]
+    },
+    {
+      "name": "6.2 Mod Packaging Tools",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Create tools to package Godot projects as standalone PK3 mods or export them for ZDoom-compatible engines.",
+      "tasks": [
+        "Export Godot scene as PWAD / PK3",
+        "Convert Godot assets back to Doom formats"
+      ]
+    },
+    {
+      "name": "6.3 Debugging & Profiling Tools",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_4"],
+      "notes": "Add ACS script debugging, actor state inspection, and performance profiling overlays.",
+      "tasks": [
+        "ACS VM breakpoint and step debugging",
+        "Actor inspector: view current state, health, target",
+        "Frame profiler showing tick time, draw calls"
+      ]
+    }
+  ]
+}

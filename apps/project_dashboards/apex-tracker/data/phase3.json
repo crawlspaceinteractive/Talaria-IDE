@@ -1,0 +1,48 @@
+{
+  "id": "phase3",
+  "icon": "🤖",
+  "title": "Phase 3 – AI Opponents & Race Mechanics",
+  "systems": [
+    {
+      "name": "3.1 AI Racer Controller",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_0", "phase2_0"],
+      "notes": "Path-following AI with rubberbanding and personality. Uses track spline as navigation.",
+      "tasks": [
+        "Spline following with lateral offset variance",
+        "Speed control based on difficulty and proximity",
+        "Rubberbanding logic (catch-up / pull-away)",
+        "AI awareness of power‑ups and hazards"
+      ]
+    },
+    {
+      "name": "3.2 Race Rules & State Machine",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_0"],
+      "notes": "Lap counting, checkpoint validation, position tracking, and finish ordering.",
+      "tasks": [
+        "Checkpoint system with sector validation",
+        "Lap counter and best lap time",
+        "Position display (1st, 2nd, etc.)",
+        "Race start countdown and false-start penalty"
+      ]
+    },
+    {
+      "name": "3.3 Difficulty & Progression",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase3_0"],
+      "notes": "Multiple AI difficulty levels, track speed classes, and unlockable cups.",
+      "tasks": [
+        "Easy/Normal/Hard AI presets",
+        "Vehicle class system (speed, handling, acceleration)",
+        "Cup progression (Bronze → Gold → Legend)"
+      ]
+    }
+  ]
+}

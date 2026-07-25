@@ -1,0 +1,81 @@
+{
+  "id": "phase2",
+  "icon": "🦄",
+  "title": "Phase 2 – Characters & Customisation",
+  "systems": [
+    {
+      "name": "2.1 All 4 Unicorns & Stat Differentiation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_2"],
+      "notes": "Implement Nyx, Prism, Ember with unique stats and default weapons. Each must feel distinct in gameplay.",
+      "tasks": [
+        "Nyx: high speed, low strength, Piercing Horn default",
+        "Prism: balanced, Whip Horn default",
+        "Ember: high special power, Blast Horn default",
+        "Character select screen with stat preview"
+      ]
+    },
+    {
+      "name": "2.2 Weapon System (All Horn Styles)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_1"],
+      "notes": "Implement all 5 horn weapons with unique attack patterns, range, and speed.",
+      "tasks": [
+        "Broad Horn: wide arc, hits multiple enemies",
+        "Piercing Horn: fast single‑target thrust",
+        "Whip Horn: long reach, knockback, lower damage",
+        "Spiral Horn: multi‑hit combo",
+        "Hammer Horn: stun/knockdown effect"
+      ]
+    },
+    {
+      "name": "2.3 Horn Powers (Special Abilities)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_2"],
+      "notes": "Full roster of horn powers: Prismatic Burst, Twilight Dash, Sunflare, Inferno Charge, Ethereal Pulse, plus variants.",
+      "tasks": [
+        "Prismatic Burst (AoE blast, invuln frames)",
+        "Sunflare (spinning AoE, health drain)",
+        "Inferno Charge (rush + burn damage)",
+        "Ethereal Pulse (heal + attack speed buff)",
+        "Visual and audio feedback for each power"
+      ]
+    },
+    {
+      "name": "2.4 Passive Traits",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Choose 1 per run. Momentum, Lifesteal, Reflect, Shared Fate, Endless Horn, Executioner.",
+      "tasks": [
+        "Momentum: stack damage on consecutive hits, reset on damage",
+        "Lifesteal: 15% damage to health",
+        "Reflect: dodge‑timing returns projectiles",
+        "Shared Fate: co‑op damage sharing",
+        "Endless Horn: reduced cooldown",
+        "Executioner: 2x damage to low‑HP enemies"
+      ]
+    },
+    {
+      "name": "2.5 Cosmetic System",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Mane styles, horn auras, coat colors, tail effects, armor overlays. Unlockable via Essence.",
+      "tasks": [
+        "Define cosmetic slots and data structures",
+        "Create at least 3 mane variations per unicorn",
+        "Implement horn color/aura swapping",
+        "Armor overlay system (layered sprites)"
+      ]
+    }
+  ]
+}

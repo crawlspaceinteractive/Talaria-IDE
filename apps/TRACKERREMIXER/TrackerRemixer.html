@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win95 Audio Tracker Engine + Harmonic Riff Ripper</title>
+    <style>
+        /* Classic Windows 95 Fixed Raster Interface Palette */
+        :root {
+            --win-bg: #114499;          /* Classic Cobalt Desktop background */
+            --face: #c9c9c9;            /* Standard 3D structural gray */
+            --hilite: #ffffff;          /* Top/Left beveled edge light reflection */
+            --shadow: #808080;          /* Bottom/Right bevel shade shadow */
+            --dark-shadow: #0a0a0a;     /* Heavy outer window border edge line */
+            --win-blue: #000080;        /* Focused title bar gradient root */
+            --win-blue-txt: #ffffff;    /* Title bar text foreground */
+            --screen-bg: #000000;      /* Internal tracker display terminal matrix */
+            --font-stack: "MS Sans Serif", "Courier New", monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-stack);
+            font-size: 11px;
+            -webkit-font-smoothing: none;
+            image-rendering: pixelated;
+        }
+
+        body {
+            background-color: var(--win-bg);
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        /* Fixed structural sizing to match classic UI geometry scaling layouts */
+        .window {
+            width: 820px;
+            background-color: var(--face);
+            border: 2px solid;
+            border-top-color: var(--hilite);
+            border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow);
+            border-bottom-color: var(--dark-shadow);
+            padding: 3px;
+            box-shadow: 1px 1px 0px var(--shadow);
+        }
+
+        .title-bar {
+            background: linear-gradient(90deg, var(--win-blue), #1084d0);
+            color: var(--win-blue-txt);
+            padding: 3px 4px 4px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .title-controls button {
+            width: 14px;
+            height: 14px;
+            background-color: var(--face);
+            border: 1px solid;
+            border-top-color: var(--hilite);
+            border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow);
+            border-bottom-color: var(--dark-shadow);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            padding-bottom: 2px;
+        }
+
+        /* Menu Bar Header Layout */
+        .menu-bar {
+            display: flex;
+            gap: 12px;
+            padding: 4px 4px;
+            border-bottom: 1px solid var(--shadow);
+            margin-bottom: 6px;
+        }
+
+        .menu-item {
+            cursor: default;
+            color: #000000;
+        }
+        .menu-item span { text-decoration: underline; }
+
+        /* Workspace Grid Matrix Sections */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .panel {
+            border: 2px solid;
+            border-top-color: var(--shadow);
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 8px;
+            background-color: var(--face);
+        }
+
+        /* Transport Control Blocks and Entry Modifiers */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        button.win-btn {
+            background-color: var(--face);
+            border: 2px solid;
+            border-top-color: var(--hilite);
+            border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow);
+            border-bottom-color: var(--dark-shadow);
+            padding: 4px 10px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        button.win-btn:active, button.win-btn.pressed {
+            border-top-color: var(--dark-shadow);
+            border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 5px 9px 3px 11px;
+        }
+
+        .field-box {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .field-box label {
+            color: #000000;
+        }
+
+        .win-input {
+            background-color: #ffffff;
+            border: 2px solid;
+            border-top-color: var(--shadow);
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 2px 4px;
+            color: #000000;
+            outline: none;
+            width: 50px;
+        }
+
+        .win-select {
+            background-color: #ffffff;
+            border: 2px solid;
+            border-top-color: var(--shadow);
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 2px;
+            outline: none;
+        }
+
+        /* Arrangement Timeline Chainer Array Header UI */
+        .arranger-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .pattern-selector-group {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .playlist-display {
+            background: #ffffff;
+            border: 2px solid;
+            border-top-color: var(--shadow);
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 3px 6px;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            color: #000000;
+            letter-spacing: 1px;
+        }
+
+        /* Riff Ripper Dedicated Structural Layout Frame */
+        .riff-ripper-panel {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            background: #b8b8b8;
+            border: 1px dashed var(--shadow);
+        }
+
+        .ripper-title {
+            font-weight: bold;
+            color: #000080;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+
+        /* FastTracker System Terminal Grid Row Styles */
+        .tracker-terminal {
+            background-color: var(--screen-bg);
+            border: 2px solid;
+            border-top-color: var(--dark-shadow);
+            border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            height: 340px;
+            overflow-y: scroll;
+            padding: 4px;
+        }
+
+        /* Fixed columns alignment table layout mapping rules */
+        .terminal-header {
+            display: grid;
+            grid-template-columns: 40px repeat(4, 1fr);
+            border-bottom: 1px solid #333333;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+            position: sticky;
+            top: 0;
+            background-color: var(--screen-bg);
+            z-index: 10;
+        }
+
+        .header-cell {
+            color: #00ff00;
+            font-weight: bold;
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-row {
+            display: grid;
+            grid-template-columns: 40px repeat(4, 1fr);
+            padding: 1px 0px;
+            align-items: center;
+        }
+
+        .step-row.active-row {
+            background-color: #000080;
+        }
+
+        .row-num {
+            color: #808080;
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+        }
+        .step-row.active-row .row-num {
+            color: #ffffff;
+        }
+
+        /* Note sub-columns lane entry slots styling rules */
+        .lane-cell {
+            display: flex;
+            gap: 4px;
+            font-family: "Courier New", monospace;
+            font-size: 12px;
+            color: #00ff00;
+            cursor: pointer;
+            padding: 2px;
+        }
+
+        .lane-cell:hover {
+            background-color: #222222;
+        }
+
+        .lane-cell select {
+            background: transparent;
+            border: none;
+            color: #00ff00;
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+            outline: none;
+            cursor: pointer;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .lane-cell select option {
+            background-color: var(--screen-bg);
+            color: #00ff00;
+        }
+
+        .lane-cell .slot-note { color: #ffeb3b; width: 28px; }
+        .lane-cell .slot-oct { color: #00bcd4; width: 10px; }
+        .lane-cell .slot-vol { color: #e91e63; width: 18px; }
+
+        /* IO Processing Footer Ports */
+        .io-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .hidden-input { display: none; }
+    </style>
+    <!-- Embedded structural MIDI IO parsing engine framework wrapper -->
+    <script src="https://unpkg.com/@tonejs/midi"></script>
+</head>
+<body>
+
+    <div class="window">
+        <!-- System Window Frame Header Title Container Context -->
+        <div class="title-bar">
+            <span class="title-text">MICRO-TRACKER WORKSTATION v1.95 // [RIFF RIPPER EXTENSION]</span>
+            <div class="title-controls">
+                <button onclick="window.location.reload()">X</button>
+            </div>
+        </div>
+
+        <!-- Classic Windows Top Application Native Menu Bar Elements -->
+        <div class="menu-bar">
+            <div class="menu-item"><span>F</span>ile</div>
+            <div class="menu-item"><span>E</span>dit</div>
+            <div class="menu-item"><span>P</span>attern</div>
+            <div class="menu-item"><span>O</span>ptions</div>
+            <div class="menu-item"><span>H</span>elp</div>
+        </div>
+
+        <div class="workspace">
+            <!-- Panel Block 1: Master Timing & Transport Controls Configuration -->
+            <div class="panel toolbar">
+                <div class="btn-group">
+                    <button class="win-btn" id="playBtn">PLAY</button>
+                    <button class="win-btn" id="stopBtn">STOP</button>
+                    <button class="win-btn" id="clearBtn">CLEAR</button>
+                </div>
+                
+                <div class="field-box">
+                    <label>BPM:</label>
+                    <input type="number" class="win-input" id="bpmInput" min="60" max="220" value="125">
+                </div>
+            </div>
+
+            <!-- Panel Block 2: Playlist Timeline Pattern Arranger Link Chain -->
+            <div class="panel arranger-row">
+                <div class="field-box">
+                    <label>EDITING PATTERN:</label>
+                    <div class="pattern-selector-group">
+                        <button class="win-btn" id="prevPatBtn" style="padding:2px 6px;"><</button>
+                        <input type="text" class="win-input" id="currentPatternIdx" value="00" readonly style="width:30px; text-align:center; background:#e0e0e0;">
+                        <button class="win-btn" id="nextPatBtn" style="padding:2px 6px;">></button>
+                    </div>
+                </div>
+
+                <div class="field-box">
+                    <label>PLAYLIST CHAIN:</label>
+                    <div class="playlist-display" id="playlistChainDisplay">00 → 01 → 00 → 02</div>
+                    <button class="win-btn" id="appendChainBtn">APPEND</button>
+                </div>
+            </div>
+
+            <!-- Panel Block 3: The Riff Ripper Mutation Modifier Module -->
+            <div class="panel riff-ripper-panel">
+                <span class="ripper-title">🎛️ Riff Ripper v1.1:</span>
+                
+                <div class="field-box">
+                    <label>MODE:</label>
+                    <select class="win-select" id="ripperMode">
+                        <option value="invert">INVERT (REFLECTIVE FIFTH)</option>
+                        <option value="retrograde">RETROGRADE (GLOBAL REVERSE)</option>
+                        <option value="euclidean">SHUFFLE (EUCLIDEAN TIMING)</option>
+                        <option value="octaveShred">OCTAVE SHREDDER</option>
+                    </select>
+                </div>
+
+                <div class="field-box">
+                    <label>INTENSITY:</label>
+                    <select class="win-select" id="ripperIntensity">
+                        <option value="0.25">25%</option>
+                        <option value="0.50" selected>50%</option>
+                        <option value="0.75">75%</option>
+                        <option value="1.00">100%</option>
+                    </select>
+                </div>
+
+                <button class="win-btn" id="ripBtn" style="background:#4b4b4b; color:#ffffff; font-weight:bold;">RIP GLOBAL ARRANGEMENT</button>
+            </div>
+
+            <!-- Panel Block 4: The Native FastTracker Terminal Matrix Data Display Grid -->
+            <div class="panel tracker-terminal" id="terminalScrollMatrix">
+                <div class="terminal-header">
+                    <div class="header-cell">Row</div>
+                    <div class="header-cell">Track 1</div>
+                    <div class="header-cell">Track 2</div>
+                    <div class="header-cell">Track 3</div>
+                    <div class="header-cell">Track 4</div>
+                </div>
+                <div id="matrixRowsContainer"></div>
+            </div>
+
+            <!-- Panel Block 5: Structural Data File Storage IO Port Systems -->
+            <div class="io-footer">
+                <label for="midiImport" class="win-btn" style="cursor:pointer; display:inline-block; padding: 4px 10px;">
+                    LOAD .MID
+                    <input type="file" id="midiImport" class="hidden-input" accept=".mid,.midi">
+                </label>
+                <button class="win-btn" id="exportBtn">SAVE .MID</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MAX_STEPS = 16;
+        const TRACK_COUNT = 4;
+        
+        const noteStrings = ['---', 'C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-'];
+        const volumeOptions = ['--', '99', '80', '60', '40', '20'];
+
+        let patternBanks = {
+            "00": createBlankPatternMatrix(),
+            "01": createBlankPatternMatrix(),
+            "02": createBlankPatternMatrix(),
+            "03": createBlankPatternMatrix()
+        };
+        
+        let currentEditingPattern = "00";
+        let masterPlaylistSequence = ["00", "01", "00", "02"]; 
+        
+        let audioCtx = null;
+        let isPlaying = false;
+        let timelineStepIdx = 0;       
+        let activeChainPointer = 0;    
+        let clockIntervalId = null;
+
+        function createBlankPatternMatrix() {
+            let patternStructure = [];
+            for (let s = 0; s < MAX_STEPS; s++) {
+                let stepColumns = [];
+                for (let t = 0; t < TRACK_COUNT; t++) {
+                    stepColumns.push({ note: '---', octave: '4', volume: '--' });
+                }
+                patternStructure.push(stepColumns);
+            }
+            return patternStructure;
+        }
+
+        function renderTerminalGridRows() {
+            const container = document.getElementById('matrixRowsContainer');
+            container.innerHTML = '';
+            
+            const currentPatternData = patternBanks[currentEditingPattern];
+
+            for (let stepIdx = 0; stepIdx < MAX_STEPS; stepIdx++) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'step-row';
+                rowDiv.id = `tracker-row-${stepIdx}`;
+
+                const rowNumDiv = document.createElement('div');
+                rowNumDiv.className = 'row-num';
+                rowNumDiv.textContent = stepIdx.toString().padStart(2, '0');
+                rowDiv.appendChild(rowNumDiv);
+
+                for (let trackIdx = 0; trackIdx < TRACK_COUNT; trackIdx++) {
+                    const trackData = currentPatternData[stepIdx][trackIdx];
+                    const laneCell = document.createElement('div');
+                    laneCell.className = 'lane-cell';
+                    
+                    const noteSelect = document.createElement('select');
+                    noteSelect.className = 'slot-note';
+                    noteStrings.forEach(nStr => {
+                        const opt = document.createElement('option');
+                        opt.value = nStr;
+                        opt.textContent = nStr;
+                        if (nStr === trackData.note) opt.selected = true;
+                        noteSelect.appendChild(opt);
+                    });
+                    noteSelect.addEventListener('change', (e) => {
+                        trackData.note = e.target.value;
+                        if(trackData.note !== '---' && !isPlaying) triggerAudioVoice(convertDataToMidiPitch(trackData), 0.15);
+                    });
+
+                    const octSelect = document.createElement('select');
+                    octSelect.className = 'slot-oct';
+                    for(let o = 2; o <= 6; o++) {
+                        const opt = document.createElement('option');
+                        opt.value = o;
+                        opt.textContent = o;
+                        if (o.toString() === trackData.octave) opt.selected = true;
+                        octSelect.appendChild(opt);
+                    }
+                    octSelect.addEventListener('change', (e) => trackData.octave = e.target.value);
+
+                    const volSelect = document.createElement('select');
+                    volSelect.className = 'slot-vol';
+                    volumeOptions.forEach(vStr => {
+                        const opt = document.createElement('option');
+                        opt.value = vStr;
+                        opt.textContent = vStr;
+                        if (vStr === trackData.volume) opt.selected = true;
+                        volSelect.appendChild(opt);
+                    });
+                    volSelect.addEventListener('change', (e) => trackData.volume = e.target.value);
+
+                    laneCell.appendChild(noteSelect);
+                    laneCell.appendChild(octSelect);
+                    laneCell.appendChild(volSelect);
+                    rowDiv.appendChild(laneCell);
+                }
+
+                container.appendChild(rowDiv);
+            }
+            updatePlaylistChainUiText();
+        }
+
+        function convertDataToMidiPitch(trackNode) {
+            if (trackNode.note === '---') return null;
+            const pitchOffsetMap = { 'C-': 0, 'C#': 1, 'D-': 2, 'D#': 3, 'E-': 4, 'F-': 5, 'F#': 6, 'G-': 7, 'G#': 8, 'A-': 9, 'A#': 10, 'B-': 11 };
+            const relativeBase = pitchOffsetMap[trackNode.note];
+            const octaveMultiplier = (parseInt(trackNode.octave) + 1) * 12;
+            return octaveMultiplier + relativeBase;
+        }
+
+        function convertMidiPitchToData(midiPitch) {
+            let clampedPitch = Math.max(48, Math.min(107, midiPitch)); // Keeps display inside C2 to B6 boundary
+            const pitchOffsetValue = clampedPitch % 12;
+            const targetOctaveValue = Math.floor(clampedPitch / 12) - 1;
+            const referenceReverseNoteNamesMap = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-'];
+            return {
+                note: referenceReverseNoteNamesMap[pitchOffsetValue],
+                octave: targetOctaveValue.toString()
+            };
+        }
+
+        // Algorithmic Riff Ripper Core Engine - Global Arrangement Multi-Pattern Mutation
+        function executeRiffRipperMutation() {
+            const mode = document.getElementById('ripperMode').value;
+            const intensity = parseFloat(document.getElementById('ripperIntensity').value);
+
+            if (mode === 'retrograde') {
+                // 1. Extract every single lane row across the ENTIRE playlist sequence into a linear timeline stream
+                let globalTrackCaches = Array.from({ length: TRACK_COUNT }, () => []);
+
+                masterPlaylistSequence.forEach(patternKey => {
+                    const patternData = patternBanks[patternKey];
+                    for (let s = 0; s < MAX_STEPS; s++) {
+                        for (let t = 0; t < TRACK_COUNT; t++) {
+                            globalTrackCaches[t].push({ ...patternData[s][t] });
+                        }
+                    }
+                });
+
+                // 2. Flip the composite timelines end-over-end globally if checking out under intensity rules
+                for (let t = 0; t < TRACK_COUNT; t++) {
+                    if (Math.random() <= intensity) {
+                        globalTrackCaches[t].reverse();
+                    }
+                }
+
+                // 3. Re-allocate array blocks cleanly back down to structural matrix nodes
+                let globalReadPointer = 0;
+                masterPlaylistSequence.forEach(patternKey => {
+                    const patternData = patternBanks[patternKey];
+                    for (let s = 0; s < MAX_STEPS; s++) {
+                        for (let t = 0; t < TRACK_COUNT; t++) {
+                            patternData[s][t] = globalTrackCaches[t][globalReadPointer];
+                        }
+                        globalReadPointer++;
+                    }
+                });
+            } 
+            else {
+                // Process concurrent modifications across ALL pattern iterations mapped to playlist paths
+                masterPlaylistSequence.forEach(patternKey => {
+                    const activePattern = patternBanks[patternKey];
+
+                    for (let t = 0; t < TRACK_COUNT; t++) {
+                        if (Math.random() > intensity) continue;
+
+                        if (mode === 'invert') {
+                            for (let s = 0; s < MAX_STEPS; s++) {
+                                let node = activePattern[s][t];
+                                let pitch = convertDataToMidiPitch(node);
+                                if (pitch) {
+                                    // Mirror inversion centered around Middle C (MIDI 60)
+                                    let rawInversion = 120 - pitch; 
+                                    
+                                    // Harmonized Inversion Injection: Snap inversion value to closest stable perfect 5th or 4th 
+                                    let intervalShift = rawInversion - pitch;
+                                    if (Math.abs(intervalShift) % 12 !== 7 && Math.abs(intervalShift) % 12 !== 0) {
+                                        rawInversion = pitch + (Math.round(intervalShift / 12) * 12) + (Math.random() > 0.5 ? 7 : -5);
+                                    }
+
+                                    let updatedData = convertMidiPitchToData(rawInversion);
+                                    node.note = updatedData.note;
+                                    node.octave = updatedData.octave;
+                                }
+                            }
+                        } 
+                        else if (mode === 'euclidean') {
+                            let shiftAmount = Math.floor(Math.random() * 4) + 1;
+                            let tempLane = [];
+                            for (let s = 0; s < MAX_STEPS; s++) tempLane.push(activePattern[s][t]);
+                            
+                            for (let s = 0; s < MAX_STEPS; s++) {
+                                let targetIndex = (s + shiftAmount) % MAX_STEPS;
+                                activePattern[targetIndex][t] = tempLane[s];
+                            }
+                        } 
+                        else if (mode === 'octaveShred') {
+                            for (let s = 0; s < MAX_STEPS; s++) {
+                                let node = activePattern[s][t];
+                                if (node.note !== '---') {
+                                    let randomOctave = Math.floor(Math.random() * 4) + 3; 
+                                    node.octave = randomOctave.toString();
+                                    if (node.volume === '--') node.volume = '99';
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            renderTerminalGridRows();
+        }
+
+        function triggerAudioVoice(midiPitch, duration = 0.2, volString = '--') {
+            if (!midiPitch) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const now = audioCtx.currentTime;
+            const hz = 440 * Math.pow(2, (midiPitch - 69) / 12);
+
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.type = 'square'; 
+            osc.frequency.setValueAtTime(hz, now);
+
+            let volumeScalar = 0.2;
+            if (volString === '99') volumeScalar = 0.35;
+            else if (volString === '80') volumeScalar = 0.28;
+            else if (volString === '60') volumeScalar = 0.20;
+            else if (volString === '40') volumeScalar = 0.12;
+            else if (volString === '20') volumeScalar = 0.05;
+
+            gainNode.gain.setValueAtTime(volumeScalar, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+
+        function runPlayTick() {
+            const activePlayingPatternKey = masterPlaylistSequence[activeChainPointer];
+            
+            if (activePlayingPatternKey === currentEditingPattern) {
+                document.querySelectorAll('.step-row').forEach(r => r.classList.remove('active-row'));
+                const targetDomRow = document.getElementById(`tracker-row-${timelineStepIdx}`);
+                if (targetDomRow) targetDomRow.classList.add('active-row');
+            }
+
+            const patternMatrixSnapshot = patternBanks[activePlayingPatternKey];
+            const currentStepTracks = patternMatrixSnapshot[timelineStepIdx];
+
+            for (let t = 0; t < TRACK_COUNT; t++) {
+                const laneTrackNode = currentStepTracks[t];
+                if (laneTrackNode.note !== '---') {
+                    const calculatedPitch = convertDataToMidiPitch(laneTrackNode);
+                    triggerAudioVoice(calculatedPitch, 0.22, laneTrackNode.volume);
+                }
+            }
+
+            timelineStepIdx++;
+            if (timelineStepIdx >= MAX_STEPS) {
+                timelineStepIdx = 0;
+                activeChainPointer = (activeChainPointer + 1) % masterPlaylistSequence.length;
+                updatePlaylistChainUiText();
+            }
+        }
+
+        function toggleTransportPlayback() {
+            const playBtn = document.getElementById('playBtn');
+            if (isPlaying) {
+                clearInterval(clockIntervalId);
+                isPlaying = false;
+                playBtn.textContent = 'PLAY';
+                document.querySelectorAll('.step-row').forEach(r => r.classList.remove('active-row'));
+                timelineStepIdx = 0;
+                activeChainPointer = 0;
+                updatePlaylistChainUiText();
+            } else {
+                isPlaying = true;
+                playBtn.textContent = 'PAUSE';
+                const bpm = parseInt(document.getElementById('bpmInput').value) || 120;
+                const setRateMs = (60 / bpm / 4) * 1000;
+                
+                runPlayTick();
+                clockIntervalId = setInterval(runPlayTick, setRateMs);
+            }
+        }
+
+        function forceStopReset() {
+            if (isPlaying) toggleTransportPlayback();
+            timelineStepIdx = 0;
+            activeChainPointer = 0;
+            document.querySelectorAll('.step-row').forEach(r => r.classList.remove('active-row'));
+            updatePlaylistChainUiText();
+        }
+
+        function clearActivePatternData() {
+            patternBanks[currentEditingPattern] = createBlankPatternMatrix();
+            renderTerminalGridRows();
+        }
+
+        function shiftPatternEditor(direction) {
+            let numericKey = parseInt(currentEditingPattern);
+            if (direction === 'next') numericKey = (numericKey + 1) % 4;
+            else numericKey = (numericKey - 1 + 4) % 4;
+            
+            currentEditingPattern = numericKey.toString().padStart(2, '0');
+            document.getElementById('currentPatternIdx').value = currentEditingPattern;
+            renderTerminalGridRows();
+        }
+
+        function appendPatternToPlaylistChain() {
+            masterPlaylistSequence.push(currentEditingPattern);
+            updatePlaylistChainUiText();
+        }
+
+        function updatePlaylistChainUiText() {
+            const displayBox = document.getElementById('playlistChainDisplay');
+            let builtString = "";
+            masterPlaylistSequence.forEach((patternKey, idx) => {
+                if (isPlaying && idx === activeChainPointer) {
+                    builtString += `[${patternKey}] `;
+                } else {
+                    builtString += `${patternKey} `;
+                }
+                if (idx < masterPlaylistSequence.length - 1) builtString += "→ ";
+            });
+            displayBox.textContent = builtString;
+        }
+
+        function executeMidiBinarySaveExport() {
+            const midiCompiler = new Midi();
+            const bpm = parseInt(document.getElementById('bpmInput').value) || 125;
+            midiCompiler.header.setTempo(bpm);
+
+            const stepDurationSec = (60 / bpm) / 4;
+            let timelineAbsoluteOffset = 0;
+
+            for (let t = 0; t < TRACK_COUNT; t++) {
+                const midiTrackChannel = midiCompiler.addTrack();
+                midiTrackChannel.name = `Tracker Lane ${t + 1}`;
+                timelineAbsoluteOffset = 0;
+
+                masterPlaylistSequence.forEach(patternKey => {
+                    const patternSnapshotData = patternBanks[patternKey];
+                    for (let s = 0; s < MAX_STEPS; s++) {
+                        const cellNode = patternSnapshotData[s][t];
+                        if (cellNode.note !== '---') {
+                            const noteMidiPitch = convertDataToMidiPitch(cellNode);
+                            midiTrackChannel.addNote({
+                                midi: noteMidiPitch,
+                                time: timelineAbsoluteOffset,
+                                duration: stepDurationSec * 0.85
+                            });
+                        }
+                        timelineAbsoluteOffset += stepDurationSec;
+                    }
+                });
+            }
+
+            const rawBufferBytes = midiCompiler.toArray();
+            const compiledBlob = new Blob([rawBufferBytes], { type: "audio/midi" });
+            const temporaryDownloadUrl = URL.createObjectURL(compiledBlob);
+            
+            const anchorElement = document.createElement("a");
+            anchorElement.href = temporaryDownloadUrl;
+            anchorElement.download = "session_arrangement.mid";
+            document.body.appendChild(anchorElement);
+            anchorElement.click();
+            document.body.removeChild(anchorElement);
+        }
+
+        function processIncomingMidiFileStream(event) {
+            const selectedFile = event.target.files[0];
+            if (!selectedFile) return;
+
+            const fileReaderStream = new FileReader();
+            fileReaderStream.onload = function(e) {
+                try {
+                    const parsedInputMidi = new Midi(e.target.result);
+                    patternBanks = { "00": createBlankPatternMatrix(), "01": createBlankPatternMatrix(), "02": createBlankPatternMatrix(), "03": createBlankPatternMatrix() };
+                    masterPlaylistSequence = ["00"];
+                    currentEditingPattern = "00";
+                    document.getElementById('currentPatternIdx').value = "00";
+
+                    if (parsedInputMidi.header.tempos.length > 0) {
+                        const extractedBpmValue = Math.round(parsedInputMidi.header.tempos[0].bpm);
+                        document.getElementById('bpmInput').value = extractedBpmValue;
+                    }
+
+                    const runtimeBpm = parseInt(document.getElementById('bpmInput').value) || 125;
+                    const stepDurationSec = (60 / runtimeBpm) / 4;
+
+                    parsedInputMidi.tracks.forEach((incomingTrack, targetTrackLaneIdx) => {
+                        if (targetTrackLaneIdx >= TRACK_COUNT) return;
+
+                        incomingTrack.notes.forEach(noteNode => {
+                            const timelineCalculatedStep = Math.round(noteNode.time / stepDurationSec);
+                            const targetPatternChunkIdx = Math.floor(timelineCalculatedStep / MAX_STEPS);
+                            const localizedPatternStepOffset = timelineCalculatedStep % MAX_STEPS;
+
+                            const computedPatternKeyString = targetPatternChunkIdx.toString().padStart(2, '0');
+                            if (!patternBanks[computedPatternKeyString]) {
+                                patternBanks[computedPatternKeyString] = createBlankPatternMatrix();
+                                if(!masterPlaylistSequence.includes(computedPatternKeyString)) {
+                                    masterPlaylistSequence.push(computedPatternKeyString);
+                                }
+                            }
+
+                            const pitchOffsetValue = noteNode.midi % 12;
+                            const targetOctaveValue = Math.floor(noteNode.midi / 12) - 1;
+                            const referenceReverseNoteNamesMap = ['C-', 'C#', 'D-', 'D#', 'E-', 'F-', 'F#', 'G-', 'G#', 'A-', 'A#', 'B-'];
+
+                            const targetStepDataMatrix = patternBanks[computedPatternKeyString][localizedPatternStepOffset][targetTrackLaneIdx];
+                            if (targetStepDataMatrix) {
+                                targetStepDataMatrix.note = referenceReverseNoteNamesMap[pitchOffsetValue];
+                                targetStepDataMatrix.octave = targetOctaveValue.toString();
+                                targetStepDataMatrix.volume = "99";
+                            }
+                        });
+                    });
+
+                    renderTerminalGridRows();
+                } catch (err) {
+                    console.error("Midi import fault:", err);
+                }
+            };
+            fileReaderStream.readAsArrayBuffer(selectedFile);
+        }
+
+        document.getElementById('playBtn').addEventListener('click', toggleTransportPlayback);
+        document.getElementById('stopBtn').addEventListener('click', forceStopReset);
+        document.getElementById('clearBtn').addEventListener('click', clearActivePatternData);
+        document.getElementById('prevPatBtn').addEventListener('click', () => shiftPatternEditor('prev'));
+        document.getElementById('nextPatBtn').addEventListener('click', () => shiftPatternEditor('next'));
+        document.getElementById('appendChainBtn').addEventListener('click', appendPatternToPlaylistChain);
+        document.getElementById('ripBtn').addEventListener('click', executeRiffRipperMutation);
+        document.getElementById('exportBtn').addEventListener('click', executeMidiBinarySaveExport);
+        document.getElementById('midiImport').addEventListener('change', processIncomingMidiFileStream);
+
+        renderTerminalGridRows();
+    </script>
+</body>
+</html>

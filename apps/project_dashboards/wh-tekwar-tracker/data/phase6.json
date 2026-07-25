@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "⚙️",
+  "title": "Phase 6 – Batch Processing & Automation",
+  "systems": [
+    {
+      "name": "6.1 Batch Conversion Pipeline",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0", "phase2_0"],
+      "notes": "Create a script or UI option to convert an entire game's worth of maps at once, using preset remap tables and actor definitions.",
+      "tasks": [
+        "Implement 'Convert All' button that processes all MAPs in a directory",
+        "Automatically detect game based on map signatures (or user selection)",
+        "Generate output .wad/.pk3 with embedded UDMF and DECORATE",
+        "Log conversion results"
+      ]
+    },
+    {
+      "name": "6.2 Pre-Built Conversion Packs",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase6_0"],
+      "notes": "Produce ready-to-play .pk3 files for Witchaven 1, Witchaven 2, and TekWar, bundled with all assets, actors, and converted maps.",
+      "tasks": [
+        "Package Witchaven 1 episode as standalone pk3",
+        "Package Witchaven 2 episode as pk3",
+        "Package TekWar episodes as pk3",
+        "Include all necessary textures, sprites, and sounds (within legal limits)"
+      ]
+    },
+    {
+      "name": "6.3 Testing & Quality Assurance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["phase6_1"],
+      "notes": "Play through every converted map, note any missing textures, broken sectors, or actor misbehavior. Compare to original.",
+      "tasks": [
+        "Create a checklist for each map",
+        "Recruit testers from the Doom modding community",
+        "Fix reported issues"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "id": "phase2",
+  "icon": "🗺️",
+  "title": "Phase 2 – Map Editor",
+  "systems": [
+    {
+      "name": "2.1 In-Game Editor Core",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase1_4"],
+      "notes": "Build a visual map editor integrated with the engine. Must support sector painting, room placement, height editing, texture assignment, and enemy placement.",
+      "tasks": [
+        "Create editor mode toggle (link in mod editor menu)",
+        "Tile/sector painting with mouse",
+        "Room and corridor placement tools",
+        "Height adjustment per sector",
+        "Texture selection from asset browser"
+      ]
+    },
+    {
+      "name": "2.2 Entity & Thing Placement",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_0"],
+      "notes": "Place enemies, pickups, torches, secret walls, and triggers via drag-and-drop or click.",
+      "tasks": [
+        "Enemy placement (choose type, facing)",
+        "Weapon/item placement",
+        "Light source placement (torches, braziers)",
+        "Toggleable wall placement (secret doors)"
+      ]
+    },
+    {
+      "name": "2.3 BSP & Sector Tools",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_0"],
+      "notes": "Edit BSP tree structure: merge/split sectors, define corridors, set light levels per sector.",
+      "tasks": [
+        "Sector property editor (light level, ceiling height)",
+        "Merge/split sectors visually",
+        "Define corridor connectivity",
+        "Preview BSP tree in wireframe"
+      ]
+    },
+    {
+      "name": "2.4 Export/Import & File Management",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase2_0"],
+      "notes": "Save edited maps to a file format that can be loaded by the game. Support multiple maps.",
+      "tasks": [
+        "Define map file format (JSON)",
+        "Export map from editor",
+        "Load external map files in-game",
+        "Map list and selection menu"
+      ]
+    }
+  ]
+}

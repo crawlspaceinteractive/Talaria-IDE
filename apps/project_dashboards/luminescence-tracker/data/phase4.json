@@ -1,0 +1,63 @@
+{
+  "id": "phase4",
+  "icon": "📈",
+  "title": "Phase 4 – Progression & Meta Economy",
+  "systems": [
+    {
+      "name": "4.1 Essence Currency & Loot",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_4"],
+      "notes": "Enemies drop Essence on death. Essence persists after run ends (survivors keep). Used to buy unlocks in hub.",
+      "tasks": [
+        "Implement Essence drop logic (amount per enemy type)",
+        "Persist Essence in save data (localStorage)",
+        "Mid‑run HUD showing current Essence"
+      ]
+    },
+    {
+      "name": "4.2 Unlock Shop & Hub Menu",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase4_0", "phase2_4"],
+      "notes": "Hub screen between runs to spend Essence on weapons, horn powers, passives, cosmetics.",
+      "tasks": [
+        "Design hub UI layout (grid of unlockable items)",
+        "Implement purchase logic and unlock tracking",
+        "Preview weapon/power before purchase",
+        "Story progression gates (free unlocks after acts)"
+      ]
+    },
+    {
+      "name": "4.3 Story Acts & Narrative",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Implement 4 story acts with briefings, dialogue, and post‑boss cutscenes.",
+      "tasks": [
+        "Act 1: Incursion (aliens) – establish threat",
+        "Act 2: The Rising (vampires) – dimension rifts",
+        "Act 3: Convergence (zombies) – orchestrated reveal",
+        "Act 4: Synthesis (robots) – IRIS Protocol confrontation",
+        "Multiple endings based on achievements"
+      ]
+    },
+    {
+      "name": "4.4 Save System & Persistence",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase4_0"],
+      "notes": "Persist: unlocked items, essence, story progress, cosmetics, difficulty settings.",
+      "tasks": [
+        "Design save data structure (JSON)",
+        "Save on exit, unlock purchase, run end",
+        "Load on game start",
+        "Support multiple save slots (optional)"
+      ]
+    }
+  ]
+}

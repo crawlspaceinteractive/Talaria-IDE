@@ -1,0 +1,48 @@
+{
+  "id": "phase4",
+  "icon": "🔥",
+  "title": "Phase 4 – Lighting & Atmosphere",
+  "systems": [
+    {
+      "name": "4.1 Dynamic Lighting & Occlusion",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Improve lighting model: add dynamic lights from muzzle flash, projectiles, and explosions. Use raycasting for occlusion.",
+      "tasks": [
+        "Muzzle flash light source",
+        "Projectile glow",
+        "Explosion flash with falloff",
+        "Ray-cast occlusion for dynamic lights"
+      ]
+    },
+    {
+      "name": "4.2 Colored Lighting & Fog",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase4_0"],
+      "notes": "Add colored sector lighting, distance fog, and underwater effects.",
+      "tasks": [
+        "Sector color tint",
+        "Distance fog based on sector properties",
+        "Underwater/lava color overlay",
+        "Palette shift effects (damage, powerup)"
+      ]
+    },
+    {
+      "name": "4.3 Environmental Audio",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Add ambient sounds (dripping water, machinery, wind) and reverb based on sector type.",
+      "tasks": [
+        "Ambient sound loop per sector",
+        "Reverb zones",
+        "Dynamic music system (combat, exploration)"
+      ]
+    }
+  ]
+}

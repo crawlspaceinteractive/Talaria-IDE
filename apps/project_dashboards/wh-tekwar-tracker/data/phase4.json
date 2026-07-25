@@ -1,0 +1,47 @@
+{
+  "id": "phase4",
+  "icon": "🧩",
+  "title": "Phase 4 – Game-Specific Logic",
+  "systems": [
+    {
+      "name": "4.1 Lotag/Special Mapping",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 14,
+      "dependencies": ["phase1_0"],
+      "notes": "Witchaven/TekWar use lotags for doors, lifts, teleporters. Map these to appropriate UDMF specials and sector actions. Build complete lotag tables for each game.",
+      "tasks": [
+        "Document all lotag values used in Witchaven maps",
+        "Map them to GZDoom sector specials (e.g., Door_Raise, Plat_DownWaitUpStay)",
+        "Add game-specific lotag tables to BUILD2UDMF (WH1, WH2, TK)",
+        "Test all trigger types in-game"
+      ]
+    },
+    {
+      "name": "4.2 Sky & Environment Effects",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase4_0"],
+      "notes": "Witchaven uses parallax skies and animated textures. Implement the appropriate UDMF sky sector tags and ANIMDEFS entries.",
+      "tasks": [
+        "Detect sky sectors (parallax ceiling) and set UDMF sky",
+        "Generate ANIMDEFS for animated flats/textures used in the maps",
+        "Add environment sound sequences if needed"
+      ]
+    },
+    {
+      "name": "4.3 Exit & Level Progression",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase4_0"],
+      "notes": "Each map should correctly exit to the next. Map MAPINFO cluster progression using the original game's flow.",
+      "tasks": [
+        "Define MAPINFO episode and map definitions for Witchaven 1/2",
+        "Set nextmap and secretnext based on original exit triggers",
+        "Test full game progression"
+      ]
+    }
+  ]
+}

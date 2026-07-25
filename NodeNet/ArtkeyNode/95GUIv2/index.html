@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Image Key Generator - Secure SHA-256 Hash Tool</title>
+    <meta name="description" content="Generate SHA-256 cryptographic keys from your images entirely offline in your browser. Your files are never uploaded - complete privacy guaranteed.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Windows 95 Theme */
+        :root {
+            --win95-teal: #008080;
+            --win95-gray: #C0C0C0;
+            --win95-darkgray: #808080;
+            --win95-blue-start: #000080;
+            --win95-blue-end: #1084D0;
+            --win95-yellow: #FFFF00;
+            --win95-button-face: #DFDFDF;
+            --win95-white: #FFFFFF;
+            --win95-black: #000000;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "MS Sans Serif", sans-serif;
+            background-color: var(--win95-teal);
+            overflow: auto;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Dark mode support */
+        body.dark {
+            background-color: var(--win95-teal);
+        }
+
+        /* 3D Raised Border Effect */
+        .raised-border {
+            border-top: 2px solid var(--win95-white);
+            border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black);
+            border-bottom: 2px solid var(--win95-black);
+            box-shadow: inset 1px 1px 0 rgba(255,255,255,0.5), inset -1px -1px 0 rgba(0,0,0,0.5);
+        }
+
+        /* 3D Inset Border Effect */
+        .inset-border {
+            border-top: 2px solid var(--win95-darkgray);
+            border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white);
+            border-bottom: 2px solid var(--win95-white);
+            box-shadow: inset -1px -1px 0 rgba(255,255,255,0.5), inset 1px 1px 0 rgba(0,0,0,0.5);
+        }
+
+        /* Window */
+        .window {
+            background-color: var(--win95-gray);
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Title Bar */
+        .title-bar {
+            background: linear-gradient(to right, var(--win95-blue-start), var(--win95-blue-end));
+            padding: 3px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title-text {
+            color: var(--win95-white);
+            font-weight: bold;
+            font-size: 13px;
+            letter-spacing: 0.3px;
+            margin-left: 4px;
+        }
+
+        .title-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .title-button {
+            width: 18px;
+            height: 18px;
+            background-color: var(--win95-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .title-button:active {
+            border-top: 2px solid var(--win95-darkgray);
+            border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white);
+            border-bottom: 2px solid var(--win95-white);
+        }
+
+        /* Menu Bar */
+        .menu-bar {
+            background-color: var(--win95-gray);
+            display: flex;
+            gap: 0;
+            padding: 2px 4px;
+            border-bottom: 1px solid var(--win95-white);
+        }
+
+        .menu-item {
+            padding: 4px 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .menu-item:hover {
+            background-color: var(--win95-blue-start);
+            color: var(--win95-white);
+        }
+
+        /* Dropdown Menu */
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--win95-gray);
+            min-width: 180px;
+            z-index: 1000;
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .dropdown.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 6px 24px 6px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-left: 2px solid transparent;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--win95-blue-start);
+            color: var(--win95-white);
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background-color: var(--win95-darkgray);
+            margin: 2px 0;
+        }
+
+        /* Submenu */
+        .dropdown-item.has-submenu {
+            position: relative;
+            padding-right: 20px;
+        }
+
+        .dropdown-item.has-submenu::after {
+            content: '▶';
+            position: absolute;
+            right: 8px;
+            font-size: 10px;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: -2px;
+            background-color: var(--win95-gray);
+            min-width: 160px;
+            box-shadow: 4px 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .dropdown-item:hover > .submenu {
+            display: block;
+        }
+
+        .dropdown-item.checked::before {
+            content: '✓';
+            position: absolute;
+            left: 4px;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 16px;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background-color: var(--win95-yellow);
+            padding: 12px;
+            margin-bottom: 16px;
+            border: 2px solid var(--win95-black);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        /* Button */
+        .win95-button {
+            background-color: var(--win95-button-face);
+            padding: 6px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .win95-button:active {
+            border-top: 2px solid var(--win95-darkgray);
+            border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white);
+            border-bottom: 2px solid var(--win95-white);
+            padding: 7px 15px 5px 17px; /* Simulate press */
+        }
+
+        .win95-button:disabled {
+            color: var(--win95-darkgray);
+            cursor: not-allowed;
+        }
+
+        /* Textarea */
+        .win95-textarea {
+            width: 100%;
+            background-color: var(--win95-white);
+            padding: 8px;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* File Input Container */
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .file-input-display {
+            flex: 1;
+            background-color: var(--win95-white);
+            padding: 4px 8px;
+            font-size: 13px;
+            height: 24px;
+            line-height: 16px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Hidden File Input */
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background-color: var(--win95-gray);
+            padding: 4px 8px;
+            font-size: 12px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .status-section {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-divider {
+            width: 1px;
+            height: 16px;
+            background-color: var(--win95-darkgray);
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+
+            .window {
+                max-width: 100%;
+            }
+
+            .title-text {
+                font-size: 11px;
+            }
+
+            .menu-item, .dropdown-item {
+                font-size: 16px; /* Prevent zoom on mobile */
+                padding: 6px 8px;
+            }
+
+            .win95-button {
+                font-size: 16px; /* Prevent zoom on mobile */
+                padding: 8px 12px;
+            }
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--win95-gray);
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .modal-body {
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Window -->
+    <div class="window raised-border">
+        <!-- Title Bar -->
+        <div class="title-bar">
+            <div class="title-text">🔐 Secure Art Key Generator</div>
+            <div class="title-buttons">
+                <button class="title-button raised-border" id="closeBtn" title="Reset">✕</button>
+            </div>
+        </div>
+
+        <!-- Menu Bar -->
+        <div class="menu-bar">
+            <div class="menu-item" id="fileMenu">
+                File
+                <div class="dropdown raised-border" id="fileDropdown">
+                    <div class="dropdown-item" id="menuSelectFile">Select Image...</div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item has-submenu">
+                        Hash Algorithm
+                        <div class="submenu raised-border">
+                            <div class="dropdown-item checked" data-algorithm="SHA-256">SHA-256</div>
+                            <div class="dropdown-item" data-algorithm="SHA-1">SHA-1</div>
+                            <div class="dropdown-item" data-algorithm="SHA-384">SHA-384</div>
+                            <div class="dropdown-item" data-algorithm="SHA-512">SHA-512</div>
+                            <div class="dropdown-item" data-algorithm="MD5">MD5</div>
+                        </div>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="menuReset">Reset</div>
+                </div>
+            </div>
+            <div class="menu-item" id="editMenu">
+                Edit
+                <div class="dropdown raised-border" id="editDropdown">
+                    <div class="dropdown-item" id="menuClear">Clear All</div>
+                    <div class="dropdown-item" id="menuCopy">Copy Hash</div>
+                </div>
+            </div>
+            <div class="menu-item" id="helpMenu">
+                Help
+                <div class="dropdown raised-border" id="helpDropdown">
+                    <div class="dropdown-item" id="menuAbout">About</div>
+                    <div class="dropdown-item" id="menuInstructions">Instructions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+            <!-- Security Warning -->
+            <div class="warning-banner">
+                ⚠️ SECURITY: Your images are processed entirely in your browser. Nothing is uploaded to the internet. Complete privacy guaranteed.
+            </div>
+
+            <!-- File Selection -->
+            <div class="section">
+                <div class="section-title">1. Select Image File:</div>
+                <div class="file-input-container">
+                    <div class="file-input-display inset-border" id="fileDisplay">No file selected</div>
+                    <button class="win95-button raised-border" id="browseBtn">Browse...</button>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+
+            <!-- Generated Key Display -->
+            <div class="section">
+                <div class="section-title" id="hashTitle">2. Generated SHA-256 Key:</div>
+                <textarea class="win95-textarea inset-border" id="hashOutput" readonly placeholder="Your cryptographic hash will appear here..."></textarea>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="section" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button class="win95-button raised-border" id="copyBtn" disabled>Copy to Clipboard</button>
+                <button class="win95-button raised-border" id="clearBtn">Clear</button>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar inset-border">
+            <div class="status-section">
+                <span id="statusText">Ready</span>
+            </div>
+            <div class="status-divider"></div>
+            <div class="status-section">
+                <span id="fileSizeText">0 KB</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Help/About -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content raised-border">
+            <div class="title-bar">
+                <div class="title-text" id="modalTitle">Information</div>
+                <div class="title-buttons">
+                    <button class="title-button raised-border" id="modalCloseBtn">✕</button>
+                </div>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be inserted dynamically -->
+            </div>
+            <div class="modal-buttons">
+                <button class="win95-button raised-border" id="modalOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode detection
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+
+        // State
+        let currentFile = null;
+        let currentHash = null;
+        let currentAlgorithm = 'SHA-256';
+
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const fileDisplay = document.getElementById('fileDisplay');
+        const browseBtn = document.getElementById('browseBtn');
+        const hashOutput = document.getElementById('hashOutput');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const statusText = document.getElementById('statusText');
+        const fileSizeText = document.getElementById('fileSizeText');
+        const hashTitle = document.getElementById('hashTitle');
+
+        // Menu Elements
+        const fileMenu = document.getElementById('fileMenu');
+        const fileDropdown = document.getElementById('fileDropdown');
+        const editMenu = document.getElementById('editMenu');
+        const editDropdown = document.getElementById('editDropdown');
+        const helpMenu = document.getElementById('helpMenu');
+        const helpDropdown = document.getElementById('helpDropdown');
+
+        // Modal Elements
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalOkBtn = document.getElementById('modalOkBtn');
+
+        // Menu Toggle
+        let activeDropdown = null;
+
+        function toggleDropdown(menu, dropdown) {
+            if (activeDropdown && activeDropdown !== dropdown) {
+                activeDropdown.classList.remove('active');
+            }
+
+            dropdown.classList.toggle('active');
+            activeDropdown = dropdown.classList.contains('active') ? dropdown : null;
+        }
+
+        fileMenu.addEventListener('click', () => toggleDropdown(fileMenu, fileDropdown));
+        editMenu.addEventListener('click', () => toggleDropdown(editMenu, editDropdown));
+        helpMenu.addEventListener('click', () => toggleDropdown(helpMenu, helpDropdown));
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.menu-item')) {
+                document.querySelectorAll('.dropdown').forEach(dd => dd.classList.remove('active'));
+                activeDropdown = null;
+            }
+        });
+
+        // Menu Actions
+        document.getElementById('menuSelectFile').addEventListener('click', () => {
+            fileInput.click();
+            fileDropdown.classList.remove('active');
+        });
+
+        document.getElementById('menuReset').addEventListener('click', () => {
+            resetApp();
+            fileDropdown.classList.remove('active');
+        });
+
+        document.getElementById('menuClear').addEventListener('click', () => {
+            resetApp();
+            editDropdown.classList.remove('active');
+        });
+
+        document.getElementById('menuCopy').addEventListener('click', () => {
+            copyToClipboard();
+            editDropdown.classList.remove('active');
+        });
+
+        document.getElementById('menuAbout').addEventListener('click', () => {
+            showModal('About', `
+                <strong>Secure Art Key Generator</strong><br>
+                Version 2.0.0 - Extended Edition<br><br>
+
+                Generate cryptographic hashes from your images entirely offline.<br><br>
+
+                <strong>Privacy:</strong> Your files never leave your browser. All processing happens client-side using the Web Crypto API.<br><br>
+
+                <strong>Supported Algorithms:</strong><br>
+                • MD5 (128-bit / 32 characters)<br>
+                • SHA-1 (160-bit / 40 characters)<br>
+                • SHA-256 (256-bit / 64 characters)<br>
+                • SHA-384 (384-bit / 96 characters)<br>
+                • SHA-512 (512-bit / 128 characters)<br><br>
+
+                Built for Poe Canvas Apps 🎨
+            `);
+            helpDropdown.classList.remove('active');
+        });
+
+        document.getElementById('menuInstructions').addEventListener('click', () => {
+            showModal('How to Use', `
+                <strong>Step 1:</strong> (Optional) Select your preferred hash algorithm from File → Hash Algorithm<br><br>
+
+                <strong>Step 2:</strong> Click "Browse..." or use File menu to select an image file<br><br>
+
+                <strong>Step 3:</strong> The cryptographic hash will be generated automatically and displayed in the text area<br><br>
+
+                <strong>Step 4:</strong> Click "Copy to Clipboard" to copy the hash<br><br>
+
+                <strong>Step 5:</strong> Use the hash as a unique identifier for your image<br><br>
+
+                <strong>Note:</strong> The same image with the same algorithm will always produce the same hash. Even a tiny change to the image will produce a completely different hash.
+            `);
+            helpDropdown.classList.remove('active');
+        });
+
+        // Modal Functions
+        function showModal(title, content) {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            modalOverlay.classList.add('active');
+        }
+
+        function hideModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        modalCloseBtn.addEventListener('click', hideModal);
+        modalOkBtn.addEventListener('click', hideModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                hideModal();
+            }
+        });
+
+        // MD5 Implementation (since Web Crypto API doesn't support MD5)
+        function md5(arrayBuffer) {
+            const bytes = new Uint8Array(arrayBuffer);
+
+            // MD5 constants
+            const K = new Uint32Array([
+                0xd76aa478, 0xe8c7b756, 0x242070db, 0xc1bdceee, 0xf57c0faf, 0x4787c62a, 0xa8304613, 0xfd469501,
+                0x698098d8, 0x8b44f7af, 0xffff5bb1, 0x895cd7be, 0x6b901122, 0xfd987193, 0xa679438e, 0x49b40821,
+                0xf61e2562, 0xc040b340, 0x265e5a51, 0xe9b6c7aa, 0xd62f105d, 0x02441453, 0xd8a1e681, 0xe7d3fbc8,
+                0x21e1cde6, 0xc33707d6, 0xf4d50d87, 0x455a14ed, 0xa9e3e905, 0xfcefa3f8, 0x676f02d9, 0x8d2a4c8a,
+                0xfffa3942, 0x8771f681, 0x6d9d6122, 0xfde5380c, 0xa4beea44, 0x4bdecfa9, 0xf6bb4b60, 0xbebfbc70,
+                0x289b7ec6, 0xeaa127fa, 0xd4ef3085, 0x04881d05, 0xd9d4d039, 0xe6db99e5, 0x1fa27cf8, 0xc4ac5665,
+                0xf4292244, 0x432aff97, 0xab9423a7, 0xfc93a039, 0x655b59c3, 0x8f0ccc92, 0xffeff47d, 0x85845dd1,
+                0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391
+            ]);
+
+            const s = [
+                7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,  7, 12, 17, 22,
+                5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,  5,  9, 14, 20,
+                4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,  4, 11, 16, 23,
+                6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21,  6, 10, 15, 21
+            ];
+
+            // Padding
+            const msgLen = bytes.length;
+            const bitLen = msgLen * 8;
+            const paddingLen = (msgLen % 64 < 56) ? 56 - (msgLen % 64) : 120 - (msgLen % 64);
+            const totalLen = msgLen + paddingLen + 8;
+            const padded = new Uint8Array(totalLen);
+            padded.set(bytes);
+            padded[msgLen] = 0x80;
+
+            // Append length as 64-bit little-endian
+            for (let i = 0; i < 8; i++) {
+                padded[totalLen - 8 + i] = (bitLen >>> (i * 8)) & 0xff;
+            }
+
+            // Initialize hash values
+            let A = 0x67452301;
+            let B = 0xefcdab89;
+            let C = 0x98badcfe;
+            let D = 0x10325476;
+
+            const rotateLeft = (x, n) => (x << n) | (x >>> (32 - n));
+
+            // Process each 512-bit chunk
+            for (let offset = 0; offset < totalLen; offset += 64) {
+                const M = new Uint32Array(16);
+                for (let i = 0; i < 16; i++) {
+                    M[i] = padded[offset + i * 4] |
+                           (padded[offset + i * 4 + 1] << 8) |
+                           (padded[offset + i * 4 + 2] << 16) |
+                           (padded[offset + i * 4 + 3] << 24);
+                }
+
+                let AA = A, BB = B, CC = C, DD = D;
+
+                for (let i = 0; i < 64; i++) {
+                    let F, g;
+                    if (i < 16) {
+                        F = (BB & CC) | ((~BB) & DD);
+                        g = i;
+                    } else if (i < 32) {
+                        F = (DD & BB) | ((~DD) & CC);
+                        g = (5 * i + 1) % 16;
+                    } else if (i < 48) {
+                        F = BB ^ CC ^ DD;
+                        g = (3 * i + 5) % 16;
+                    } else {
+                        F = CC ^ (BB | (~DD));
+                        g = (7 * i) % 16;
+                    }
+
+                    F = (F + AA + K[i] + M[g]) >>> 0;
+                    AA = DD;
+                    DD = CC;
+                    CC = BB;
+                    BB = (BB + rotateLeft(F, s[i])) >>> 0;
+                }
+
+                A = (A + AA) >>> 0;
+                B = (B + BB) >>> 0;
+                C = (C + CC) >>> 0;
+                D = (D + DD) >>> 0;
+            }
+
+            // Convert to hex string (little-endian)
+            const toHex = (n) => {
+                let hex = '';
+                for (let i = 0; i < 4; i++) {
+                    hex += ((n >>> (i * 8)) & 0xff).toString(16).padStart(2, '0');
+                }
+                return hex;
+            };
+
+            return toHex(A) + toHex(B) + toHex(C) + toHex(D);
+        }
+
+        // Hash Algorithm Selection
+        const algorithmItems = document.querySelectorAll('[data-algorithm]');
+        algorithmItems.forEach(item => {
+            item.addEventListener('click', async (e) => {
+                e.stopPropagation();
+
+                // Update checkmark
+                algorithmItems.forEach(i => i.classList.remove('checked'));
+                item.classList.add('checked');
+
+                // Update current algorithm
+                currentAlgorithm = item.dataset.algorithm;
+
+                // Update title
+                hashTitle.textContent = `2. Generated ${currentAlgorithm} Key:`;
+
+                // Close dropdowns
+                fileDropdown.classList.remove('active');
+                activeDropdown = null;
+
+                // Regenerate hash if file is loaded
+                if (currentFile) {
+                    await processFile(currentFile);
+                }
+            });
+        });
+
+        // File Selection
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                await processFile(file);
+            }
+        });
+
+        // Process File and Generate Hash
+        async function processFile(file) {
+            try {
+                currentFile = file;
+                fileDisplay.textContent = file.name;
+
+                // Update file size
+                const sizeKB = (file.size / 1024).toFixed(2);
+                fileSizeText.textContent = `${sizeKB} KB`;
+
+                statusText.textContent = `Generating ${currentAlgorithm} hash...`;
+
+                // Read file as ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+
+                let hashHex;
+
+                // Generate hash based on selected algorithm
+                if (currentAlgorithm === 'MD5') {
+                    // Use our MD5 implementation
+                    hashHex = md5(arrayBuffer);
+                } else {
+                    // Use Web Crypto API for SHA algorithms
+                    const hashBuffer = await crypto.subtle.digest(currentAlgorithm, arrayBuffer);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                }
+
+                currentHash = hashHex;
+                hashOutput.value = hashHex;
+                copyBtn.disabled = false;
+
+                statusText.textContent = `${currentAlgorithm} hash generated successfully`;
+            } catch (error) {
+                statusText.textContent = 'Error generating hash';
+                showModal('Error', `Failed to process file: ${error.message}`);
+                console.error('Hash generation error:', error);
+            }
+        }
+
+        // Copy to Clipboard
+        async function copyToClipboard() {
+            if (!currentHash) return;
+
+            try {
+                await navigator.clipboard.writeText(currentHash);
+                statusText.textContent = 'Hash copied to clipboard!';
+
+                // Reset status after 2 seconds
+                setTimeout(() => {
+                    statusText.textContent = 'Ready';
+                }, 2000);
+            } catch (error) {
+                // Fallback for browsers that don't support clipboard API
+                hashOutput.select();
+                document.execCommand('copy');
+                statusText.textContent = 'Hash copied to clipboard!';
+
+                setTimeout(() => {
+                    statusText.textContent = 'Ready';
+                }, 2000);
+            }
+        }
+
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // Clear/Reset
+        function resetApp() {
+            currentFile = null;
+            currentHash = null;
+            fileInput.value = '';
+            fileDisplay.textContent = 'No file selected';
+            hashOutput.value = '';
+            copyBtn.disabled = true;
+            statusText.textContent = 'Ready';
+            fileSizeText.textContent = '0 KB';
+        }
+
+        clearBtn.addEventListener('click', resetApp);
+        closeBtn.addEventListener('click', resetApp);
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "id": "phase1",
+  "icon": "🟢",
+  "title": "Tier 1 – Near Complete (70–100%)",
+  "systems": [
+    {
+      "name": "Secluded – 80% Complete",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Needs scripting, spawn balancing, weapon drops on set timers for world events, and an animated skybox (Covenant Cruiser fly-over).",
+      "tasks": [
+        "Finalise scripting for encounters",
+        "Balance spawn points and enemy counts",
+        "Add weapon drop timers for world events",
+        "Implement animated Covenant Cruiser skybox fly-over",
+        "Playtest and adjust difficulty"
+      ]
+    },
+    {
+      "name": "Secluded Firefight – 100% Complete",
+      "status": "complete",
+      "priority": "low",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "v33 Final Lighting Update complete. Ammo Boxes and CE Pistol added. Encounters tuned, fog and flashlight added. Lightmap rebuilt, Navmesh fixed. Press Kit 25% complete.",
+      "tasks": [
+        "Complete press kit videos",
+        "Write blog post",
+        "Create gaming shorts for social media",
+        "Final trailer or showcase video"
+      ]
+    },
+    {
+      "name": "Go Kart Soccer – 80% Complete",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "Fix spawns at reset (one side works, the other doesn't). Place more vehicles and remove force-to-board script at round start.",
+      "tasks": [
+        "Debug and fix spawn reset for second team side",
+        "Place additional vehicles on the field",
+        "Remove force-to-board script at round start",
+        "Final playtest with full lobby"
+      ]
+    }
+  ]
+}

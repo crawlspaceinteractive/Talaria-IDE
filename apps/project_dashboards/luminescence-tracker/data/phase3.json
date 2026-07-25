@@ -1,0 +1,50 @@
+{
+  "id": "phase3",
+  "icon": "👾",
+  "title": "Phase 3 – Enemies & Bosses",
+  "systems": [
+    {
+      "name": "3.1 Full Enemy Roster (All Tiers)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 35,
+      "dependencies": ["phase1_3"],
+      "notes": "Implement all enemy types across 4 tiers: Aliens, Vampires, Zombies, Robots. Unique behaviours per type.",
+      "tasks": [
+        "Tier 2 Vampires: Ghouls, Blood Bats, Thralls, Grave Worm",
+        "Tier 3 Zombies: Shufflers, Explosive, Plague Carriers, Corpse Amalgam",
+        "Tier 4 Robots: Sentries, Shieldbots, Swarmlings, Apex Automata",
+        "Balance HP, damage, speed per tier"
+      ]
+    },
+    {
+      "name": "3.2 Boss Design & Implementation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase1_4"],
+      "notes": "Create all 6 major bosses with multi‑phase fights, unique mechanics, and dialogue.",
+      "tasks": [
+        "The Vanguard (Alien Warlord): 3‑phase, drone summons",
+        "Countess Nocturne (Vampire): blood projectiles, bat swarm",
+        "Plague Patriarch (Zombie): multi‑core, mass form",
+        "IRIS Protocol (AI): 4‑phase, adaptive, arena hazards",
+        "Boss intro cutscenes and defeat sequences"
+      ]
+    },
+    {
+      "name": "3.3 Wave Spawning & Difficulty Scaling",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase3_0", "phase3_1"],
+      "notes": "Procedural‑lite wave generation: hand‑crafted enemy groups, randomized order. Difficulty scales with level tier and player count.",
+      "tasks": [
+        "Wave definition format (enemy types, count, spawn timing)",
+        "Dynamic difficulty: HP/damage scaling per wave and tier",
+        "Co‑op scaling: +30% enemy health, adjusted spawns",
+        "Special wave events (ambush, double spawn)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "🔊",
+  "title": "Phase 6 – Audio & Atmosphere",
+  "systems": [
+    {
+      "name": "6.1 Dynamic Audio Engine",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Layered ambient sounds (wind, creaks, distant moans). Dynamic music that shifts tension based on enemy presence.",
+      "tasks": [
+        "Ambient loop per room / area",
+        "Tension layer (enemy nearby → music intensifies)",
+        "Stinger sounds on jump scares",
+        "Footstep and interaction SFX"
+      ]
+    },
+    {
+      "name": "6.2 Jump Scares & Events",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase4_0", "phase6_0"],
+      "notes": "Scripted horror moments: window break, door slam, enemy bursting through wall. Timing and camera shake.",
+      "tasks": [
+        "Scripted event system (trigger, animation, sound)",
+        "Camera shake on big scares",
+        "One‑shot events that don't repeat"
+      ]
+    },
+    {
+      "name": "6.3 Visual Horror Effects",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Film grain, blood splatter on camera lens, low‑health vignette, and chromatic aberration.",
+      "tasks": [
+        "Low‑health red vignette",
+        "Film grain overlay (subtle)",
+        "Camera lens blood splatter on hit",
+        "Gamma / brightness adjustment per room"
+      ]
+    }
+  ]
+}

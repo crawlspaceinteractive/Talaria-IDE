@@ -1,0 +1,82 @@
+{
+  "id": "phase2",
+  "icon": "🟡",
+  "title": "Tier 2 – In Progress (15–50%)",
+  "systems": [
+    {
+      "name": "Golgotha – 30% Complete",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Sizing is finished. Needs more structures like Stone Valley Braces and Temple area. Lots of moss, ivy, and foliage to blend. Bushes around tree bases with Blockers for player boundaries.",
+      "tasks": [
+        "Add Stone Valley Brace structures and temple area",
+        "Apply moss, ivy, and foliage across stone surfaces",
+        "Place bushes around tree bases with player blockers",
+        "Finalise lighting and atmosphere",
+        "Playtest and balance"
+      ]
+    },
+    {
+      "name": "Overgrowth (Guiltier Spark Part 2) – 25% Complete",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Remaining map layout to complete. Pelican Drop Off intro. Flood and Alien decoration throughout.",
+      "tasks": [
+        "Complete remaining map layout sections",
+        "Script Pelican drop-off intro sequence",
+        "Add Flood decoration (piles, biomass, infection forms)",
+        "Add Alien world decoration and atmosphere",
+        "Lighting pass and navmesh finalisation"
+      ]
+    },
+    {
+      "name": "Yautja Hunting Grounds – 20% Complete",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Lighting and vibes are tuned. Needs full layout design.",
+      "tasks": [
+        "Design and block out full map layout",
+        "Create Predator-themed structures and ruins",
+        "Add jungle/forest atmosphere and foliage",
+        "Place weapon spawns and encounter zones",
+        "Playtest and balance"
+      ]
+    },
+    {
+      "name": "Planet Ball Pit – 20% Complete",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Layout and design need work. Slides that actually work. Swing set using booster pads. Playtest and balancing.",
+      "tasks": [
+        "Redesign layout for better flow and fun factor",
+        "Implement functional slides (gravity/scripting)",
+        "Build swing set with booster pad mechanics",
+        "Add more interactive play elements",
+        "Spawn balancing and playtesting"
+      ]
+    },
+    {
+      "name": "Swamp Project (Guiltier Spark Part 1) – 15% Complete",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "More swamp prefabs to add. Flood decorations (A-D piles). Remake Sporelights with Alien World Plants. Mountain structure and cutscene ending with Pelican pickup.",
+      "tasks": [
+        "Add remaining swamp prefab structures",
+        "Place Flood decoration piles throughout",
+        "Remake Sporelights using Alien World Plants",
+        "Build mountain structure and pathing",
+        "Script ending cutscene (Pelican pickup)"
+      ]
+    }
+  ]
+}

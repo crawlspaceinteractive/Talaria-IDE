@@ -1,0 +1,46 @@
+{
+  "id": "phase3",
+  "icon": "👾",
+  "title": "Phase 3 – Spawn Mechanics & Patterns",
+  "systems": [
+    {
+      "name": "3.1 Pattern Library",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 3,
+      "dependencies": [],
+      "notes": "Create predefined patterns (BLOCK, GLIDER, LWSS, etc.) as coordinate arrays.",
+      "tasks": [
+        "Define BLOCK, GLIDER, LWSS, PULSAR, etc. as offsets from origin",
+        "Store patterns in a dictionary",
+        "Write function to place a pattern on gridCurrent"
+      ]
+    },
+    {
+      "name": "3.2 Spawn with Fog Penalty",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": ["phase3_0", "phase2_1"],
+      "notes": "Check footprint against fog; apply 50% fail chance if any cell is under fog.",
+      "tasks": [
+        "When spawning, check each pattern cell's fog mask for the agent",
+        "If any cell has mask=0, roll 50% chance to cancel entire spawn",
+        "On success, write pattern to gridCurrent (overwrite existing cells)"
+      ]
+    },
+    {
+      "name": "3.3 Instant Conflict Resolution",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 2,
+      "dependencies": ["phase3_1"],
+      "notes": "When a spawn writes over opponent cells, both cells annihilate immediately.",
+      "tasks": [
+        "Before writing a pattern cell, check current occupant",
+        "If opponent color, set cell to empty (annihilate both)",
+        "Handle chain reactions (if a spawn triggers further annihilation, no recursive loop needed)"
+      ]
+    }
+  ]
+}

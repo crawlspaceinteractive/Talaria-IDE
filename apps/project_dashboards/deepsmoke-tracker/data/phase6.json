@@ -1,0 +1,71 @@
+{
+  "id": "phase6",
+  "icon": "🎈",
+  "title": "Phase 6 – The Skies",
+  "systems": [
+    {
+      "name": "6.1 Balloon Vehicle System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0", "phase1_3", "phase4_2"],
+      "notes": "Hot air balloons provide vertical traversal to reach floating islands. Physics are gentle and wind-driven from the existing weather system. Fuel is coal or steam canisters. Multiplayer: single balloon entity with host physics.",
+      "tasks": [
+        {
+          "text": "Gentle physics: ascend/descend, forward drift",
+          "priority": "high",
+          "notes": "Simple buoyancy model; no complex aerodynamics."
+        },
+        {
+          "text": "Wind vector from weather system affects movement",
+          "priority": "high",
+          "notes": "Use existing weather wind direction; balloon can angle against it."
+        },
+        {
+          "text": "Fuel: coal or steam canisters",
+          "priority": "medium",
+          "notes": "Burn fuel to ascend or maintain altitude; drift is free."
+        },
+        {
+          "text": "Multiplayer: single entity, all boardable, host physics",
+          "priority": "high",
+          "notes": "One balloon per party; host simulates, clients interpolate."
+        }
+      ]
+    },
+    {
+      "name": "6.2 Construction & Deployment",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase4_4", "phase1_3"],
+      "notes": "Balloon crafted at Bub's camp via streamlined crafting. Placed as a 3D structure; interacting launches it. Uses custom model from Phase 1.",
+      "tasks": [
+        {
+          "text": "Craft balloon at Bub's camp, place as 3D structure",
+          "priority": "high",
+          "notes": "Requires specific materials; placed like any block/model."
+        },
+        {
+          "text": "Interact to launch",
+          "priority": "high",
+          "notes": "Activation begins physics simulation; anchor tether to camp optional."
+        }
+      ]
+    },
+    {
+      "name": "6.3 Floating Island Integration",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 2,
+      "dependencies": [],
+      "notes": "Floating islands already generate; balloon provides access. No new world gen needed. Flag planting from Phase 7 can be tied to islands.",
+      "tasks": [
+        {
+          "text": "Already generating, no changes needed; balloon enables access",
+          "priority": "low"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "phase7",
+  "icon": "🏆",
+  "title": "Phase 7 – Modes, Progression & Release",
+  "systems": [
+    {
+      "name": "7.1 Game Modes",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase3_0"],
+      "notes": "Implement Free‑for‑All, Team Battle, and Survival modes. Add win conditions and post‑game stats.",
+      "tasks": [
+        "Create FFA mode (last man standing or score limit)",
+        "Team battle with shared lives",
+        "Survival wave mode against AI enemies",
+        "Post‑game scoreboard and stats"
+      ]
+    },
+    {
+      "name": "7.2 Unlockables & Progression",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase7_0"],
+      "notes": "Add persistent unlocks: new characters, skins, taunts, and arena variants. Use local storage or leaderboard SDK.",
+      "tasks": [
+        "Implement XP / currency system",
+        "Unlockable content gated by achievements",
+        "Leaderboard integration for high scores"
+      ]
+    },
+    {
+      "name": "7.3 Bug Fixing & Performance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting. Fix desyncs, collision bugs, and performance issues on low‑end devices.",
+      "tasks": [
+        "Multiplayer stress test with 4 players",
+        "Optimize rendering (object pooling, culling)",
+        "Address all known desync sources"
+      ]
+    },
+    {
+      "name": "7.4 Packaging & Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase7_2"],
+      "notes": "Build final web bundle, deploy to itch.io and GitHub Pages. Add README and license.",
+      "tasks": [
+        "Create offline HTML build",
+        "Publish on itch.io and GitHub",
+        "Write press kit and trailer"
+      ]
+    }
+  ]
+}

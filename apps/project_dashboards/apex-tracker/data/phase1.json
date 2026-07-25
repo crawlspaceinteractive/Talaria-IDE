@@ -1,0 +1,62 @@
+{
+  "id": "phase1",
+  "icon": "🏎️",
+  "title": "Phase 1 – Core Vehicle Physics & Controls",
+  "systems": [
+    {
+      "name": "1.1 Vehicle Movement Model",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Arcade-style drift handling: acceleration, braking, steering, handbrake turns. Physics using forces with grip curve and drift angle scaling.",
+      "tasks": [
+        "Acceleration and top-speed cap per vehicle",
+        "Steering with speed-sensitive turn radius",
+        "Drift entry via handbrake + countersteer",
+        "Drift boost reward system (charge meter)"
+      ]
+    },
+    {
+      "name": "1.2 Collision & Wall Bounce",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Soft wall collisions with speed reduction and bounce. Track boundaries defined by spline with width.",
+      "tasks": [
+        "Sphere/tube collision against track borders",
+        "Wall bounce at shallow angles",
+        "Sticky collisions at high speed (prevent wall riding)"
+      ]
+    },
+    {
+      "name": "1.3 Ground Detection & Jump Mechanics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "Vehicles can jump off ramps and over gaps. Use raycasting to detect ground for landing and jump tokens.",
+      "tasks": [
+        "Ramp detection and auto-jump boost",
+        "In-air pitch control for flips",
+        "Landing impact and speed retention",
+        "Fall-off track respawn"
+      ]
+    },
+    {
+      "name": "1.4 Camera System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Dynamic third-person chase cam with drift offset. Smooth follow, look-ahead, and collision avoidance.",
+      "tasks": [
+        "Chase cam with speed-dependent distance",
+        "Lateral offset during drift",
+        "Track‑side collision avoidance",
+        "Manual rear-view toggle"
+      ]
+    }
+  ]
+}

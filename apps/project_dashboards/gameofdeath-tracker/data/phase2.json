@@ -1,0 +1,48 @@
+{
+  "id": "phase2",
+  "icon": "🌫️",
+  "title": "Phase 2 – Fog of War & Memory",
+  "systems": [
+    {
+      "name": "2.1 Fog Masks & TTL",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": ["phase1_0"],
+      "notes": "Create fog masks (visible/invisible) and a decay timer (TTL) for each agent. Decrement TTL each tick.",
+      "tasks": [
+        "Allocate fogMaskA, fogMaskB as Uint8Array(12800)",
+        "Allocate fogTTL_A, fogTTL_B as Uint8Array(12800)",
+        "Initialize all cells to fog (mask=0, ttl=0)",
+        "Decrement TTL each tick; when 0, set mask to 0"
+      ]
+    },
+    {
+      "name": "2.2 Scan & Ping Functions",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 5,
+      "dependencies": ["phase2_0"],
+      "notes": "Implement scan(x,y,radius) and ping(x,y,radius) with fog filtering.",
+      "tasks": [
+        "scan: return 2D view where fog cells are 0xFF",
+        "scan: set mask=1 and ttl=MAX_TTL for revealed cells",
+        "ping: return count of visible non‑empty cells in area",
+        "ping: also refresh fog mask/TTL for that area"
+      ]
+    },
+    {
+      "name": "2.3 Agent Integration of Fog",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "dependencies": ["phase2_1"],
+      "notes": "Pass fog‑filtered data to agents. Test with a dummy agent.",
+      "tasks": [
+        "Wire context.scan and context.ping to fog system",
+        "Ensure agent never sees true opponent positions unless revealed",
+        "Test with a simple agent that scans its surroundings"
+      ]
+    }
+  ]
+}

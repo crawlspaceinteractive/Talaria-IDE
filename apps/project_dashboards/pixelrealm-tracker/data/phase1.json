@@ -1,0 +1,62 @@
+{
+  "id": "phase1",
+  "icon": "⚔️",
+  "title": "Phase 1 – Core Combat & ARPG Feel",
+  "systems": [
+    {
+      "name": "1.1 Skill Tree & Character Builds",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Replace fixed J/K/L skills with a Diablo‑style skill tree. Players unlock points on level‑up and can invest in multiple skill paths (melee, ranged, magic).",
+      "tasks": [
+        "Design skill tree UI with tiered branches",
+        "Implement passive skill effects (stats, resistances)",
+        "Active skill unlocks gated by tree investment",
+        "Respec mechanism (cost or one‑time per act)"
+      ]
+    },
+    {
+      "name": "1.2 Enemy AI & Boss Design Overhaul",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Diablo 1 enemies had distinct movement patterns, retaliation, and immunities. Upgrade current AI with pathfinding, fleeing, and unique boss mechanics.",
+      "tasks": [
+        "Add enemy resistances and immunities per type",
+        "Boss phases with distinct attacks and arena hazards",
+        "Enemy fleeing and calling for help",
+        "Elite monster packs with affixes (extra fast, fire enchanted)"
+      ]
+    },
+    {
+      "name": "1.3 Loot & Itemization Depth",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Already have inventory and rarity system. Expand with Diablo 1 affix pools, unique items, set items, and proper drop rates from boss loot tables.",
+      "tasks": [
+        "Random affix generation (prefix + suffix)",
+        "Unique items with custom effects and lore text",
+        "Set items with partial/complete bonuses",
+        "Loot filters and auto‑pickup gold"
+      ]
+    },
+    {
+      "name": "1.4 Player Progression & Stats",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_2"],
+      "notes": "Add character leveling, stat points (strength, dexterity, vitality, energy), and hit recovery / block mechanics.",
+      "tasks": [
+        "XP and level‑up system with stat allocation",
+        "Hit recovery and block chance animations",
+        "Weapon requirements based on stats"
+      ]
+    }
+  ]
+}

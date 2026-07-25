@@ -1,0 +1,112 @@
+{
+  "id": "phase4",
+  "icon": "🧰",
+  "title": "Phase 4 – Camp, Crafting & RPG Progression",
+  "systems": [
+    {
+      "name": "4.1 Module-Slot Upgrade System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_3", "phase2_1"],
+      "notes": "Permanent upgrade system that replaces traditional item durability. Uses a slot metaphor at Tub's forge. Modules are unlocked via Ancient Blueprints found in world, and their effects directly modify player stats.",
+      "tasks": [
+        {
+          "text": "Permanent augments data structure (player stats modifiers)",
+          "priority": "high",
+          "notes": "Design a flexible modifier system that can scale across phases."
+        },
+        {
+          "text": "Tub's forge UI: drag-drop slots (procedural)",
+          "priority": "high",
+          "notes": "Integrate with existing procedural GUI style; use inventory-like drag logic."
+        },
+        {
+          "text": "Unlock modules via Ancient Blueprint items",
+          "priority": "high",
+          "notes": "Blueprints drop from chests, quests, and hidden chambers."
+        },
+        {
+          "text": "Apply stat effects: drill speed, fuel use, heat cap, etc.",
+          "priority": "medium",
+          "notes": "Must work seamlessly with existing player controller."
+        }
+      ]
+    },
+    {
+      "name": "4.2 Camp Visual Growth System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_3", "phase1_1"],
+      "notes": "The camp physically changes as the team banks ore. Forge expands, vacuum silos grow, brass towers appear. Serves as shared trophy case and visual progression marker.",
+      "tasks": [
+        {
+          "text": "Camp level tied to total ore banked",
+          "priority": "high",
+          "notes": "Thresholds defined per level; broadcast to all clients."
+        },
+        {
+          "text": "Progressive 3D camp model reveals (forge, silos, towers)",
+          "priority": "medium",
+          "notes": "Swap or layer models; use phased construction animations."
+        },
+        {
+          "text": "Save/load camp level with world data",
+          "priority": "medium",
+          "notes": "Integrate with persistence layer from Phase 1."
+        }
+      ]
+    },
+    {
+      "name": "4.3 Grub Loyalty & Ability Tree",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_0", "phase2_2"],
+      "notes": "Grub evolves from basic fetch/rescue to a capable assistant. Abilities unlock via resource investment or quests. State machine must handle new behaviours without breaking existing AI.",
+      "tasks": [
+        {
+          "text": "State machine for Grub behaviours",
+          "priority": "high",
+          "notes": "Modular states that can be extended: idle, follow, fetch, rescue, drag, airdrop."
+        },
+        {
+          "text": "Base: fetch, rescue; Upgrades: speed, carry, drag, airdrop",
+          "priority": "medium",
+          "notes": "Upgrades gated by friendship level or materials."
+        },
+        {
+          "text": "Progression gated by resources/quests",
+          "priority": "medium",
+          "notes": "Tie to quest system later (Phase 7)."
+        }
+      ]
+    },
+    {
+      "name": "4.4 Streamlined Crafting Interface",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_1"],
+      "notes": "No grid crafting. All item creation happens at NPCs or specific stations via simple recipe lists. Recipes are learned automatically from blueprints. Focus on clarity and speed.",
+      "tasks": [
+        {
+          "text": "Eliminate grid; all crafting at NPCs/oven",
+          "priority": "high",
+          "notes": "Redesign existing crafting UI to use button lists."
+        },
+        {
+          "text": "Simple button list recipes (2-3 ingredients)",
+          "priority": "high",
+          "notes": "Show ingredients and output; one-click craft."
+        },
+        {
+          "text": "Recipes learned from blueprints or automatically",
+          "priority": "medium",
+          "notes": "Auto-add recipes when blueprint picked up."
+        }
+      ]
+    }
+  ]
+}

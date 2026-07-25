@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "🧠",
+  "title": "Phase 6 – AI Integration & Tournament Mode",
+  "systems": [
+    {
+      "name": "6.1 Pluggable Agent Scripts",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 5,
+      "dependencies": ["phase2_2", "phase3_1"],
+      "notes": "Define the Agent base class with think(context). Allow loading custom AI scripts.",
+      "tasks": [
+        "Create Agent base class with think(context) method",
+        "Implement context.scan, context.ping, context.spawn, context.myColor",
+        "Provide a sample AI (e.g., random glider spawner)",
+        "Allow loading external AI scripts via <script> tag or import"
+      ]
+    },
+    {
+      "name": "6.2 AI Think Scheduling",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 3,
+      "dependencies": ["phase6_0"],
+      "notes": "Call think() every 5–10 ticks (random per agent), never on same tick.",
+      "tasks": [
+        "Assign each agent a thinkCounter initialized randomly",
+        "Decrement each tick; when 0, call think() and reset counter to 5–10",
+        "Ensure no two agents think on the same tick"
+      ]
+    },
+    {
+      "name": "6.3 Tournament Mode",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "dependencies": ["phase6_0", "phase4_0"],
+      "notes": "Best‑of‑5 matches with automatic reset between rounds. Show match score.",
+      "tasks": [
+        "Implement match state machine (round, set, match)",
+        "Auto‑reset arena between rounds",
+        "Display tournament bracket or series score",
+        "Declare winner after best of 5"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SirenNode: Phishing Analyzer</title>
+    <style>
+        :root {
+            --win95-teal: #008080;
+            --win95-gray: #C0C0C0;
+            --win95-darkgray: #808080;
+            --win95-blue-start: #000080;
+            --win95-blue-end: #1084D0;
+            --win95-button-face: #DFDFDF;
+            --win95-white: #FFFFFF;
+            --win95-black: #000000;
+            --win95-yellow: #FFFF00;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "MS Sans Serif", "Segoe UI", sans-serif;
+            font-size: 13px;
+            background-color: var(--win95-teal);
+            min-height: 100vh;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .window {
+            background-color: var(--win95-gray);
+            max-width: 680px;
+            margin: 0 auto;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+            border-top: 2px solid var(--win95-white);
+            border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black);
+            border-bottom: 2px solid var(--win95-black);
+        }
+        .title-bar {
+            background: linear-gradient(to right, var(--win95-blue-start), var(--win95-blue-end));
+            padding: 3px 4px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .title-text { color: #fff; font-weight: bold; font-size: 13px; margin-left: 4px; }
+        .title-button {
+            width: 18px; height: 18px; background-color: var(--win95-gray);
+            border-top: 2px solid var(--win95-white); border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black); border-bottom: 2px solid var(--win95-black);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: bold; cursor: pointer;
+        }
+        .content { padding: 12px; }
+        .info-banner {
+            background-color: var(--win95-white);
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 8px 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.5;
+        }
+        .win95-button {
+            background-color: var(--win95-button-face);
+            border-top: 2px solid var(--win95-white); border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black); border-bottom: 2px solid var(--win95-black);
+            padding: 4px 16px; font-size: 13px; cursor: pointer; min-width: 90px;
+        }
+        .win95-button:active {
+            border-top: 2px solid var(--win95-black); border-left: 2px solid var(--win95-black);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 5px 15px 3px 17px;
+        }
+        .section { margin-bottom: 12px; }
+        .section-header {
+            background-color: var(--win95-darkgray); color: #fff;
+            padding: 2px 8px; font-weight: bold; font-size: 12px; margin-bottom: 6px;
+        }
+        .panel {
+            background-color: var(--win95-white);
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 8px 10px;
+        }
+        .url-row { display: flex; gap: 8px; align-items: center; }
+        .win95-input {
+            flex: 1;
+            background-color: var(--win95-white);
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 4px 6px; font-size: 12px; font-family: "Courier New", monospace;
+        }
+        .field-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; line-height: 1.7; }
+        .field-label { font-weight: bold; white-space: nowrap; min-width: 210px; }
+        .status-pass { color: #006600; font-weight: bold; }
+        .status-warning { color: #885500; font-weight: bold; }
+        .status-fail { color: #cc0000; font-weight: bold; }
+        .score-row { display: flex; align-items: center; gap: 12px; }
+        .score-box {
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 5px 12px; font-size: 15px; font-weight: bold;
+            background: var(--win95-white); min-width: 90px; text-align: center;
+        }
+        .advice-box {
+            flex: 1; font-size: 12px; line-height: 1.5;
+        }
+        .status-bar {
+            background-color: var(--win95-gray);
+            border-top: 1px solid var(--win95-darkgray);
+            padding: 3px 8px; font-size: 11px;
+        }
+        .status-section {
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 1px 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="window">
+    <div class="title-bar">
+        <div class="title-text">SirenNode — Phishing Analyzer ("Bane of Phishermen")</div>
+        <div class="title-button">✕</div>
+    </div>
+    <div class="content">
+        <div class="info-banner">
+            Performs a <strong>local, offline analysis</strong> of a URL to detect phishing and typosquatting tactics. No connection to external security lists is made.
+        </div>
+
+        <div class="section">
+            <div class="section-header">1. URL Input</div>
+            <div class="panel">
+                <div class="url-row">
+                    <input type="text" class="win95-input" id="urlInput" placeholder="Paste suspicious URL here (e.g. https://micros0ft.com)...">
+                    <button class="win95-button" id="analyzeButton" style="font-weight:bold;">Analyze</button>
+                </div>
+                <div style="margin-top:6px; font-size:11px;" id="initialStatus">Ready for analysis.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">2. Analysis Report</div>
+            <div class="panel">
+                <div class="field-row"><span class="field-label">URL Normalization:</span> <span id="normalizationStatus">Awaiting input...</span></div>
+                <div class="field-row"><span class="field-label">Typosquatting Check:</span> <span id="typosquattingStatus">Awaiting input...</span></div>
+                <div class="field-row"><span class="field-label">Punycode / Homoglyph:</span> <span id="punycodeStatus">Awaiting input...</span></div>
+                <div class="field-row"><span class="field-label">Misleading Subdomain:</span> <span id="misleadingSubdomainStatus">Awaiting input...</span></div>
+                <div class="field-row"><span class="field-label">Embedded Credentials:</span> <span id="credentialsStatus">Awaiting input...</span></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">3. Phishing Risk Score</div>
+            <div class="panel" id="finalScoreArea">
+                <div class="score-row">
+                    <div class="score-box" id="riskScoreDisplay">N/A</div>
+                    <div class="advice-box" id="adviceDisplay">Enter a URL to begin analysis.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="status-section">Offline analysis // No external requests</div>
+    </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

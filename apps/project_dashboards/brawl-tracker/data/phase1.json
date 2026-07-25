@@ -1,0 +1,48 @@
+{
+  "id": "phase1",
+  "icon": "⚡",
+  "title": "Phase 1 – Core Physics & Movement",
+  "systems": [
+    {
+      "name": "1.1 Platforming & Gravity",
+      "status": "in‑progress",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Deterministic physics from physics.js already integrated. Fine‑tune variable‑height jump, air control, and platform collision.",
+      "tasks": [
+        "Adjust jump velocity and gravity for snappy feel",
+        "Implement coyote time and jump buffering",
+        "Add wall sliding and wall jump capabilities",
+        "Ensure consistent physics across all clients (host‑authoritative)"
+      ]
+    },
+    {
+      "name": "1.2 Player Movement & Input",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 6,
+      "dependencies": ["phase1_0"],
+      "notes": "Refine WASD / gamepad movement. Add dash, dodge, and double‑jump if desired. Apply variable acceleration.",
+      "tasks": [
+        "Implement dash ability with cooldown",
+        "Add double‑jump as a pickup or default mechanic",
+        "Gamepad support with analog sensitivity"
+      ]
+    },
+    {
+      "name": "1.3 Basic Combat Loop",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Implement light/heavy attacks, knockback, and simple combos. Use hitboxes per frame for precision.",
+      "tasks": [
+        "Create attack hitbox system (overlap detection)",
+        "Add knockback and stun on hit",
+        "Define a simple 3‑hit combo with scaling damage",
+        "Sync attack states in multiplayer"
+      ]
+    }
+  ]
+}

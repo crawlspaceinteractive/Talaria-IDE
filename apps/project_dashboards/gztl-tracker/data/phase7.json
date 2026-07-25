@@ -1,0 +1,49 @@
+{
+  "id": "phase7",
+  "icon": "🧪",
+  "title": "Phase 7 – Testing, Compatibility & Distribution",
+  "systems": [
+    {
+      "name": "7.1 Test Suite & Compatibility Database",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["all"],
+      "notes": "Create automated tests for lump parsing, ACS opcodes, and actor behaviour. Maintain a database of compatible mods.",
+      "tasks": [
+        "Unit tests for DEHACKED, MAPINFO, DECORATE parsers",
+        "ACS opcode conformance test suite",
+        "Regression tests for known mods (Brutal Doom, etc.)",
+        "Public compatibility list on GitHub"
+      ]
+    },
+    {
+      "name": "7.2 Example Mods & Tutorials",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Provide example mods (simple to complex) and video tutorials to help new developers get started.",
+      "tasks": [
+        "Simple example: custom monster & weapon",
+        "Intermediate example: multi-map episode",
+        "Advanced example: full ZScript conversion",
+        "Video tutorial series"
+      ]
+    },
+    {
+      "name": "7.3 Distribution & Documentation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Polish the README, create a project website, and distribute on Godot Asset Library and itch.io.",
+      "tasks": [
+        "Complete API documentation",
+        "Project website with feature list",
+        "Godot Asset Library submission",
+        "itch.io page for pre-built downloads"
+      ]
+    }
+  ]
+}

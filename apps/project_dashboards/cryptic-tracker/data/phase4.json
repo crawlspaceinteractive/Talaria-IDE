@@ -1,0 +1,48 @@
+{
+  "id": "phase4",
+  "icon": "🧟",
+  "title": "Phase 4 – Enemies & AI",
+  "systems": [
+    {
+      "name": "4.1 Basic Enemy Controller",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 22,
+      "dependencies": ["phase1_3"],
+      "notes": "Simple pathfinding or direct chase towards player. Enemies react to sound and sight. Stun/stagger mechanics on hit.",
+      "tasks": [
+        "Chase player within detection radius",
+        "Lose sight and return to patrol",
+        "Take damage and stagger animation",
+        "Death fall and fade away (or dissolve)"
+      ]
+    },
+    {
+      "name": "4.2 Enemy Variety & Bosses",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase4_0"],
+      "notes": "Multiple enemy types: slow zombies, fast crawlers, dogs, lickers. Boss fights with unique patterns and arena lock.",
+      "tasks": [
+        "Enemy data table (HP, speed, damage, model)",
+        "Boss arena setup (sealed room, distinct camera)",
+        "Boss phases (50% HP enrage)",
+        "Drop item or key on defeat"
+      ]
+    },
+    {
+      "name": "4.3 Audio & Visual Feedback",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase4_0", "phase6_0"],
+      "notes": "Growls, footsteps, ambient howls. Splatter effects, dynamic blood decals on walls/floor.",
+      "tasks": [
+        "Enemy sound cues (idle, alert, attack)",
+        "Blood splatter on death (particle or decal)",
+        "Screen shake on boss hits"
+      ]
+    }
+  ]
+}

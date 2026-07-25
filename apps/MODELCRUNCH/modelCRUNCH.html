@@ -1,0 +1,2610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<title>modelCRUNCH — Vertex Merge + Gamepad (full controls)</title>
+<style>
+  /* same CSS as before (unchanged) */
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+  :root {
+    --gray:     #c0c0c0;
+    --dark:     #808080;
+    --darker:   #404040;
+    --white:    #ffffff;
+    --black:    #000000;
+    --blue:     #000080;
+    --blue-hi:  #1084d0;
+    --next-black: #1a1a1a;
+    --next-gold:  #c8a000;
+    --next-panel: #2d2d2d;
+    --cyan:     #00e5ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #008080;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--black);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  #taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: var(--gray);
+    border-top: 2px solid var(--white);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    gap: 4px;
+  }
+  #taskbar-clock {
+    margin-left: auto;
+    border-top: 2px solid var(--dark);
+    border-left: 2px solid var(--dark);
+    border-right: 2px solid var(--white);
+    border-bottom: 2px solid var(--white);
+    padding: 2px 8px;
+    font-size: 11px;
+    min-width: 70px;
+    text-align: center;
+  }
+  .tb-app-btn {
+    background: var(--gray);
+    border-top: 2px solid var(--dark);
+    border-left: 2px solid var(--dark);
+    border-right: 2px solid var(--white);
+    border-bottom: 2px solid var(--white);
+    padding: 2px 10px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+  #main-window {
+    position: absolute;
+    top: 8px; left: 8px;
+    right: 8px; bottom: 36px;
+    background: var(--gray);
+    border-top: 2px solid var(--white);
+    border-left: 2px solid var(--white);
+    border-right: 2px solid var(--dark);
+    border-bottom: 2px solid var(--dark);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #title-bar {
+    background: linear-gradient(90deg, var(--blue) 0%, var(--blue-hi) 100%);
+    color: white;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  #title-label {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #title-buttons { display: flex; gap: 2px; }
+  .title-btn {
+    width: 16px; height: 14px;
+    background: var(--gray);
+    border-top: 1px solid var(--white);
+    border-left: 1px solid var(--white);
+    border-right: 1px solid var(--dark);
+    border-bottom: 1px solid var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    line-height: 1;
+  }
+  #toolbar {
+    background: var(--gray);
+    border-bottom: 2px solid var(--dark);
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .tb-sep {
+    width: 2px; height: 22px;
+    border-left: 1px solid var(--dark);
+    border-right: 1px solid var(--white);
+  }
+  .win-btn {
+    background: var(--gray);
+    border-top: 2px solid var(--white);
+    border-left: 2px solid var(--white);
+    border-right: 2px solid var(--dark);
+    border-bottom: 2px solid var(--dark);
+    padding: 3px 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 4px;
+    color: var(--black);
+  }
+  .win-btn:active {
+    border-top: 2px solid var(--dark);
+    border-left: 2px solid var(--dark);
+    border-right: 2px solid var(--white);
+    border-bottom: 2px solid var(--white);
+    padding: 4px 9px 2px 11px;
+  }
+  .win-btn.primary { background: #d4e4d4; }
+  .tb-label { font-size: 10px; color: var(--darker); white-space: nowrap; }
+  .win-input {
+    background: white;
+    border-top: 2px solid var(--dark);
+    border-left: 2px solid var(--dark);
+    border-right: 2px solid var(--white);
+    border-bottom: 2px solid var(--white);
+    padding: 2px 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    width: 56px;
+    color: var(--black);
+  }
+  .win-check { accent-color: var(--blue); margin-right: 3px; }
+  #workspace {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+  }
+  #viewport-container {
+    flex: 1;
+    position: relative;
+    background: #111416;
+    overflow: hidden;
+  }
+  #viewport-container canvas {
+    display: block;
+    position: absolute;
+    top: 0; left: 0;
+  }
+  #viewport-overlay {
+    position: absolute;
+    top: 6px; left: 8px;
+    color: rgba(0,229,255,0.5);
+    font-size: 10px;
+    line-height: 1.7;
+    pointer-events: none;
+    text-shadow: 0 0 4px rgba(0,229,255,0.3);
+    z-index: 3;
+  }
+  #drop-hint {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+    color: rgba(0,229,255,0.3);
+    font-family: 'VT323', monospace;
+    font-size: 26px;
+    pointer-events: none;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(0,229,255,0.2);
+    z-index: 2;
+    transition: opacity 0.3s;
+  }
+  #drop-hint .sub { font-size: 13px; font-family: 'Share Tech Mono', monospace; }
+  #drop-hint.hidden { opacity: 0; }
+  #viewport-container.drag-over { outline: 3px dashed var(--cyan); }
+  #side-panel {
+    width: 220px;
+    background: var(--next-black);
+    color: #ddd;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+    border-left: 1px solid #444;
+  }
+  #side-scroll { flex: 1; overflow-y: auto; }
+  #side-scroll::-webkit-scrollbar { width: 8px; background: #111; }
+  #side-scroll::-webkit-scrollbar-thumb { background: #444; }
+  .panel-section { border-bottom: 1px solid #2e2e2e; }
+  .panel-header {
+    background: var(--next-panel);
+    color: var(--next-gold);
+    font-family: 'VT323', monospace;
+    font-size: 14px;
+    padding: 4px 10px;
+    letter-spacing: 2px;
+    border-bottom: 1px solid #3a3a3a;
+    text-transform: uppercase;
+  }
+  .panel-body { padding: 6px 10px; font-size: 10px; line-height: 1.9; }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #1e1e1e;
+    padding: 1px 0;
+  }
+  .stat-key { color: #777; }
+  .stat-val { color: #e8e8e8; }
+  .stat-val.green  { color: #44cc44; }
+  .stat-val.orange { color: #ffaa00; }
+  .stat-val.red    { color: #ff4444; }
+  .stat-val.cyan   { color: var(--cyan); }
+  .progress-wrap { background: #111; border: 1px solid #444; height: 7px; margin: 4px 0; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg,#006600,#44cc44); transition: width 0.4s ease; width: 0%; }
+  #log-area {
+    background: #060606;
+    color: #33ff33;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    padding: 5px 8px;
+    height: 110px;
+    overflow-y: auto;
+    line-height: 1.5;
+    border-top: 1px solid #2a2a2a;
+    flex-shrink: 0;
+  }
+  #log-area::-webkit-scrollbar { width: 6px; background: #0a0a0a; }
+  #log-area::-webkit-scrollbar-thumb { background: #333; }
+  .log-warn  { color: #ffcc00; }
+  .log-error { color: #ff4444; }
+  .log-info  { color: #00aaff; }
+  .log-ok    { color: #44ff44; }
+  .log-dim   { color: #336633; }
+  .tex-folder-btn {
+    display: block;
+    background: var(--next-panel);
+    border-top: 2px solid #555;
+    border-left: 2px solid #555;
+    border-right: 2px solid #222;
+    border-bottom: 2px solid #222;
+    color: #ccc;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+  .tex-folder-btn:hover { background: #333; color: #fff; }
+  #tex-file-list { padding: 4px 10px 6px; }
+  .tex-none-msg { color: #444; font-size: 10px; padding: 4px 0; font-style: italic; }
+  .tex-file-chip {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 9px; color: #777; border-bottom: 1px solid #1a1a1a;
+    padding: 2px 0; gap: 4px;
+  }
+  .tex-file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex:1; }
+  .tex-file-chip.matched span { color: #44cc44; }
+  .tex-file-chip.unmatched span { color: #888; }
+  #tex-match-list { padding: 0 10px 4px; }
+  .tex-match-row {
+    display: flex; align-items: center; gap: 5px;
+    border-bottom: 1px solid #1e1e1e;
+    padding: 3px 0; font-size: 9px;
+  }
+  .tex-match-thumb {
+    width: 28px; height: 28px; flex-shrink: 0;
+    border: 1px solid #333; background: #111;
+    object-fit: cover; image-rendering: pixelated;
+  }
+  .tex-match-info { flex: 1; overflow: hidden; }
+  .tex-match-mesh { color: var(--cyan); font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tex-match-file { color: #666; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tex-match-manual {
+    background: #1a1a1a; border: 1px solid #333; color: #777;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px;
+    padding: 2px 4px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .tex-match-manual:hover { color: #ccc; border-color: #555; }
+  .tex-match-clear {
+    color: #444; font-size: 10px; cursor: pointer;
+    flex-shrink: 0; padding: 0 2px;
+  }
+  .tex-match-clear:hover { color: #ff6666; }
+  .tex-apply-btn {
+    flex: 1;
+    background: #1a2a1a;
+    border-top: 2px solid #44cc44; border-left: 2px solid #44cc44;
+    border-right: 2px solid #116611; border-bottom: 2px solid #116611;
+    color: #44ff44; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; padding: 4px 6px; cursor: pointer; letter-spacing: 1px;
+  }
+  .tex-apply-btn:hover { background: #223322; }
+  .tex-clear-all-btn {
+    background: #2a1a1a;
+    border-top: 2px solid #aa4444; border-left: 2px solid #aa4444;
+    border-right: 2px solid #661111; border-bottom: 2px solid #661111;
+    color: #ff8888; font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; padding: 4px 8px; cursor: pointer;
+  }
+  .tex-clear-all-btn:hover { background: #331a1a; }
+  /* Pieces panel (per-mesh visibility) */
+  #pieces-list { padding: 2px 0 4px; max-height: 180px; overflow-y: auto; }
+  #pieces-list::-webkit-scrollbar { width: 6px; background: #0a0a0a; }
+  #pieces-list::-webkit-scrollbar-thumb { background: #333; }
+  .piece-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 2px 10px; border-bottom: 1px solid #1e1e1e;
+    font-size: 9px;
+  }
+  .piece-row.hidden-piece .piece-name { color: #555; text-decoration: line-through; }
+  .piece-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #ccc; }
+  .piece-solo {
+    color: #444; font-size: 8px; letter-spacing: 0.5px;
+    cursor: pointer; flex-shrink: 0; padding: 1px 3px;
+    border: 1px solid #2a2a2a;
+  }
+  .piece-solo:hover { color: #ccc; border-color: #555; }
+  .pieces-bulk-row { display: flex; gap: 4px; padding: 6px 10px 4px; }
+  /* Shading / BG panel controls */
+  .shade-toggle-row { display: flex; flex-wrap: wrap; gap: 3px; padding: 4px 0 2px; }
+  .shade-btn {
+    background: #1a1a1a;
+    border-top: 1px solid #444; border-left: 1px solid #444;
+    border-right: 1px solid #111; border-bottom: 1px solid #111;
+    color: #777; font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; padding: 3px 6px; cursor: pointer; letter-spacing: 0.5px;
+  }
+  .shade-btn:hover { color: #ccc; }
+  .shade-btn.active { background: #003060; border-color: var(--cyan); color: var(--cyan); }
+  .shade-sub-row { display: flex; align-items: center; gap: 5px; padding: 2px 0; }
+  .shade-label { color: #555; font-size: 9px; width: 56px; flex-shrink: 0; }
+  .shade-color { width: 22px; height: 16px; border: 1px solid #333; background: #000; cursor: pointer; padding: 0; flex-shrink: 0; }
+  .shade-range { flex: 1; accent-color: var(--cyan); height: 12px; }
+  .shade-val { color: #555; font-size: 9px; width: 24px; text-align: right; flex-shrink: 0; }
+  .shade-file-btn {
+    flex: 1; background: #1a1a1a;
+    border-top: 1px solid #444; border-left: 1px solid #444;
+    border-right: 1px solid #111; border-bottom: 1px solid #111;
+    color: #888; font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; padding: 3px 6px; cursor: pointer; text-align: center;
+  }
+  .shade-file-btn:hover { color: #ccc; }
+  #status-bar {
+    background: var(--gray);
+    border-top: 2px solid var(--white);
+    padding: 2px 6px;
+    display: flex;
+    gap: 6px;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .status-cell {
+    border-top: 1px solid var(--dark);
+    border-left: 1px solid var(--dark);
+    border-right: 1px solid var(--white);
+    border-bottom: 1px solid var(--white);
+    padding: 1px 6px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+</style>
+</head>
+<body>
+
+<div id="taskbar">
+  <div class="tb-app-btn">🗂 modelCRUNCH</div>
+  <div id="taskbar-clock">--:--</div>
+</div>
+
+<div id="main-window">
+  <div id="title-bar">
+    <div id="title-label">🗂 modelCRUNCH — A: merge · X: reset · Y: load · START: export GLB · LT/RT: shade · SELECT: BG · chords: LB/RB+face</div>
+    <div id="title-buttons"><div class="title-btn">_</div><div class="title-btn">□</div><div class="title-btn">✕</div></div>
+  </div>
+
+  <div id="toolbar">
+    <label class="win-btn primary" style="cursor:pointer;">
+      📂 Load Model
+      <input type="file" id="file_chooser" accept=".glb,.gltf,.obj,.md3,.md2,.mdl,.json,.bbmodel" style="display:none">
+    </label>
+    <div class="tb-sep"></div>
+    <button class="win-btn" id="undo_btn" disabled>↩ Undo</button>
+    <button class="win-btn" id="redo_btn" disabled>↪ Redo</button>
+    <div class="tb-sep"></div>
+    <span class="tb-label">Export:</span>
+    <button class="win-btn" id="export_glb">💾 GLB</button>
+    <button class="win-btn" id="export_obj">💾 OBJ</button>
+    <button class="win-btn" id="export_md3">💾 MD3</button>
+    <div class="tb-sep"></div>
+    <span class="tb-label">Weld ε:</span>
+    <input class="win-input" id="merge_threshold" type="number" value="0.001" min="0.0001" max="1" step="0.0001" style="width:68px;">
+    <button class="win-btn primary" id="merge_verts">⬡ Merge Verts</button>
+    <div class="tb-sep"></div>
+    <button class="win-btn" id="reset_view">🔁 Reset</button>
+    <button class="win-btn" id="wire_toggle">⬡ Wire</button>
+    <div class="tb-sep"></div>
+    <label style="display:flex;align-items:center;gap:2px;"><input class="win-check" id="option_trs" type="checkbox"> TRS</label>
+    <label style="display:flex;align-items:center;gap:2px;"><input class="win-check" id="option_visible" type="checkbox" checked> Visible</label>
+    <label style="display:flex;align-items:center;gap:2px;"><input class="win-check" id="gamepad_toggle" type="checkbox" checked> 🎮 Gamepad</label>
+    <label style="display:flex;align-items:center;gap:2px;"><input class="win-check" id="swap_sticks" type="checkbox"> 🔄 Swap Sticks</label>
+    <span class="tb-label">MaxTex:</span>
+    <input class="win-input" id="option_maxsize" type="number" value="1024" min="2" max="4096" step="256">
+  </div>
+
+  <div id="workspace">
+    <div id="viewport-container">
+      <div id="viewport-overlay">
+        PERSPECTIVE | <span id="cam-pos-label">—</span><br>
+        LMB: Orbit · Scroll: Zoom · RMB: Pan | L‑stick: orbit · R‑stick: pan/zoom · swap toggle<br>
+        A: merge · B: wire · X: reset · Y: load · START: export GLB | LB/RB: undo/redo · LT/RT: shade · SELECT: BG · R3: tile tex<br>
+        <span style="color:rgba(0,229,255,0.35)">Chords — LB+A: OBJ · LB+B: MD3 · LB+X: TRS · LB+Y: visible · RB+A: apply tex · RB+B: clr tex · RB+X: load tex · RB+Y: BG img · START+SELECT: clr log · L3+R3: swap sticks</span>
+      </div>
+      <div id="drop-hint">
+        ⬡ DROP MODEL HERE
+        <span class="sub">GLB · GLTF · OBJ · MD2 · MD3 · MDL · JSON (Blockbench)</span>
+      </div>
+    </div>
+
+    <div id="side-panel">
+      <div id="side-scroll">
+        <div class="panel-section"><div class="panel-header">▸ MODEL</div><div class="panel-body">
+          <div class="stat-row"><span class="stat-key">File</span><span class="stat-val cyan" id="s-filename">—</span></div>
+          <div class="stat-row"><span class="stat-key">Size</span><span class="stat-val" id="s-filesize">—</span></div>
+          <div class="stat-row"><span class="stat-key">Meshes</span><span class="stat-val" id="s-meshes">—</span></div>
+          <div class="stat-row"><span class="stat-key">Materials</span><span class="stat-val" id="s-mats">—</span></div>
+          <div class="stat-row"><span class="stat-key">Textures</span><span class="stat-val" id="s-textures">—</span></div>
+        </div></div>
+        <div class="panel-section" id="pieces-panel-section">
+          <div class="panel-header">▸ PIECES</div>
+          <div class="pieces-bulk-row">
+            <button class="shade-file-btn" id="pieces-show-all">Show All</button>
+            <button class="shade-file-btn" id="pieces-hide-all">Hide All</button>
+          </div>
+          <div id="pieces-list"><div class="tex-none-msg" style="padding-left:10px;">No model loaded</div></div>
+        </div>
+        <div class="panel-section"><div class="panel-header">▸ GEOMETRY</div><div class="panel-body">
+          <div class="stat-row"><span class="stat-key">Vertices</span><span class="stat-val green" id="s-verts">—</span></div>
+          <div class="stat-row"><span class="stat-key">Faces</span><span class="stat-val green" id="s-faces">—</span></div>
+          <div class="stat-row"><span class="stat-key">Indices</span><span class="stat-val" id="s-indices">—</span></div>
+          <div class="stat-row"><span class="stat-key">After op</span><span class="stat-val orange" id="s-after">—</span></div>
+          <div class="stat-row"><span class="stat-key">Reduction</span><span class="stat-val red" id="s-reduction">—</span></div>
+          <div class="stat-row"><span class="stat-key">Weld saved</span><span class="stat-val cyan" id="s-weld">—</span></div>
+          <div class="progress-wrap"><div class="progress-bar" id="s-progress"></div></div>
+        </div></div>
+        <div class="panel-section"><div class="panel-header">▸ VIEWPORT</div><div class="panel-body">
+          <div class="stat-row"><span class="stat-key">Wireframe</span><span class="stat-val" id="s-wire">OFF</span></div>
+          <div class="stat-row"><span class="stat-key">Gamepad</span><span class="stat-val cyan" id="gp-status">—</span></div>
+          <div class="stat-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
+            <span class="stat-key">Shading Mode</span>
+            <div class="shade-toggle-row">
+              <button class="shade-btn active" data-shade="standard">Standard</button>
+              <button class="shade-btn" data-shade="gouraud">Gouraud</button>
+              <button class="shade-btn" data-shade="flat">Flat</button>
+              <button class="shade-btn" data-shade="normals">Normals</button>
+              <button class="shade-btn" data-shade="wireframe">Wire</button>
+              <button class="shade-btn" data-shade="depth">Depth</button>
+            </div>
+          </div>
+          <!-- Gouraud sub-controls -->
+          <div id="gouraud-controls" style="display:none; padding:2px 0 4px;">
+            <div class="shade-sub-row">
+              <span class="shade-label">Diffuse</span>
+              <input type="color" class="shade-color" id="gouraud-diffuse" value="#88aaff">
+            </div>
+            <div class="shade-sub-row">
+              <span class="shade-label">Specular</span>
+              <input type="color" class="shade-color" id="gouraud-specular" value="#ffffff">
+              <input type="range" class="shade-range" id="gouraud-shine" min="1" max="200" value="40">
+              <span class="shade-val" id="gouraud-shine-val">40</span>
+            </div>
+          </div>
+          <!-- Tiling Texture sub-controls -->
+          <div class="stat-row" style="flex-direction:column;align-items:flex-start;gap:4px;margin-top:4px;">
+            <span class="stat-key">PNG Tile Texture</span>
+            <div style="display:flex;gap:4px;width:100%;">
+              <label class="shade-file-btn" style="cursor:pointer;">
+                📁 Load PNG…
+                <input type="file" id="tile-tex-input" accept="image/png,image/*" style="display:none;">
+              </label>
+              <button class="shade-btn" id="tile-tex-clear" title="Clear tiling texture">✕</button>
+            </div>
+            <div class="shade-sub-row" style="width:100%;">
+              <span class="shade-label">Tiling</span>
+              <input type="range" class="shade-range" id="tile-repeat" min="1" max="32" value="1">
+              <span class="shade-val" id="tile-repeat-val">1×</span>
+            </div>
+          </div>
+          <!-- Background -->
+          <div class="stat-row" style="flex-direction:column;align-items:flex-start;gap:4px;margin-top:4px;">
+            <span class="stat-key">Background</span>
+            <div class="shade-toggle-row">
+              <button class="shade-btn active" data-bg="solid">Solid</button>
+              <button class="shade-btn" data-bg="gradient">Gradient</button>
+              <button class="shade-btn" data-bg="image">Image</button>
+            </div>
+          </div>
+          <!-- BG: solid -->
+          <div id="bg-solid-ctrl" class="shade-sub-row">
+            <span class="shade-label">Color</span>
+            <input type="color" class="shade-color" id="bg-solid-color" value="#111416">
+          </div>
+          <!-- BG: gradient -->
+          <div id="bg-grad-ctrl" style="display:none;">
+            <div class="shade-sub-row">
+              <span class="shade-label">Top</span>
+              <input type="color" class="shade-color" id="bg-grad-top" value="#0a0a1a">
+              <span class="shade-label" style="margin-left:6px;">Bottom</span>
+              <input type="color" class="shade-color" id="bg-grad-bot" value="#001a10">
+            </div>
+            <div class="shade-sub-row">
+              <span class="shade-label">Direction</span>
+              <select id="bg-grad-dir" style="flex:1;background:#111;border:1px solid #333;color:#aaa;font-size:9px;font-family:'Share Tech Mono',monospace;padding:1px 2px;">
+                <option value="to bottom">↓ Top→Bot</option>
+                <option value="to right">→ L→R</option>
+                <option value="135deg">↘ Diagonal</option>
+                <option value="to top right">↗ D2</option>
+              </select>
+            </div>
+          </div>
+          <!-- BG: image -->
+          <div id="bg-img-ctrl" style="display:none;">
+            <div class="shade-sub-row">
+              <label class="shade-file-btn" style="cursor:pointer;flex:1;">
+                📁 Load Image…
+                <input type="file" id="bg-img-input" accept="image/*" style="display:none;">
+              </label>
+            </div>
+            <div class="shade-sub-row">
+              <span class="shade-label">Fit</span>
+              <div style="display:flex;gap:2px;">
+                <button class="shade-btn active" data-bgfit="cover">Cover</button>
+                <button class="shade-btn" data-bgfit="contain">Contain</button>
+                <button class="shade-btn" data-bgfit="stretch">Stretch</button>
+              </div>
+            </div>
+          </div>
+        </div></div>
+        <div class="panel-section" id="tex-panel-section">
+          <div class="panel-header">▸ TEXTURES</div>
+          <div id="tex-load-area">
+            <div style="padding:6px 10px 4px;">
+              <label class="tex-folder-btn" id="tex-folder-label">
+                📁 Load Texture Files
+                <input type="file" id="tex_file_input"
+                  accept=".png,.jpg,.jpeg,.tga,.webp,.bmp,.gif"
+                  multiple style="display:none">
+              </label>
+            </div>
+            <div id="tex-file-list"><div class="tex-none-msg">No textures loaded</div></div>
+          </div>
+          <div id="tex-match-list"></div>
+          <div id="tex-apply-row" style="display:none; padding:6px 10px; border-top:1px solid #2e2e2e; gap:5px;">
+            <button class="tex-apply-btn" id="tex-apply-btn">⬡ Apply All</button>
+            <button class="tex-clear-all-btn" id="tex-clear-all-btn">✕ Clear</button>
+          </div>
+        </div>
+      </div>
+      <div id="log-area"></div>
+    </div>
+  </div>
+
+  <div id="status-bar">
+    <div class="status-cell" style="flex:1;" id="status-main">Ready — load a model to begin</div>
+    <div class="status-cell" style="min-width:110px;" id="status-verts">Verts: —</div>
+    <div class="status-cell" style="min-width:90px;" id="status-mode">IDLE</div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+
+import * as THREE from 'three';
+import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
+import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ---------- LOADERS (MD3, MD2, MDL) ----------
+class MD3Loader {
+  load(arrayBuffer) {
+    const view = new DataView(arrayBuffer);
+    let offset = 0;
+    const readInt32 = () => { const v = view.getInt32(offset, true); offset += 4; return v; };
+    const readFloat = () => { const v = view.getFloat32(offset, true); offset += 4; return v; };
+    const readString = (len) => {
+      const bytes = new Uint8Array(arrayBuffer, offset, len);
+      offset += len;
+      let str = '';
+      for (let i = 0; i < len && bytes[i] !== 0; i++) str += String.fromCharCode(bytes[i]);
+      return str;
+    };
+    const magic = readInt32();
+    if (magic !== 860898377) throw new Error('Not a valid MD3 file');
+    readInt32(); // version
+    const name = readString(64);
+    readInt32(); // flags
+    const numFrames = readInt32();
+    const numTags = readInt32();
+    const numSurfaces = readInt32();
+    readInt32(); // numSkins
+    const ofsFrames = readInt32();
+    const ofsTags = readInt32();
+    const ofsSurfaces = readInt32();
+    const ofsEnd = readInt32();
+    offset = ofsSurfaces;
+    const group = new THREE.Group();
+    group.name = name || 'md3_model';
+    for (let s = 0; s < numSurfaces; s++) {
+      const surfStart = offset;
+      readInt32(); // ident
+      const surfName = readString(64);
+      readInt32(); // flags
+      readInt32(); // numFrames
+      readInt32(); // numShaders
+      const surfNumVerts = readInt32();
+      const surfNumTris = readInt32();
+      const surfOfsTriangles = readInt32();
+      const surfOfsShaders = readInt32();
+      const surfOfsST = readInt32();
+      const surfOfsXYZNormal = readInt32();
+      const surfOfsEnd = readInt32();
+      const indices = [];
+      offset = surfStart + surfOfsTriangles;
+      for (let t = 0; t < surfNumTris; t++) indices.push(readInt32(), readInt32(), readInt32());
+      const uvs = [];
+      offset = surfStart + surfOfsST;
+      for (let v = 0; v < surfNumVerts; v++) uvs.push(readFloat(), readFloat());
+      const positions = [];
+      offset = surfStart + surfOfsXYZNormal;
+      for (let v = 0; v < surfNumVerts; v++) {
+        const x = view.getInt16(offset, true) / 64.0; offset += 2;
+        const y = view.getInt16(offset, true) / 64.0; offset += 2;
+        const z = view.getInt16(offset, true) / 64.0; offset += 2;
+        offset += 2;
+        positions.push(x, y, z);
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.name = surfName || `surface_${s}`;
+      group.add(mesh);
+      offset = surfStart + surfOfsEnd;
+    }
+    return group;
+  }
+}
+
+class MDLLoader {
+  load(arrayBuffer) {
+    const view = new DataView(arrayBuffer);
+    let offset = 0;
+    const readInt32 = () => { const v = view.getInt32(offset, true); offset += 4; return v; };
+    const readFloat = () => { const v = view.getFloat32(offset, true); offset += 4; return v; };
+    const readUint8 = () => { const v = view.getUint8(offset); offset += 1; return v; };
+    const skipBytes = (n) => { offset += n; };
+    const readString = (len) => {
+      const bytes = new Uint8Array(arrayBuffer, offset, len);
+      offset += len;
+      let s = '';
+      for (let i = 0; i < len && bytes[i] !== 0; i++) s += String.fromCharCode(bytes[i]);
+      return s;
+    };
+    const magic = readInt32();
+    if (magic === 0x54534449) throw new Error('Source Engine MDL needs .vvd/.vtx files');
+    if (magic !== 1330660425) throw new Error(`Not a valid MDL file`);
+    const version = readInt32();
+    if (version !== 6) throw new Error(`Unsupported MDL version ${version}`);
+    const scaleX = readFloat(), scaleY = readFloat(), scaleZ = readFloat();
+    const originX = readFloat(), originY = readFloat(), originZ = readFloat();
+    readFloat(); // radius
+    skipBytes(12);
+    const numSkins = readInt32(), skinWidth = readInt32(), skinHeight = readInt32();
+    const numVerts = readInt32(), numTris = readInt32(), numFrames = readInt32();
+    readInt32(); readInt32(); readFloat(); // syncType, flags, size
+    for (let s = 0; s < numSkins; s++) {
+      const group = readInt32();
+      if (group === 0) skipBytes(skinWidth * skinHeight);
+      else { const nb = readInt32(); skipBytes(nb * 4); skipBytes(nb * skinWidth * skinHeight); }
+    }
+    const onseam = new Int32Array(numVerts);
+    const texS = new Float32Array(numVerts), texT = new Float32Array(numVerts);
+    for (let i = 0; i < numVerts; i++) { onseam[i] = readInt32(); texS[i] = readInt32(); texT[i] = readInt32(); }
+    const triFront = new Uint8Array(numTris);
+    const triIdx = [];
+    for (let i = 0; i < numTris; i++) { triFront[i] = readInt32(); triIdx.push(readInt32(), readInt32(), readInt32()); }
+    const frameType = readInt32();
+    let frameVerts;
+    if (frameType === 0) { skipBytes(4+4+16); frameVerts = new Uint8Array(arrayBuffer, offset, numVerts * 4); }
+    else { const nb = readInt32(); skipBytes(4+4); skipBytes(nb * 4); skipBytes(4+4+16); frameVerts = new Uint8Array(arrayBuffer, offset, numVerts * 4); }
+    const positions = [], uvCoords = [], indices = [];
+    const invSW = 1.0 / skinWidth, invSH = 1.0 / skinHeight;
+    for (let t = 0; t < numTris; t++) {
+      for (let k = 0; k < 3; k++) {
+        const vi = triIdx[t * 3 + k];
+        const cx = frameVerts[vi * 4 + 0], cy = frameVerts[vi * 4 + 1], cz = frameVerts[vi * 4 + 2];
+        const x = cx * scaleX + originX;
+        const y = cy * scaleY + originY;
+        const z = cz * scaleZ + originZ;
+        positions.push(x, z, -y);
+        let s = texS[vi];
+        if (!triFront[t] && onseam[vi]) s += skinWidth * 0.5;
+        uvCoords.push((s + 0.5) * invSW, (texT[vi] + 0.5) * invSH);
+        indices.push(positions.length / 3 - 1);
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvCoords, 2));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'mdl_model';
+    const group = new THREE.Group();
+    group.name = 'mdl_model';
+    group.add(mesh);
+    return group;
+  }
+}
+
+class MD2Loader {
+  load(arrayBuffer) {
+    const view = new DataView(arrayBuffer);
+    let offset = 0;
+    const readInt32 = () => { const v = view.getInt32(offset, true); offset += 4; return v; };
+    const readFloat = () => { const v = view.getFloat32(offset, true); offset += 4; return v; };
+    const magic = readInt32();
+    if (magic !== 844121161) throw new Error(`Not a valid MD2 file`);
+    const version = readInt32();
+    if (version !== 8) throw new Error(`Unsupported MD2 version ${version}`);
+    const skinWidth = readInt32(), skinHeight = readInt32();
+    readInt32(); // frameSize
+    const numSkins = readInt32(), numVerts = readInt32(), numST = readInt32(), numTris = readInt32();
+    readInt32(); // numGLCmds
+    const numFrames = readInt32();
+    const ofsSkins = readInt32(), ofsST = readInt32(), ofsTris = readInt32(), ofsFrames = readInt32();
+    readInt32(); readInt32(); // ofsGLCmds, ofsEnd
+    offset = ofsST;
+    const stS = new Float32Array(numST), stT = new Float32Array(numST);
+    const invSW = 1.0 / skinWidth, invSH = 1.0 / skinHeight;
+    for (let i = 0; i < numST; i++) { stS[i] = view.getInt16(offset, true) * invSW; offset += 2; stT[i] = view.getInt16(offset, true) * invSH; offset += 2; }
+    offset = ofsTris;
+    const triVerts = new Uint16Array(numTris * 3), triST = new Uint16Array(numTris * 3);
+    for (let i = 0; i < numTris; i++) {
+      triVerts[i*3] = view.getUint16(offset, true); triVerts[i*3+1] = view.getUint16(offset+2, true); triVerts[i*3+2] = view.getUint16(offset+4, true);
+      triST[i*3] = view.getUint16(offset+6, true); triST[i*3+1] = view.getUint16(offset+8, true); triST[i*3+2] = view.getUint16(offset+10, true);
+      offset += 12;
+    }
+    offset = ofsFrames;
+    const fScaleX = readFloat(), fScaleY = readFloat(), fScaleZ = readFloat();
+    const fTransX = readFloat(), fTransY = readFloat(), fTransZ = readFloat();
+    offset += 16;
+    const fvx = new Float32Array(numVerts), fvy = new Float32Array(numVerts), fvz = new Float32Array(numVerts);
+    for (let i = 0; i < numVerts; i++) {
+      const cx = view.getUint8(offset), cy = view.getUint8(offset+1), cz = view.getUint8(offset+2);
+      offset += 4;
+      fvx[i] = cx * fScaleX + fTransX;
+      fvy[i] = cy * fScaleY + fTransY;
+      fvz[i] = cz * fScaleZ + fTransZ;
+    }
+    const positions = new Float32Array(numTris * 3 * 3);
+    const uvCoords = new Float32Array(numTris * 3 * 2);
+    const idxBuf = new Uint32Array(numTris * 3);
+    for (let t = 0; t < numTris; t++) {
+      for (let k = 0; k < 3; k++) {
+        const vi = triVerts[t*3 + k], sti = triST[t*3 + k];
+        const out = t*3 + k;
+        positions[out*3] = fvx[vi];
+        positions[out*3+1] = fvz[vi];
+        positions[out*3+2] = -fvy[vi];
+        uvCoords[out*2] = stS[sti];
+        uvCoords[out*2+1] = stT[sti];
+        idxBuf[out] = out;
+      }
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvCoords, 2));
+    geometry.setIndex(new THREE.BufferAttribute(idxBuf, 1));
+    geometry.computeVertexNormals();
+    const material = new THREE.MeshStandardMaterial({ color: 0xcccccc, side: THREE.DoubleSide });
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.name = 'md2_model';
+    const group = new THREE.Group();
+    group.name = 'md2_model';
+    group.add(mesh);
+    return group;
+  }
+}
+
+// ---------- BLOCKBENCH JSON LOADER (cube elements, static bind pose) ----------
+// Supports Blockbench's native project JSON (.json / .bbmodel): "elements" array
+// of cuboids with from/to/faces/uv, plus an embedded "textures" array (base64
+// "source"). Vanilla-style Minecraft block-model JSON (textures as an id->path
+// object, no embedded image data) is also accepted but will come in untextured
+// since no pixel data is present in that format.
+// Free-form "mesh"-type elements (arbitrary polygon meshes, not cuboids) are
+// not supported and are skipped with a warning — only "cube" elements convert.
+// Blockbench's outliner group hierarchy is for animation/organization only;
+// element from/to/rotation are already absolute, so it's safe to flatten
+// everything into a single static bind-pose mesh for GLB export.
+class BlockbenchLoader {
+  load(jsonText) {
+    const data = JSON.parse(jsonText);
+    if (!Array.isArray(data.elements)) throw new Error('No "elements" array found — not a recognized Blockbench model');
+
+    const resW = (data.resolution && data.resolution.width)  || 16;
+    const resH = (data.resolution && data.resolution.height) || 16;
+
+    // Normalize textures into a list of { id, uuid, source }
+    let texList = [];
+    if (Array.isArray(data.textures)) {
+      texList = data.textures;
+    } else if (data.textures && typeof data.textures === 'object') {
+      texList = Object.entries(data.textures).map(([id, path]) => ({ id, path, source: null }));
+    }
+
+    const texturesByIndex = []; // { tex, name } — tex is null when no pixel data is embedded
+    const texturesById = {};
+    let untexturedFaces = 0;
+    texList.forEach((t, i) => {
+      let tex = null;
+      const name = t.name || (typeof t.path === 'string' ? t.path.split(/[\\/]/).pop().replace(/\.[^.]+$/, '') : `tex_${i}`);
+      if (t.source && typeof t.source === 'string' && t.source.startsWith('data:')) {
+        tex = new THREE.TextureLoader().load(t.source);
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestFilter;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.name = name;
+      }
+      const meta = { tex, name };
+      texturesByIndex[i] = meta;
+      if (t.id !== undefined) texturesById[String(t.id)] = meta;
+      if (t.uuid) texturesById[t.uuid] = meta;
+    });
+    const resolveTexture = (ref) => {
+      if (ref === undefined || ref === null || ref === -1) return null;
+      if (typeof ref === 'number') return texturesByIndex[ref] || null;
+      if (typeof ref === 'string') {
+        const clean = ref.startsWith('#') ? ref.slice(1) : ref;
+        if (texturesById[clean] !== undefined) return texturesById[clean];
+        const asNum = Number(clean);
+        return Number.isFinite(asNum) ? (texturesByIndex[asNum] || null) : null;
+      }
+      return null;
+    };
+
+    const materialCache = new Map();
+    const materialFor = (tex, doubleSided) => {
+      const key = (tex ? tex.uuid : 'none') + (doubleSided ? '|ds' : '');
+      if (materialCache.has(key)) return materialCache.get(key);
+      const mat = new THREE.MeshStandardMaterial({
+        map: tex || null,
+        color: tex ? 0xffffff : 0xcccccc,
+        side: doubleSided ? THREE.DoubleSide : THREE.FrontSide,
+        transparent: !!tex,
+        alphaTest: tex ? 0.02 : 0
+      });
+      materialCache.set(key, mat);
+      return mat;
+    };
+
+    const DEG2RAD = Math.PI / 180;
+    const FLAT_EPS = 1e-4;
+    let skippedMesh = 0;
+    let elementUntexturedFaces = 0;
+    const untexturedCount = new Map();
+
+    const group = new THREE.Group();
+    group.name = (data.meta && data.meta.model_identifier) || 'blockbench_model';
+
+    // FIX: Create one mesh per element instead of batching by texture
+    data.elements.forEach((el, elIdx) => {
+      if (el.type === 'mesh') { skippedMesh++; return; }
+      if (!Array.isArray(el.from) || !Array.isArray(el.to)) return;
+
+      const [x0, y0, z0] = el.from;
+      const [x1, y1, z1] = el.to;
+      const isFlat = Math.abs(x1-x0) < FLAT_EPS || Math.abs(y1-y0) < FLAT_EPS || Math.abs(z1-z0) < FLAT_EPS;
+
+      const corners = {
+        v000: new THREE.Vector3(x0, y0, z0), v100: new THREE.Vector3(x1, y0, z0),
+        v010: new THREE.Vector3(x0, y1, z0), v110: new THREE.Vector3(x1, y1, z0),
+        v001: new THREE.Vector3(x0, y0, z1), v101: new THREE.Vector3(x1, y0, z1),
+        v011: new THREE.Vector3(x0, y1, z1), v111: new THREE.Vector3(x1, y1, z1),
+      };
+
+      let origin = el.origin || [0, 0, 0];
+      let rotDeg = null;
+      if (Array.isArray(el.rotation) && (el.rotation[0] || el.rotation[1] || el.rotation[2])) {
+        rotDeg = el.rotation;
+      } else if (el.rotation && typeof el.rotation === 'object' && el.rotation.angle) {
+        origin = el.rotation.origin || origin;
+        const axis = el.rotation.axis || 'y';
+        const a = el.rotation.angle;
+        rotDeg = axis === 'x' ? [a, 0, 0] : axis === 'z' ? [0, 0, a] : [0, a, 0];
+      }
+      if (rotDeg) {
+        const originV = new THREE.Vector3(...origin);
+        const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(rotDeg[0]*DEG2RAD, rotDeg[1]*DEG2RAD, rotDeg[2]*DEG2RAD, 'XYZ'));
+        for (const k in corners) corners[k].sub(originV).applyQuaternion(quat).add(originV);
+      }
+
+      const faces = el.faces || {};
+      const facesDef = [
+        { key: 'south', c: [corners.v001, corners.v101, corners.v111, corners.v011] },
+        { key: 'north', c: [corners.v100, corners.v000, corners.v010, corners.v110] },
+        { key: 'up',    c: [corners.v010, corners.v011, corners.v111, corners.v110] },
+        { key: 'down',  c: [corners.v000, corners.v100, corners.v101, corners.v001] },
+        { key: 'east',  c: [corners.v100, corners.v110, corners.v111, corners.v101] },
+        { key: 'west',  c: [corners.v000, corners.v001, corners.v011, corners.v010] },
+      ];
+
+      // For this element, collect all faces into a single geometry
+      // Use a multi-material approach if faces have different textures
+      const positions = [];
+      const uvs = [];
+      const indices = [];
+      const materials = [];
+      const materialMap = new Map(); // material -> face indices
+      let vertCount = 0;
+
+      facesDef.forEach(fd => {
+        const fdata = faces[fd.key];
+        if (!fdata) return;
+        const meta = resolveTexture(fdata.texture);
+        if (!meta || !meta.tex) {
+          elementUntexturedFaces++;
+          const label = (meta && meta.name) || 'untextured';
+          untexturedCount.set(label, (untexturedCount.get(label) || 0) + 1);
+        }
+        const mat = materialFor(meta ? meta.tex : null, isFlat);
+        const matKey = mat.uuid;
+        if (!materialMap.has(matKey)) {
+          materialMap.set(matKey, { mat, faces: [] });
+          materials.push(mat);
+        }
+
+        const uv = fdata.uv || [0, 0, resW, resH];
+        const [u1, v1p, u2, v2p] = uv;
+        const uvCorners = [
+          [u1 / resW, 1 - v2p / resH],
+          [u2 / resW, 1 - v2p / resH],
+          [u2 / resW, 1 - v1p / resH],
+          [u1 / resW, 1 - v1p / resH],
+        ];
+        const vc = vertCount;
+        fd.c.forEach((p, i) => {
+          positions.push(p.x, p.y, p.z);
+          uvs.push(uvCorners[i][0], uvCorners[i][1]);
+        });
+        indices.push(vc, vc+1, vc+2, vc, vc+2, vc+3);
+        vertCount += 4;
+      });
+
+      if (vertCount === 0) return; // Element had no faces
+
+      // Create geometry for this element
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+
+      // Create mesh with appropriate material(s)
+      const mesh = new THREE.Mesh(
+        geo,
+        materials.length === 1 ? materials[0] : materials
+      );
+      mesh.name = el.name || `element_${elIdx}`;
+      mesh.visible = el.visibility !== false;
+      mesh.userData.elementData = el; // Store original element data
+      group.add(mesh);
+    });
+
+    group.userData.skippedMeshElements = skippedMesh;
+    group.userData.untexturedFaces = elementUntexturedFaces;
+    group.userData.missingAtlases = Array.from(untexturedCount.keys()).filter(n => n !== 'untextured');
+    return group;
+  }
+}
+
+// ---------- GAMEPAD MANAGER (with Chord System) ----------
+class GamepadManager {
+  constructor(deadzone = 0.15) {
+    this.deadzone    = deadzone;
+    this.handlers    = { connected: [], disconnected: [], update: [] };
+    this.raf         = null;
+    this.running     = false;
+    this.prevButtons = {};
+    this.currButtons = {};
+
+    // ── Chord system ──────────────────────────────────────────────
+    // Map<name, { buttons: number[], exclusive: boolean }>
+    this._chords = new Map();
+    // Per-chord, per-pad fired state for this frame
+    // Map<name, Set<padIndex>>
+    this._chordFiredThisFrame = new Map();
+    // Named chord listeners: Map<name, fn[]>
+    this._chordHandlers = new Map();
+
+    this.onConnected    = this.onConnected.bind(this);
+    this.onDisconnected = this.onDisconnected.bind(this);
+    this.poll           = this.poll.bind(this);
+    window.addEventListener('gamepadconnected',    this.onConnected);
+    window.addEventListener('gamepaddisconnected', this.onDisconnected);
+  }
+
+  on(event, fn) { if (this.handlers[event]) this.handlers[event].push(fn); return this; }
+  start() { if (this.running) return this; this.running = true; this.poll(); return this; }
+  stop()  { this.running = false; if (this.raf) cancelAnimationFrame(this.raf); this.raf = null; return this; }
+  getGamepads() { try { return navigator.getGamepads ? Array.from(navigator.getGamepads()) : []; } catch(e) { return []; } }
+  onConnected(e) { this.emit('connected', e.gamepad); }
+  onDisconnected(e) {
+    const g = e.gamepad;
+    delete this.prevButtons[g.index];
+    delete this.currButtons[g.index];
+    this.emit('disconnected', g);
+  }
+
+  // ── Chord API ─────────────────────────────────────────────────
+  /**
+   * Define a named chord.
+   * @param {string}   name      – unique chord name
+   * @param {number[]} buttons   – button indices that must ALL be held
+   * @param {boolean}  exclusive – if true, chord only fires when ONLY these
+   *                               buttons are pressed (no extras)
+   */
+  defineChord(name, buttons, exclusive = false) {
+    this._chords.set(name, { buttons, exclusive });
+    if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []);
+    if (!this._chordFiredThisFrame.has(name)) this._chordFiredThisFrame.set(name, new Set());
+    return this;
+  }
+
+  /**
+   * Returns true the first frame ALL chord buttons are simultaneously held
+   * for the given pad (like justPressed but for a combo).
+   */
+  chordJustFired(padIndex, name) {
+    return !!this._chordFiredThisFrame.get(name)?.has(padIndex);
+  }
+
+  /** Attach a callback that fires whenever a chord just activates. */
+  onChord(name, fn) {
+    if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []);
+    this._chordHandlers.get(name).push(fn);
+    return this;
+  }
+
+  // ── Internal chord detection ──────────────────────────────────
+  _detectChords(padIndex) {
+    const curr = this.currButtons[padIndex];
+    const prev = this.prevButtons[padIndex];
+    if (!curr || !prev) return;
+    const totalHeld = curr.filter(Boolean).length;
+
+    for (const [name, def] of this._chords) {
+      const fired = this._chordFiredThisFrame.get(name);
+      const allHeldNow  = def.buttons.every(b => curr[b]);
+      const allHeldPrev = def.buttons.every(b => prev[b]);
+      const exclusiveOk = !def.exclusive || totalHeld === def.buttons.length;
+      const justActivated = allHeldNow && !allHeldPrev && exclusiveOk;
+
+      if (justActivated) {
+        fired.add(padIndex);
+        for (const fn of this._chordHandlers.get(name) || []) {
+          try { fn(padIndex); } catch(e) {}
+        }
+      } else {
+        fired.delete(padIndex);
+      }
+    }
+  }
+
+  poll() {
+    if (!this.running) return;
+    const raw  = this.getGamepads();
+    const pads = [];
+    for (const pad of raw) {
+      if (!pad) continue;
+      if (!this.prevButtons[pad.index])
+        this.prevButtons[pad.index] = new Array(pad.buttons.length).fill(false);
+      this.prevButtons[pad.index] = this.currButtons[pad.index] || this.prevButtons[pad.index];
+      this.currButtons[pad.index] = pad.buttons.map(b => b.pressed);
+      this._detectChords(pad.index);
+      pads.push({
+        index: pad.index, id: pad.id, mapping: pad.mapping,
+        buttons: pad.buttons.map(b => ({ pressed: b.pressed, value: b.value })),
+        axes: Array.from(pad.axes)
+      });
+    }
+    this.emit('update', pads);
+    this.raf = requestAnimationFrame(this.poll);
+  }
+
+  emit(event, data) { for (const fn of this.handlers[event] || []) try { fn(data); } catch(e) {} }
+  axisValue(padIndex, axis) {
+    const pads = this.getGamepads(); const pad = pads[padIndex];
+    if (!pad) return 0; const v = pad.axes[axis] ?? 0;
+    return Math.abs(v) < this.deadzone ? 0 : v;
+  }
+  justPressed(padIndex, btn) {
+    return !!this.currButtons[padIndex]?.[btn] && !this.prevButtons[padIndex]?.[btn];
+  }
+}
+const BTN = { A:0, B:1, X:2, Y:3, LB:4, RB:5, LT:6, RT:7, SELECT:8, START:9, L3:10, R3:11, UP:12, DOWN:13, LEFT:14, RIGHT:15 };
+const AXIS = { LEFT_X:0, LEFT_Y:1, RIGHT_X:2, RIGHT_Y:3 };
+
+// ---------- THREE SETUP ----------
+const vp = document.getElementById('viewport-container');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(vp.clientWidth, vp.clientHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.domElement.style.position = 'absolute';
+renderer.domElement.style.top = '0';
+renderer.domElement.style.left = '0';
+renderer.domElement.style.zIndex = '1';
+vp.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111416);
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xfff5e0, 2.0); sun.position.set(5,10,6); sun.castShadow = true; scene.add(sun);
+const fillLight = new THREE.DirectionalLight(0xc0d8ff, 0.5); fillLight.position.set(-5,3,-4); scene.add(fillLight);
+const grid = new THREE.GridHelper(10, 30, 0x223322, 0x1a261a); scene.add(grid);
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+camera.position.set(0, 1.5, 4);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.07; controls.screenSpacePanning = true;
+function onResize() { const w = vp.clientWidth, h = vp.clientHeight; if (!w||!h) return; camera.aspect = w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h); }
+window.addEventListener('resize', onResize); onResize();
+
+// ─── GOURAUD SHADING ─────────────────────────────────────────────
+function buildGouraudMaterial(diffuseHex, specularHex, shininess) {
+  function hexToVec3(hex) {
+    return new THREE.Vector3(
+      parseInt(hex.slice(1,3),16)/255,
+      parseInt(hex.slice(3,5),16)/255,
+      parseInt(hex.slice(5,7),16)/255
+    );
+  }
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      diffuseColor:  { value: hexToVec3(diffuseHex) },
+      specularColor: { value: hexToVec3(specularHex) },
+      shininess:     { value: shininess },
+      lightDir:      { value: new THREE.Vector3(0.6, 0.8, 0.5).normalize() },
+      lightColor:    { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+      ambientColor:  { value: new THREE.Vector3(0.18, 0.18, 0.22) },
+    },
+    vertexShader: `
+      uniform vec3 diffuseColor;
+      uniform vec3 specularColor;
+      uniform float shininess;
+      uniform vec3 lightDir;
+      uniform vec3 lightColor;
+      uniform vec3 ambientColor;
+      varying vec3 vColor;
+      void main() {
+        vec3 N = normalize(normalMatrix * normal);
+        vec3 L = normalize(lightDir);
+        vec3 pos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+        vec3 V = normalize(-pos);
+        vec3 R = reflect(-L, N);
+        float diff = max(dot(N, L), 0.0);
+        float spec = pow(max(dot(R, V), 0.0), shininess);
+        vColor = ambientColor * diffuseColor
+               + diff * lightColor * diffuseColor
+               + spec * lightColor * specularColor;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() { gl_FragColor = vec4(vColor, 1.0); }
+    `,
+    side: THREE.DoubleSide,
+  });
+}
+
+// ─── SHADING STATE ───────────────────────────────────────────────
+let currentShadeMode = 'standard';
+let gouraudDiffuse = '#88aaff', gouraudSpecular = '#ffffff', gouraudShininess = 40;
+let tileTexture = null, tileRepeat = 1;
+
+// Store original materials per mesh so we can restore
+const origMaterials = new WeakMap();
+
+function storeOrigMaterials(model) {
+  if (!model) return;
+  model.traverse(c => {
+    if (c.isMesh && !origMaterials.has(c)) {
+      origMaterials.set(c, Array.isArray(c.material) ? [...c.material] : c.material);
+    }
+  });
+}
+
+function applyShadeMode(model, mode) {
+  if (!model) return;
+  storeOrigMaterials(model);
+  model.traverse(c => {
+    if (!c.isMesh) return;
+    const orig = origMaterials.get(c);
+    switch (mode) {
+      case 'gouraud': {
+        c.material = buildGouraudMaterial(gouraudDiffuse, gouraudSpecular, gouraudShininess);
+        break;
+      }
+      case 'flat': {
+        const mats = Array.isArray(orig) ? orig : [orig];
+        c.material = new THREE.MeshLambertMaterial({
+          color: mats[0]?.color || new THREE.Color(0xcccccc),
+          flatShading: true,
+          side: THREE.DoubleSide,
+        });
+        break;
+      }
+      case 'normals':
+        c.material = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide });
+        break;
+      case 'wireframe':
+        c.material = new THREE.MeshBasicMaterial({ color: 0x44ff88, wireframe: true });
+        break;
+      case 'depth':
+        c.material = new THREE.MeshDepthMaterial();
+        break;
+      case 'tiletex': {
+        if (tileTexture) {
+          c.material = new THREE.MeshStandardMaterial({ map: tileTexture, side: THREE.DoubleSide });
+        } else {
+          c.material = Array.isArray(orig) ? orig[0] : orig;
+        }
+        break;
+      }
+      default: { // standard — restore originals
+        c.material = Array.isArray(orig) ? orig[0] : orig;
+        break;
+      }
+    }
+  });
+}
+
+// Shading mode toggle buttons
+document.querySelectorAll('[data-shade]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentShadeMode = btn.dataset.shade;
+    document.querySelectorAll('[data-shade]').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('gouraud-controls').style.display = currentShadeMode === 'gouraud' ? '' : 'none';
+    // wireframe toggle stat stays in sync
+    if (currentShadeMode === 'wireframe') {
+      wireframeOn = true; document.getElementById('s-wire').textContent = 'ON';
+    } else if (wireframeOn && currentShadeMode !== 'wireframe') {
+      wireframeOn = false; document.getElementById('s-wire').textContent = 'OFF';
+    }
+    applyShadeMode(loadedModel, currentShadeMode);
+    log(`Shading: ${currentShadeMode}`, 'dim');
+  });
+});
+
+// Gouraud sub-controls
+document.getElementById('gouraud-diffuse').addEventListener('input', e => {
+  gouraudDiffuse = e.target.value;
+  if (currentShadeMode === 'gouraud') applyShadeMode(loadedModel, 'gouraud');
+});
+document.getElementById('gouraud-specular').addEventListener('input', e => {
+  gouraudSpecular = e.target.value;
+  if (currentShadeMode === 'gouraud') applyShadeMode(loadedModel, 'gouraud');
+});
+document.getElementById('gouraud-shine').addEventListener('input', e => {
+  gouraudShininess = parseInt(e.target.value);
+  document.getElementById('gouraud-shine-val').textContent = e.target.value;
+  if (currentShadeMode === 'gouraud') applyShadeMode(loadedModel, 'gouraud');
+});
+
+// ─── TILING TEXTURE ──────────────────────────────────────────────
+document.getElementById('tile-tex-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  tileTexture = new THREE.TextureLoader().load(url, tex => {
+    URL.revokeObjectURL(url);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(tileRepeat, tileRepeat);
+    tex.needsUpdate = true;
+  });
+  tileTexture.wrapS = tileTexture.wrapT = THREE.RepeatWrapping;
+  tileTexture.repeat.set(tileRepeat, tileRepeat);
+  // Auto-switch to tile mode
+  currentShadeMode = 'tiletex';
+  document.querySelectorAll('[data-shade]').forEach(b => b.classList.remove('active'));
+  applyShadeMode(loadedModel, 'tiletex');
+  log(`Tile texture loaded: ${file.name}`, 'ok');
+  e.target.value = '';
+});
+document.getElementById('tile-tex-clear').addEventListener('click', () => {
+  tileTexture = null;
+  if (currentShadeMode === 'tiletex') {
+    currentShadeMode = 'standard';
+    document.querySelectorAll('[data-shade]').forEach(b => b.classList.toggle('active', b.dataset.shade === 'standard'));
+    applyShadeMode(loadedModel, 'standard');
+  }
+  log('Tile texture cleared', 'dim');
+});
+document.getElementById('tile-repeat').addEventListener('input', e => {
+  tileRepeat = parseInt(e.target.value);
+  document.getElementById('tile-repeat-val').textContent = tileRepeat + '×';
+  if (tileTexture) {
+    tileTexture.repeat.set(tileRepeat, tileRepeat);
+    tileTexture.needsUpdate = true;
+  }
+});
+
+// ─── BACKGROUND ──────────────────────────────────────────────────
+let bgMode = 'solid';
+let bgSolidColor = '#111416';
+let bgGradTop = '#0a0a1a', bgGradBot = '#001a10', bgGradDir = 'to bottom';
+let bgImage = null, bgImageFit = 'cover';
+
+// Canvas overlay for gradient/image backgrounds
+const bgCanvas = document.createElement('canvas');
+bgCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;';
+vp.insertBefore(bgCanvas, vp.firstChild);
+
+function drawBgCanvas() {
+  const w = vp.clientWidth, h = vp.clientHeight;
+  bgCanvas.width = w; bgCanvas.height = h;
+  const ctx = bgCanvas.getContext('2d');
+  if (bgMode === 'image' && bgImage) {
+    ctx.clearRect(0, 0, w, h);
+    if (bgImageFit === 'cover') {
+      const scale = Math.max(w / bgImage.width, h / bgImage.height);
+      const sw = bgImage.width * scale, sh = bgImage.height * scale;
+      ctx.drawImage(bgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else if (bgImageFit === 'contain') {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
+      const scale = Math.min(w / bgImage.width, h / bgImage.height);
+      const sw = bgImage.width * scale, sh = bgImage.height * scale;
+      ctx.drawImage(bgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else {
+      ctx.drawImage(bgImage, 0, 0, w, h);
+    }
+  } else if (bgMode === 'gradient') {
+    let grad;
+    const d = bgGradDir;
+    if (d === 'to bottom')      grad = ctx.createLinearGradient(0,0,0,h);
+    else if (d === 'to right')  grad = ctx.createLinearGradient(0,0,w,0);
+    else if (d === '135deg')    grad = ctx.createLinearGradient(0,0,w,h);
+    else                        grad = ctx.createLinearGradient(w,0,0,h);
+    grad.addColorStop(0, bgGradTop);
+    grad.addColorStop(1, bgGradBot);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.clearRect(0, 0, w, h);
+  }
+}
+
+function applyBg() {
+  bgCanvas.style.display = (bgMode === 'solid') ? 'none' : '';
+  if (bgMode === 'solid') {
+    scene.background = new THREE.Color(bgSolidColor);
+  } else {
+    scene.background = null;
+    renderer.setClearColor(0x000000, 0);
+    drawBgCanvas();
+  }
+}
+
+// BG mode toggle
+document.querySelectorAll('[data-bg]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    bgMode = btn.dataset.bg;
+    document.querySelectorAll('[data-bg]').forEach(b => b.classList.toggle('active', b === btn));
+    document.getElementById('bg-solid-ctrl').style.display  = bgMode === 'solid'    ? '' : 'none';
+    document.getElementById('bg-grad-ctrl').style.display   = bgMode === 'gradient' ? '' : 'none';
+    document.getElementById('bg-img-ctrl').style.display    = bgMode === 'image'    ? '' : 'none';
+    applyBg();
+  });
+});
+document.getElementById('bg-solid-color').addEventListener('input', e => {
+  bgSolidColor = e.target.value; applyBg();
+});
+document.getElementById('bg-grad-top').addEventListener('input', e => { bgGradTop = e.target.value; drawBgCanvas(); });
+document.getElementById('bg-grad-bot').addEventListener('input', e => { bgGradBot = e.target.value; drawBgCanvas(); });
+document.getElementById('bg-grad-dir').addEventListener('change', e => { bgGradDir = e.target.value; drawBgCanvas(); });
+document.getElementById('bg-img-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  bgImage = new Image();
+  bgImage.onload = () => { URL.revokeObjectURL(url); applyBg(); };
+  bgImage.src = url;
+  e.target.value = '';
+});
+document.querySelectorAll('[data-bgfit]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    bgImageFit = btn.dataset.bgfit;
+    document.querySelectorAll('[data-bgfit]').forEach(b => b.classList.toggle('active', b === btn));
+    drawBgCanvas();
+  });
+});
+
+// Redraw bg canvas on resize
+const _origOnResize = onResize;
+window.removeEventListener('resize', _origOnResize);
+window.addEventListener('resize', () => { _origOnResize && _origOnResize(); drawBgCanvas(); });
+
+// ─── RENDER LOOP ─────────────────────────────────────────────────
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+  // Update cam pos label
+  const p = camera.position;
+  document.getElementById('cam-pos-label').textContent = `${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}`;
+}
+animate();
+
+// ---------- APP STATE ----------
+let loadedModel = null;
+let loadedModelExt = '';
+let wireframeOn = false;
+let undoStack = [], redoStack = [];
+const logEl = document.getElementById('log-area');
+function log(msg, type='ok') { const d = document.createElement('div'); d.className = `log-${type}`; d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight; }
+function setStatus(main, mode) { if(main) document.getElementById('status-main').textContent = main; if(mode) document.getElementById('status-mode').textContent = mode; }
+function fmt(n) { return Number(n).toLocaleString(); }
+
+function collectStats(root) { let verts=0, faces=0, meshCount=0, matSet=new Set(), texSet=new Set(); root.traverse(c=>{ if(c.isMesh) { meshCount++; const g=c.geometry; if(g.attributes.position) verts+=g.attributes.position.count; if(g.index) faces+=g.index.count/3; else if(g.attributes.position) faces+=g.attributes.position.count/3; const mats=Array.isArray(c.material)?c.material:[c.material]; mats.forEach(m=>{ if(m) { matSet.add(m.uuid); ['map','normalMap','roughnessMap','metalnessMap','emissiveMap'].forEach(k=>{ if(m[k]) texSet.add(m[k].uuid); }); } }); } }); return {verts,faces,meshCount,matCount:matSet.size,texCount:texSet.size}; }
+function updatePanel(root, filename, filesize) {
+  const s = collectStats(root);
+  document.getElementById('s-filename').textContent = filename.slice(0,20);
+  document.getElementById('s-filesize').textContent = filesize ? (filesize/1048576).toFixed(2)+' MB' : '—';
+  document.getElementById('s-meshes').textContent = s.meshCount;
+  document.getElementById('s-mats').textContent = s.matCount;
+  document.getElementById('s-textures').textContent = s.texCount;
+  document.getElementById('s-verts').textContent = fmt(s.verts);
+  document.getElementById('s-faces').textContent = fmt(s.faces);
+  document.getElementById('s-indices').textContent = fmt(s.faces*3);
+  document.getElementById('status-verts').textContent = `Verts: ${fmt(s.verts)}`;
+}
+function applyWireframe(on) { if(!loadedModel) return; loadedModel.traverse(c=>{ if(c.isMesh) { const mats=Array.isArray(c.material)?c.material:[c.material]; mats.forEach(m=>{if(m)m.wireframe=on;}); } }); }
+function fitCamera(obj) { if(!obj) return; const box=new THREE.Box3().setFromObject(obj); const center=box.getCenter(new THREE.Vector3()); const size=box.getSize(new THREE.Vector3()); const maxDim=Math.max(size.x,size.y,size.z); if(maxDim===0) return; const dist=maxDim*1.5; controls.target.copy(center); camera.position.set(center.x+dist*0.5, center.y+dist*0.3, center.z+dist); controls.update(); grid.position.y=box.min.y; }
+
+function snapshotGeometries() { const snap=new Map(); if(loadedModel) loadedModel.traverse(c=>{ if(c.isMesh&&c.geometry) snap.set(c.uuid, c.geometry.clone()); }); return snap; }
+function applySnapshot(snap) { if(!loadedModel) return; loadedModel.traverse(c=>{ if(c.isMesh&&snap.has(c.uuid)) { c.geometry.dispose(); c.geometry=snap.get(c.uuid); } }); storeOrigMaterials(loadedModel); applyShadeMode(loadedModel, currentShadeMode); updatePanel(loadedModel, document.getElementById('s-filename').textContent, null); }
+function pushUndo(snap) { undoStack.push(snap); redoStack.length=0; document.getElementById('undo_btn').disabled=false; document.getElementById('redo_btn').disabled=true; }
+
+// ---------- WELDING (original seam-safe) ----------
+function weldGeometry(geometry, epsilon) {
+  const src = geometry.index ? geometry.toNonIndexed() : geometry.clone();
+  const pos = src.attributes.position;
+  if (!pos) return geometry;
+  const n = pos.count;
+  const eps2 = epsilon * epsilon;
+  const uvEps = Math.max(1e-4, epsilon * 0.5);
+  const px = new Float32Array(n), py = new Float32Array(n), pz = new Float32Array(n);
+  for (let i = 0; i < n; i++) { px[i] = pos.getX(i); py[i] = pos.getY(i); pz[i] = pos.getZ(i); }
+  const uvAttr = src.attributes.uv || null;
+  const uu = uvAttr ? new Float32Array(n) : null;
+  const vv = uvAttr ? new Float32Array(n) : null;
+  if (uvAttr) for (let i = 0; i < n; i++) { uu[i] = uvAttr.getX(i); vv[i] = uvAttr.getY(i); }
+  const posGroup = new Int32Array(n).fill(-1);
+  const posReps = [];
+  for (let i = 0; i < n; i++) {
+    if (posGroup[i] !== -1) continue;
+    posGroup[i] = i;
+    posReps.push(i);
+    for (let j = i + 1; j < n; j++) {
+      if (posGroup[j] !== -1) continue;
+      const dx = px[j] - px[i], dy = py[j] - py[i], dz = pz[j] - pz[i];
+      if (dx*dx + dy*dy + dz*dz <= eps2) posGroup[j] = i;
+    }
+  }
+  const finalRemap = new Int32Array(n);
+  const outVertSrcIdx = [];
+  const outVertPosRep = [];
+  const groupUVSlots = new Map();
+  for (let i = 0; i < n; i++) {
+    const rep = posGroup[i];
+    let slots = groupUVSlots.get(rep);
+    if (!slots) { slots = []; groupUVSlots.set(rep, slots); }
+    if (!uvAttr) {
+      if (slots.length === 0) {
+        const outIdx = outVertSrcIdx.length;
+        slots.push({ outIdx });
+        outVertSrcIdx.push(i);
+        outVertPosRep.push(rep);
+      }
+      finalRemap[i] = slots[0].outIdx;
+    } else {
+      const u = uu[i], v = vv[i];
+      let found = -1;
+      for (const s of slots) {
+        if (Math.abs(uu[outVertSrcIdx[s.outIdx]] - u) <= uvEps &&
+            Math.abs(vv[outVertSrcIdx[s.outIdx]] - v) <= uvEps) {
+          found = s.outIdx;
+          break;
+        }
+      }
+      if (found === -1) {
+        found = outVertSrcIdx.length;
+        slots.push({ outIdx: found });
+        outVertSrcIdx.push(i);
+        outVertPosRep.push(rep);
+      }
+      finalRemap[i] = found;
+    }
+  }
+  const uCount = outVertSrcIdx.length;
+  const newGeo = new THREE.BufferGeometry();
+  for (const [name, attr] of Object.entries(src.attributes)) {
+    const sz = attr.itemSize;
+    const newArr = new Float32Array(uCount * sz);
+    for (let k = 0; k < uCount; k++) {
+      const srcIdx = (name === 'position') ? outVertPosRep[k] : outVertSrcIdx[k];
+      for (let c = 0; c < sz; c++) newArr[k * sz + c] = attr.array[srcIdx * sz + c];
+    }
+    newGeo.setAttribute(name, new THREE.BufferAttribute(newArr, sz));
+  }
+  const ArrType = uCount > 65535 ? Uint32Array : Uint16Array;
+  const cleanIdx = [];
+  for (let i = 0; i < n; i += 3) {
+    const a = finalRemap[i], b = finalRemap[i+1], c = finalRemap[i+2];
+    if (a !== b && b !== c && a !== c) cleanIdx.push(a, b, c);
+  }
+  newGeo.setIndex(new THREE.BufferAttribute(new ArrType(cleanIdx), 1));
+  newGeo.computeVertexNormals();
+  return { geo: newGeo, before: n, after: uCount, faces: cleanIdx.length / 3 };
+}
+
+// ---------- LOAD FILE (with correct GLB texture handling) ----------
+const dropHint = document.getElementById('drop-hint');
+document.getElementById('file_chooser').addEventListener('change', e=>{ if(e.target.files[0]) loadFile(e.target.files[0]); e.target.value=''; });
+vp.addEventListener('dragover', e=>e.preventDefault());
+vp.addEventListener('drop', e=>{ e.preventDefault(); const f=e.dataTransfer.files[0]; if(f&&/\.(glb|gltf|obj|md3|md2|mdl|json|bbmodel)$/i.test(f.name)) loadFile(f); else log('Drop model file','warn'); });
+
+function loadFile(file) {
+  log(`Loading ${file.name}...`,'info');
+  const ext=file.name.split('.').pop().toLowerCase();
+  loadedModelExt = ext;
+  const reader=new FileReader();
+  reader.onerror=()=>log('Read error','error');
+  function process(model, name, size) {
+    if(loadedModel) scene.remove(loadedModel);
+    loadedModel=model;
+    scene.add(loadedModel);
+    loadedModel.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; } });
+    // Store originals and apply current shade mode
+    origMaterials.delete && null; // WeakMap has no clear, entries expire naturally
+    storeOrigMaterials(loadedModel);
+    applyShadeMode(loadedModel, currentShadeMode);
+    fitCamera(loadedModel);
+    updatePanel(loadedModel, name, size);
+    pushUndo(snapshotGeometries());
+    dropHint.classList.add('hidden');
+    buildTexturePanel(loadedModel);
+    buildPiecesPanel(loadedModel);
+    log(`Loaded ${name} — ${collectStats(loadedModel).verts} verts`,'ok');
+    setStatus(`Model: ${name}`,'VIEW');
+  }
+  if(ext==='obj') {
+    reader.onload=ev=>{ try{ const obj=new OBJLoader().parse(ev.target.result); process(obj,file.name,file.size); } catch(e){ log(`OBJ error: ${e}`,'error'); } };
+    reader.readAsText(file);
+  } else if(ext==='md3') {
+    reader.onload=ev=>{ try{ const mdl=new MD3Loader().load(ev.target.result); process(mdl,file.name,file.size); } catch(e){ log(`MD3 error: ${e}`,'error'); } };
+    reader.readAsArrayBuffer(file);
+  } else if(ext==='md2') {
+    reader.onload=ev=>{ try{ const mdl=new MD2Loader().load(ev.target.result); process(mdl,file.name,file.size); } catch(e){ log(`MD2 error: ${e}`,'error'); } };
+    reader.readAsArrayBuffer(file);
+  } else if(ext==='mdl') {
+    reader.onload=ev=>{ try{ const mdl=new MDLLoader().load(ev.target.result); process(mdl,file.name,file.size); } catch(e){ log(`MDL error: ${e}`,'error'); } };
+    reader.readAsArrayBuffer(file);
+  } else if(ext==='json' || ext==='bbmodel') {
+    reader.onload=ev=>{
+      try {
+        const result = new BlockbenchLoader().load(ev.target.result);
+        if (result.userData.skippedMeshElements) {
+          log(`Blockbench: skipped ${result.userData.skippedMeshElements} free-form "mesh" element(s) — only cube elements are supported`, 'warn');
+        }
+        if (result.userData.untexturedFaces) {
+          const names = result.userData.missingAtlases;
+          if (names && names.length) {
+            log(`Blockbench: ${result.userData.untexturedFaces} face(s) need atlas image(s): ${names.join(', ')} — use "📁 Load Texture Files" in the texture panel`, 'warn');
+          } else {
+            log(`Blockbench: ${result.userData.untexturedFaces} face(s) have no embedded texture data (gray) — use "📁 Load Texture Files" to load the atlas PNG`, 'warn');
+          }
+        }
+        process(result, file.name, file.size);
+      } catch(e) { log(`Blockbench JSON error: ${e.message || e}`,'error'); }
+    };
+    reader.readAsText(file);
+  } else {
+    // GLB / GLTF — robust texture loading
+    reader.onload=ev=>{
+      const buffer=ev.target.result;
+      const manager = new THREE.LoadingManager();
+      const blobToData = new Map();
+      const _createObjectURL = URL.createObjectURL.bind(URL);
+      URL.createObjectURL = (blobOrFile) => {
+        const id = `blob:${Math.random()}`;
+        blobToData.set(id, blobOrFile);
+        return id;
+      };
+      manager.setURLModifier(url => {
+        if (blobToData.has(url)) {
+          const blob = blobToData.get(url);
+          const realUrl = _createObjectURL(blob);
+          blobToData.set(url, realUrl);
+          return realUrl;
+        }
+        return url;
+      });
+      manager.onError = url => {
+        log(`Texture skipped: ${url.split('/').pop()}`, 'warn');
+      };
+      const loader = new GLTFLoader(manager);
+      loader.parse(buffer, '', gltf => {
+        URL.createObjectURL = _createObjectURL;
+        process(gltf.scene, file.name, file.size);
+      }, err => {
+        URL.createObjectURL = _createObjectURL;
+        log(`GLTF parse error: ${err.message || err}`, 'error');
+        setStatus('Parse error — see log', 'ERROR');
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+// ---------- WELD BUTTON ----------
+document.getElementById('merge_verts').addEventListener('click',()=>{
+  if(!loadedModel){log('Load a model first','warn');return;}
+  const eps=parseFloat(document.getElementById('merge_threshold').value)||0.001;
+  log(`Welding ε=${eps}...`,'info');
+  const snap=snapshotGeometries();
+  let totalBefore=0, totalAfter=0, totalFaces=0;
+  loadedModel.traverse(c=>{
+    if(c.isMesh&&c.geometry){
+      const result=weldGeometry(c.geometry,eps);
+      c.geometry=result.geo;
+      totalBefore+=result.before;
+      totalAfter+=result.after;
+      totalFaces+=result.faces;
+    }
+  });
+  pushUndo(snap);
+  const saved=totalBefore?((1-totalAfter/totalBefore)*100).toFixed(1):0;
+  log(`Welded: ${fmt(totalBefore)} → ${fmt(totalAfter)} verts (-${saved}%), ${fmt(totalFaces)} faces`,'ok');
+  updatePanel(loadedModel,document.getElementById('s-filename').textContent,null);
+  document.getElementById('s-after').textContent=`${fmt(totalAfter)} v`;
+  document.getElementById('s-reduction').textContent=`-${saved}%`;
+  document.getElementById('s-weld').textContent=`-${saved}%`;
+  document.getElementById('s-progress').style.width=saved+'%';
+});
+document.getElementById('undo_btn').addEventListener('click',()=>{ if(!undoStack.length)return; redoStack.push(snapshotGeometries()); applySnapshot(undoStack.pop()); document.getElementById('redo_btn').disabled=false; if(!undoStack.length)document.getElementById('undo_btn').disabled=true; log('Undo','info'); });
+document.getElementById('redo_btn').addEventListener('click',()=>{ if(!redoStack.length)return; undoStack.push(snapshotGeometries()); applySnapshot(redoStack.pop()); document.getElementById('undo_btn').disabled=false; if(!redoStack.length)document.getElementById('redo_btn').disabled=true; log('Redo','info'); });
+
+// ---------- EXPORTERS ----------
+function download(blob, name) { const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); URL.revokeObjectURL(a.href); }
+document.getElementById('export_glb').addEventListener('click',()=>{
+  if(!loadedModel)return;
+  // FIX 1: Prep geometry normals
+  prepareModelForExport(loadedModel);
+  const opts={ trs:document.getElementById('option_trs').checked, onlyVisible:document.getElementById('option_visible').checked, binary:true, maxTextureSize:Number(document.getElementById('option_maxsize').value)||1024 };
+  withHiddenPiecesExcluded(loadedModel, restore => {
+    new GLTFExporter().parse(loadedModel, res=>{ restore(); download(new Blob([res],{type:'application/octet-stream'}), 'model.glb'); }, e=>{ restore(); log(`GLB error: ${e}`,'error'); }, opts);
+  });
+});
+document.getElementById('export_obj').addEventListener('click',()=>{
+  if(!loadedModel)return;
+  withHiddenPiecesExcluded(loadedModel, restore => {
+    // FIX 2: Use custom OBJ exporter with hitbox filtering
+    const obj=exportOBJClean(loadedModel);
+    restore();
+    download(new Blob([obj],{type:'text/plain'}), 'model.obj');
+    log('OBJ exported (hitbox meshes excluded)', 'ok');
+  });
+});
+document.getElementById('export_md3').addEventListener('click',()=>{
+  if(!loadedModel){log('Load a model first','warn');return;}
+  log('MD3 export requires full binary writer – using GLB/OBJ instead','warn');
+});
+
+// ---------- WIREFRAME & RESET ----------
+document.getElementById('wire_toggle').addEventListener('click',()=>{
+  wireframeOn=!wireframeOn;
+  if (wireframeOn) {
+    currentShadeMode = 'wireframe';
+    document.querySelectorAll('[data-shade]').forEach(b => b.classList.toggle('active', b.dataset.shade === 'wireframe'));
+    document.getElementById('gouraud-controls').style.display = 'none';
+    applyShadeMode(loadedModel, 'wireframe');
+  } else {
+    currentShadeMode = 'standard';
+    document.querySelectorAll('[data-shade]').forEach(b => b.classList.toggle('active', b.dataset.shade === 'standard'));
+    applyShadeMode(loadedModel, 'standard');
+  }
+  document.getElementById('s-wire').textContent=wireframeOn?'ON':'OFF';
+  log(`Wireframe ${wireframeOn?'ON':'OFF'}`,'dim');
+});
+document.getElementById('reset_view').addEventListener('click',()=>{ if(loadedModel) fitCamera(loadedModel); else { camera.position.set(0,1.5,4); controls.target.set(0,0,0); controls.update(); } log('View reset','dim'); });
+
+// ---------- FULL TEXTURE PANEL (original) ----------
+let panelMeshes = [];
+let loadedTexFiles = [];
+let texMatches = [];
+
+function buildTexturePanel(root) {
+  panelMeshes = [];
+  root.traverse(c => { if (c.isMesh) panelMeshes.push(c); });
+  loadedTexFiles = [];
+  texMatches = [];
+  renderTexFileList();
+  renderTexMatchList();
+  document.getElementById('tex-apply-row').style.display = 'none';
+}
+
+// ---------- PIECES PANEL (per-mesh show/hide) ----------
+let pieceMeshes = [];
+
+function buildPiecesPanel(root) {
+  pieceMeshes = [];
+  if (root) root.traverse(c => { if (c.isMesh) pieceMeshes.push(c); });
+  // Use new hierarchy-aware renderer
+  buildPiecesPanelWithHierarchy(root);
+}
+
+function renderPiecesPanel() {
+  // Delegate to hierarchy version
+  buildPiecesPanelWithHierarchy(loadedModel);
+}
+
+function updatePiecesHeader() {
+  const header = document.querySelector('#pieces-panel-section .panel-header');
+  if (!header) return;
+  const hidden = pieceMeshes.filter(m => m.visible === false).length;
+  header.textContent = hidden ? `▸ PIECES (${hidden} hidden)` : '▸ PIECES';
+}
+
+document.getElementById('pieces-show-all').addEventListener('click', () => {
+  if (!pieceMeshes.length) return;
+  pieceMeshes.forEach(m => m.visible = true);
+  renderPiecesPanel();
+  log('All pieces shown', 'dim');
+});
+document.getElementById('pieces-hide-all').addEventListener('click', () => {
+  if (!pieceMeshes.length) return;
+  pieceMeshes.forEach(m => m.visible = false);
+  renderPiecesPanel();
+  log('All pieces hidden', 'warn');
+});
+
+// Temporarily detaches hidden meshes from the model so exporters skip them
+// entirely, then reattaches them once export finishes (or errors).
+function withHiddenPiecesExcluded(root, fn) {
+  const removed = [];
+  root.traverse(c => { if (c.isMesh && c.visible === false && c.parent) removed.push(c); });
+  removed.forEach(c => { c.userData.__exportParent = c.parent; });
+  removed.forEach(c => { c.parent.remove(c); });
+  const restore = () => {
+    removed.forEach(c => {
+      if (c.userData.__exportParent) c.userData.__exportParent.add(c);
+      delete c.userData.__exportParent;
+    });
+  };
+  if (removed.length) log(`Export: excluding ${removed.length} hidden piece(s)`, 'dim');
+  try {
+    fn(restore);
+  } catch (e) {
+    restore();
+    throw e;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────
+// FIX 1: Ensure geometry is clean before GLB export
+// ──────────────────────────────────────────────────────────────────
+function recomputeGeometryNormals(geometry) {
+  if (geometry.index || geometry.attributes.position) {
+    geometry.computeVertexNormals();
+  }
+  if (geometry.attributes.normal) geometry.attributes.normal.needsUpdate = true;
+}
+
+function cleanGeometryForExport(mesh) {
+  if (!mesh.isMesh) return;
+  const geom = mesh.geometry;
+  if (!geom) return;
+  if (geom.userData.wasModified || geom.attributes.normal) {
+    recomputeGeometryNormals(geom);
+  }
+}
+
+function prepareModelForExport(model) {
+  const startTime = performance.now();
+  let meshCount = 0;
+  model.traverse(node => {
+    if (node.isMesh) {
+      cleanGeometryForExport(node);
+      meshCount++;
+    }
+  });
+  const elapsed = (performance.now() - startTime).toFixed(1);
+  log(`Export prep: cleaned ${meshCount} mesh(es) in ${elapsed}ms`, 'dim');
+}
+
+// ──────────────────────────────────────────────────────────────────
+// FIX 2: Smart OBJ export with hitbox exclusion
+// ──────────────────────────────────────────────────────────────────
+const HITBOX_PATTERNS = [
+  /hitbox/i, /collision/i, /collider/i, /nocollide/i,
+  /physics/i, /trigger/i, /invisible/i, /helper/i,
+];
+
+function isHitboxMesh(mesh) {
+  return HITBOX_PATTERNS.some(pattern => pattern.test(mesh.name));
+}
+
+function exportOBJClean(model) {
+  const visibleMeshes = [];
+  const meshToGroup = new Map();
+  
+  model.traverse(node => {
+    if (!node.isMesh) return;
+    if (node.visible === false) return;
+    if (isHitboxMesh(node)) return;
+    visibleMeshes.push(node);
+    meshToGroup.set(node, node.parent);
+  });
+  
+  let output = '';
+  let vertexOffset = 1;
+  let normalOffset = 1;
+  let uvOffset = 1;
+  
+  visibleMeshes.forEach((mesh, meshIdx) => {
+    const geom = mesh.geometry;
+    if (!geom) return;
+    
+    output += `# Mesh: ${mesh.name || `mesh_${meshIdx}`}\n`;
+    output += `g ${(mesh.name || `mesh_${meshIdx}`).replace(/\s+/g, '_')}\n`;
+    
+    const positions = geom.attributes.position;
+    const normals = geom.attributes.normal;
+    const uvs = geom.attributes.uv;
+    const index = geom.index;
+    
+    if (positions) {
+      for (let i = 0; i < positions.count; i++) {
+        const x = positions.getX(i);
+        const y = positions.getY(i);
+        const z = positions.getZ(i);
+        output += `v ${x} ${y} ${z}\n`;
+      }
+    }
+    
+    if (normals) {
+      for (let i = 0; i < normals.count; i++) {
+        const x = normals.getX(i);
+        const y = normals.getY(i);
+        const z = normals.getZ(i);
+        output += `vn ${x} ${y} ${z}\n`;
+      }
+    }
+    
+    if (uvs) {
+      for (let i = 0; i < uvs.count; i++) {
+        const u = uvs.getX(i);
+        const v = uvs.getY(i);
+        output += `vt ${u} ${v}\n`;
+      }
+    }
+    
+    const hasUV = uvs !== undefined;
+    if (index) {
+      for (let i = 0; i < index.count; i += 3) {
+        const a = index.getX(i) + 1 + (vertexOffset - 1);
+        const b = index.getX(i + 1) + 1 + (vertexOffset - 1);
+        const c = index.getX(i + 2) + 1 + (vertexOffset - 1);
+        
+        if (hasUV && normals) {
+          const ua = (i / 3) + 1 + (uvOffset - 1);
+          const ub = (i / 3) + 2 + (uvOffset - 1);
+          const uc = (i / 3) + 3 + (uvOffset - 1);
+          const na = (i / 3) + 1 + (normalOffset - 1);
+          const nb = (i / 3) + 2 + (normalOffset - 1);
+          const nc = (i / 3) + 3 + (normalOffset - 1);
+          output += `f ${a}/${ua}/${na} ${b}/${ub}/${nb} ${c}/${uc}/${nc}\n`;
+        } else if (normals) {
+          const na = (i / 3) + 1 + (normalOffset - 1);
+          const nb = (i / 3) + 2 + (normalOffset - 1);
+          const nc = (i / 3) + 3 + (normalOffset - 1);
+          output += `f ${a}//${na} ${b}//${nb} ${c}//${nc}\n`;
+        } else {
+          output += `f ${a} ${b} ${c}\n`;
+        }
+      }
+    } else {
+      const posCount = positions.count;
+      for (let i = 0; i < posCount; i += 3) {
+        const a = i + 1 + (vertexOffset - 1);
+        const b = i + 2 + (vertexOffset - 1);
+        const c = i + 3 + (vertexOffset - 1);
+        output += `f ${a} ${b} ${c}\n`;
+      }
+    }
+    
+    vertexOffset += positions.count;
+    if (normals) normalOffset += normals.count;
+    if (uvs) uvOffset += uvs.count;
+  });
+  
+  return output;
+}
+
+// ──────────────────────────────────────────────────────────────────
+// FIX 3: Hierarchy-aware visibility
+// ──────────────────────────────────────────────────────────────────
+function buildPiecesPanelWithHierarchy(root) {
+  const pieces = [];
+  const parentMap = new Map();
+  
+  root.traverse(node => {
+    if (!node.isMesh) return;
+    pieces.push(node);
+    if (node.parent) parentMap.set(node, node.parent);
+  });
+  
+  const el = document.getElementById('pieces-list');
+  if (!pieces.length) {
+    el.innerHTML = '<div class="tex-none-msg" style="padding-left:10px;">No model loaded</div>';
+    updatePiecesHeader();
+    return;
+  }
+  
+  el.innerHTML = '';
+  pieces.forEach((mesh, i) => {
+    const label = mesh.name || `piece_${i}`;
+    const parent = parentMap.get(mesh);
+    const indentLevel = parent && parent !== root ? 1 : 0;
+    
+    const row = document.createElement('div');
+    row.className = 'piece-row' + (mesh.visible === false ? ' hidden-piece' : '');
+    row.style.paddingLeft = (indentLevel * 16) + 'px';
+    
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'win-check';
+    cb.checked = mesh.visible !== false;
+    
+    cb.addEventListener('change', () => {
+      mesh.visible = cb.checked;
+      row.classList.toggle('hidden-piece', !cb.checked);
+      
+      // Cascade to children
+      if (parent && parent.isMesh === false) {
+        const children = pieces.filter(m => parentMap.get(m) === parent);
+        children.forEach(child => {
+          if (child !== mesh) {
+            child.visible = cb.checked && (child.userData.explicitVis !== false);
+          }
+        });
+      }
+      
+      log(`${cb.checked ? 'Shown' : 'Hidden'}: ${label}`, 'dim');
+      updatePiecesHeader();
+    });
+    
+    const name = document.createElement('span');
+    name.className = 'piece-name';
+    name.textContent = label;
+    name.title = label;
+    
+    const solo = document.createElement('span');
+    solo.className = 'piece-solo';
+    solo.textContent = 'solo';
+    solo.title = 'Show only this piece';
+    solo.addEventListener('click', () => {
+      pieces.forEach((m, mi) => { m.visible = (mi === i); });
+      buildPiecesPanelWithHierarchy(root);
+      log(`Solo: ${label}`, 'dim');
+    });
+    
+    row.appendChild(cb);
+    row.appendChild(name);
+    row.appendChild(solo);
+    el.appendChild(row);
+  });
+  
+  updatePiecesHeader();
+}
+
+function stemOf(filename) {
+  return filename.replace(/\.[^.]+$/, '').toLowerCase().replace(/[_\-\s]+/g, '');
+}
+
+function matchScore(texStem, meshStem) {
+  if (!texStem || !meshStem) return 0;
+  if (texStem === meshStem) return 100;
+  if (texStem.includes(meshStem) || meshStem.includes(texStem)) return 60;
+  let best = 0;
+  for (let len = Math.min(texStem.length, meshStem.length); len >= 3; len--) {
+    for (let i = 0; i <= texStem.length - len; i++) {
+      if (meshStem.includes(texStem.slice(i, i + len))) { best = len; break; }
+    }
+    if (best) break;
+  }
+  return best >= 3 ? best : 0;
+}
+
+function autoMatch() {
+  texMatches = new Array(panelMeshes.length).fill(null);
+  if (!loadedTexFiles.length || !panelMeshes.length) return;
+  if (loadedModelExt === 'md3' || loadedTexFiles.length === 1) {
+    const atlasIdx = loadedTexFiles.findIndex(f => /\.tga$/i.test(f.name)) !== -1
+      ? loadedTexFiles.findIndex(f => /\.tga$/i.test(f.name))
+      : 0;
+    const atlas = loadedTexFiles[atlasIdx];
+    panelMeshes.forEach((_, mi) => {
+      texMatches[mi] = { meshIdx: mi, dataURL: atlas.dataURL, fileName: atlas.name, ti: atlasIdx };
+    });
+    return;
+  }
+  const meshStems = panelMeshes.map(m => {
+    const mat = Array.isArray(m.material) ? m.material[0] : m.material;
+    const matName = (mat && mat.name) ? stemOf(mat.name) : '';
+    return { mesh: stemOf(m.name || ''), mat: matName };
+  });
+  const scores = loadedTexFiles.map((tf, ti) =>
+    meshStems.map((ms, mi) => {
+      const s = Math.max(
+        matchScore(tf.stem, ms.mesh),
+        matchScore(tf.stem, ms.mat)
+      );
+      return { ti, mi, s };
+    })
+  ).flat().filter(x => x.s > 0).sort((a, b) => b.s - a.s);
+  const usedTex = new Set();
+  const usedMesh = new Set();
+  for (const { ti, mi } of scores) {
+    if (usedTex.has(ti) || usedMesh.has(mi)) continue;
+    texMatches[mi] = { meshIdx: mi, dataURL: loadedTexFiles[ti].dataURL, fileName: loadedTexFiles[ti].name, ti };
+    usedTex.add(ti);
+    usedMesh.add(mi);
+  }
+}
+
+function tgaToDataURL(arrayBuffer) {
+  const data = new Uint8Array(arrayBuffer);
+  let o = 0;
+  const idLen       = data[o++];
+  const colorMapType= data[o++];
+  const imageType   = data[o++];
+  o += 5;
+  o += 2; o += 2;
+  const width  = data[o] | (data[o+1] << 8); o += 2;
+  const height = data[o] | (data[o+1] << 8); o += 2;
+  const bpp    = data[o++];
+  const imgDesc = data[o++];
+  o += idLen;
+  const flippedY  = !(imgDesc & 0x20);
+  const bytesPerPx = bpp >> 3;
+  const isRLE = (imageType === 9 || imageType === 10 || imageType === 11);
+  const pixels = new Uint8Array(width * height * 4);
+  function writePixel(idx, r, g, b, a) {
+    pixels[idx*4]   = r;
+    pixels[idx*4+1] = g;
+    pixels[idx*4+2] = b;
+    pixels[idx*4+3] = a;
+  }
+  if (!isRLE) {
+    for (let i = 0; i < width * height; i++) {
+      const row = flippedY ? (height - 1 - Math.floor(i / width)) : Math.floor(i / width);
+      const col = i % width;
+      const dest = row * width + col;
+      if (bytesPerPx === 4) {
+        writePixel(dest, data[o+2], data[o+1], data[o], data[o+3]);
+      } else if (bytesPerPx === 3) {
+        writePixel(dest, data[o+2], data[o+1], data[o], 255);
+      } else if (bytesPerPx === 2) {
+        const v = data[o] | (data[o+1] << 8);
+        writePixel(dest, ((v>>10)&31)<<3, ((v>>5)&31)<<3, (v&31)<<3, 255);
+      } else {
+        writePixel(dest, data[o], data[o], data[o], 255);
+      }
+      o += bytesPerPx;
+    }
+  } else {
+    let i = 0;
+    while (i < width * height) {
+      const hdr = data[o++];
+      const count = (hdr & 0x7f) + 1;
+      if (hdr & 0x80) {
+        let r,g,b,a;
+        if (bytesPerPx===4){r=data[o+2];g=data[o+1];b=data[o];a=data[o+3];}
+        else if(bytesPerPx===3){r=data[o+2];g=data[o+1];b=data[o];a=255;}
+        else{r=g=b=data[o];a=255;}
+        o += bytesPerPx;
+        for (let c = 0; c < count; c++, i++) {
+          const row = flippedY ? (height-1-Math.floor(i/width)) : Math.floor(i/width);
+          writePixel(row*width+(i%width), r,g,b,a);
+        }
+      } else {
+        for (let c = 0; c < count; c++, i++) {
+          const row = flippedY ? (height-1-Math.floor(i/width)) : Math.floor(i/width);
+          let r,g,b,a;
+          if (bytesPerPx===4){r=data[o+2];g=data[o+1];b=data[o];a=data[o+3];}
+          else if(bytesPerPx===3){r=data[o+2];g=data[o+1];b=data[o];a=255;}
+          else{r=g=b=data[o];a=255;}
+          o += bytesPerPx;
+          writePixel(row*width+(i%width), r,g,b,a);
+        }
+      }
+    }
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const imgData = ctx.createImageData(width, height);
+  imgData.data.set(pixels);
+  ctx.putImageData(imgData, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
+function readFileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const isTGA = /\.tga$/i.test(file.name);
+    const reader = new FileReader();
+    reader.onerror = reject;
+    if (isTGA) {
+      reader.onload = ev => {
+        try { resolve(tgaToDataURL(ev.target.result)); }
+        catch(e) { reject(e); }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      reader.onload = ev => resolve(ev.target.result);
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function renderTexFileList() {
+  const el = document.getElementById('tex-file-list');
+  if (!loadedTexFiles.length) {
+    el.innerHTML = '<div class="tex-none-msg">No textures loaded</div>';
+    return;
+  }
+  const matchedTi = new Set(texMatches.filter(Boolean).map(m => m.ti));
+  el.innerHTML = '';
+  loadedTexFiles.forEach((tf, ti) => {
+    const chip = document.createElement('div');
+    chip.className = 'tex-file-chip ' + (matchedTi.has(ti) ? 'matched' : 'unmatched');
+    const nameSpan = document.createElement('span');
+    nameSpan.title = tf.name;
+    nameSpan.textContent = tf.name;
+    const statusSpan = document.createElement('span');
+    statusSpan.style.cssText = 'flex-shrink:0;color:#444;';
+    statusSpan.textContent = matchedTi.has(ti) ? '✓' : '·';
+    const delBtn = document.createElement('span');
+    delBtn.textContent = '✕';
+    delBtn.title = 'Remove this file';
+    delBtn.style.cssText = 'flex-shrink:0;cursor:pointer;color:#555;padding:0 2px;';
+    delBtn.addEventListener('mouseenter', () => delBtn.style.color = '#ff6666');
+    delBtn.addEventListener('mouseleave', () => delBtn.style.color = '#555');
+    delBtn.addEventListener('click', () => deleteTexFile(ti));
+    chip.appendChild(nameSpan);
+    chip.appendChild(statusSpan);
+    chip.appendChild(delBtn);
+    el.appendChild(chip);
+  });
+}
+
+function deleteTexFile(ti) {
+  const name = loadedTexFiles[ti].name;
+  loadedTexFiles.splice(ti, 1);
+  texMatches = texMatches.map(m => {
+    if (!m) return null;
+    if (m.ti === ti) return null;
+    if (m.ti > ti) return { ...m, ti: m.ti - 1 };
+    return m;
+  });
+  log(`Removed: ${name}`, 'dim');
+  renderTexFileList();
+  renderTexMatchList();
+  updateApplyRow();
+}
+
+function renderTexMatchList() {
+  const el = document.getElementById('tex-match-list');
+  el.innerHTML = '';
+  if (!panelMeshes.length) return;
+  panelMeshes.forEach((mesh, mi) => {
+    const match = texMatches[mi];
+    const row = document.createElement('div');
+    row.className = 'tex-match-row';
+    const thumb = document.createElement('img');
+    thumb.className = 'tex-match-thumb';
+    if (match) { thumb.src = match.dataURL; }
+    else { thumb.style.cssText = 'width:28px;height:28px;background:#111;border:1px solid #222;flex-shrink:0'; }
+    const info = document.createElement('div');
+    info.className = 'tex-match-info';
+    const meshLabel = mesh.name || `mesh_${mi}`;
+    info.innerHTML = `<div class="tex-match-mesh" title="${meshLabel}">${meshLabel}</div>
+      <div class="tex-match-file" title="${match ? match.fileName : ''}">${match ? match.fileName : '— unmatched —'}</div>`;
+    const manualBtn = document.createElement('button');
+    manualBtn.className = 'tex-match-manual';
+    manualBtn.textContent = '…';
+    manualBtn.title = 'Manually assign a file to this mesh';
+    manualBtn.addEventListener('click', () => openManualPicker(mi));
+    const clearBtn = document.createElement('div');
+    clearBtn.className = 'tex-match-clear';
+    clearBtn.textContent = '✕';
+    clearBtn.title = 'Remove assignment for this mesh';
+    clearBtn.addEventListener('click', () => { texMatches[mi] = null; renderTexFileList(); renderTexMatchList(); updateApplyRow(); });
+    row.appendChild(thumb);
+    row.appendChild(info);
+    row.appendChild(manualBtn);
+    row.appendChild(clearBtn);
+    el.appendChild(row);
+  });
+}
+
+function updateApplyRow() {
+  const hasAny = texMatches.some(Boolean);
+  document.getElementById('tex-apply-row').style.display = hasAny ? 'flex' : 'none';
+}
+
+const manualFileInput = document.createElement('input');
+manualFileInput.type = 'file';
+manualFileInput.accept = '.png,.jpg,.jpeg,.tga,.webp,.bmp,.gif';
+manualFileInput.style.display = 'none';
+document.body.appendChild(manualFileInput);
+let manualTargetMesh = -1;
+
+function openManualPicker(mi) {
+  manualTargetMesh = mi;
+  manualFileInput.value = '';
+  manualFileInput.click();
+}
+
+manualFileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file || manualTargetMesh < 0) return;
+  readFileToDataURL(file).then(dataURL => {
+    let ti = loadedTexFiles.findIndex(f => f.name === file.name);
+    if (ti < 0) {
+      ti = loadedTexFiles.length;
+      loadedTexFiles.push({ file, name: file.name, stem: stemOf(file.name), dataURL });
+    } else {
+      loadedTexFiles[ti] = { ...loadedTexFiles[ti], dataURL };
+    }
+    texMatches[manualTargetMesh] = { meshIdx: manualTargetMesh, dataURL, fileName: file.name, ti };
+    log(`Manually assigned "${file.name}" → mesh #${manualTargetMesh}`, 'dim');
+    renderTexFileList();
+    renderTexMatchList();
+    updateApplyRow();
+  }).catch(err => log(`Failed to read ${file.name}: ${err.message || err}`, 'error'));
+});
+
+document.getElementById('tex_file_input').addEventListener('change', e => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  e.target.value = '';
+  let pending = files.length;
+  const newEntries = [];
+  files.forEach(file => {
+    readFileToDataURL(file).then(dataURL => {
+      newEntries.push({ file, name: file.name, stem: stemOf(file.name), dataURL });
+      if (--pending === 0) {
+        newEntries.forEach(ne => {
+          const idx = loadedTexFiles.findIndex(f => f.name === ne.name);
+          if (idx >= 0) loadedTexFiles[idx] = ne; else loadedTexFiles.push(ne);
+        });
+        log(`Loaded ${files.length} texture file(s)`, 'info');
+        autoMatch();
+        renderTexFileList();
+        renderTexMatchList();
+        updateApplyRow();
+        const matched = texMatches.filter(Boolean).length;
+        if (matched) log(`Auto-matched ${matched} of ${panelMeshes.length} mesh(es)`, 'ok');
+        else if (panelMeshes.length) log('No auto-matches — use … to assign manually', 'warn');
+      }
+    }).catch(err => {
+      log(`Failed to read ${file.name}: ${err.message || err}`, 'error');
+      if (--pending === 0) { renderTexFileList(); renderTexMatchList(); updateApplyRow(); }
+    });
+  });
+});
+
+document.getElementById('tex-apply-btn').addEventListener('click', () => {
+  let applied = 0;
+  texMatches.forEach((match, mi) => {
+    if (!match) return;
+    const mesh = panelMeshes[mi];
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    mats.forEach(mat => {
+      if (!mat) return;
+      const tex = new THREE.TextureLoader().load(match.dataURL);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      if (mat.map) mat.map.dispose();
+      mat.map = tex;
+      mat.needsUpdate = true;
+      applied++;
+    });
+  });
+  log(`Applied textures to ${applied} material(s)`, 'ok');
+  setStatus(`Textures applied`, 'VIEW');
+  const s = collectStats(loadedModel);
+  document.getElementById('s-textures').textContent = s.texCount + applied;
+});
+
+document.getElementById('tex-clear-all-btn').addEventListener('click', () => {
+  loadedTexFiles = [];
+  texMatches = [];
+  renderTexFileList();
+  renderTexMatchList();
+  document.getElementById('tex-apply-row').style.display = 'none';
+  log('Texture assignments cleared', 'dim');
+});
+
+// ---------- GAMEPAD INTEGRATION WITH STICK SWAP AND EXTRA BUTTONS ----------
+const gp = new GamepadManager(0.15);
+const gpToggle = document.getElementById('gamepad_toggle');
+const swapSticksCheck = document.getElementById('swap_sticks');
+const gpStatusSpan = document.getElementById('gp-status');
+
+// Helper to adjust numeric input value
+function adjustInput(id, delta, min, max, step, logMsg) {
+  const el = document.getElementById(id);
+  let val = parseFloat(el.value);
+  if (isNaN(val)) val = 0;
+  let newVal = val + delta;
+  if (step && Math.abs(delta) === step) newVal = val + delta;
+  newVal = Math.min(max, Math.max(min, newVal));
+  if (Math.abs(newVal - val) > 1e-9) {
+    el.value = newVal;
+    // Trigger change event so any listeners (e.g., weld button) see the new value
+    el.dispatchEvent(new Event('change'));
+    log(logMsg + newVal, 'dim');
+  }
+}
+
+gp.on('update', (pads) => {
+  if (!gpToggle.checked) return;
+  const pad = pads[0];
+  if (!pad) { gpStatusSpan.textContent = '—'; return; }
+  gpStatusSpan.textContent = pad.id.substring(0, 16);
+  const idx = pad.index;
+
+  // Stick controls for orbit/pan/zoom (with swap)
+  let lx = gp.axisValue(idx, AXIS.LEFT_X);
+  let ly = gp.axisValue(idx, AXIS.LEFT_Y);
+  let rx = gp.axisValue(idx, AXIS.RIGHT_X);
+  let ry = gp.axisValue(idx, AXIS.RIGHT_Y);
+  if (swapSticksCheck.checked) {
+    [lx, rx] = [rx, lx];
+    [ly, ry] = [ry, ly];
+  }
+  if (loadedModel) {
+    if (Math.abs(lx) > 0.01 || Math.abs(ly) > 0.01) {
+      const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+      const spherical = new THREE.Spherical().setFromVector3(offset);
+      spherical.theta -= lx * 0.008;
+      spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi - ly * 0.008));
+      offset.setFromSpherical(spherical);
+      camera.position.copy(controls.target.clone().add(offset));
+      controls.update();
+    }
+    if (Math.abs(rx) > 0.01 || Math.abs(ry) > 0.01) {
+      const toTarget = new THREE.Vector3().subVectors(controls.target, camera.position).normalize();
+      if (Math.abs(ry) > 0.01) {
+        const zoom = ry * 0.6;
+        camera.position.addScaledVector(toTarget, zoom);
+        controls.target.addScaledVector(toTarget, zoom);
+      }
+      if (Math.abs(rx) > 0.01) {
+        const rightVec = new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion);
+        camera.position.addScaledVector(rightVec, -rx * 0.008);
+        controls.target.addScaledVector(rightVec, -rx * 0.008);
+      }
+      controls.update();
+    }
+  }
+
+  // All single-button actions handled below as exclusive chords with 1 ms delay.
+});
+gp.start();
+window.addEventListener('beforeunload', () => gp.stop());
+
+// ---------- CHORD DEFINITIONS ----------------------------------------
+// Using BTN constants: LB=4, RB=5, A=0, B=1, X=2, Y=3,
+//                      START=9, SELECT=8, L3=10, R3=11
+gp.defineChord('LB+A',        [BTN.LB, BTN.A],         true);  // Export OBJ
+gp.defineChord('LB+B',        [BTN.LB, BTN.B],         true);  // Export MD3
+gp.defineChord('LB+X',        [BTN.LB, BTN.X],         true);  // Toggle TRS
+gp.defineChord('LB+Y',        [BTN.LB, BTN.Y],         true);  // Toggle Visible
+gp.defineChord('RB+A',        [BTN.RB, BTN.A],         true);  // Apply textures
+gp.defineChord('RB+B',        [BTN.RB, BTN.B],         true);  // Clear textures
+gp.defineChord('RB+X',        [BTN.RB, BTN.X],         true);  // Open texture picker
+gp.defineChord('RB+Y',        [BTN.RB, BTN.Y],         true);  // Load BG image
+gp.defineChord('UP',          [BTN.UP],                 true);  // Weld ε +
+gp.defineChord('DOWN',        [BTN.DOWN],               true);  // Weld ε −
+gp.defineChord('RIGHT',       [BTN.RIGHT],              true);  // Max tex size +
+gp.defineChord('LEFT',        [BTN.LEFT],               true);  // Max tex size −
+gp.defineChord('LB',          [BTN.LB],                 true);  // Undo
+gp.defineChord('RB',          [BTN.RB],                 true);  // Redo
+gp.defineChord('A',           [BTN.A],                  true);  // Merge verts
+gp.defineChord('B',           [BTN.B],                  true);  // Toggle wireframe
+gp.defineChord('X',           [BTN.X],                  true);  // Reset view
+gp.defineChord('Y',           [BTN.Y],                  true);  // Load model
+gp.defineChord('LT',          [BTN.LT],                 true);  // Shade mode ←
+gp.defineChord('RT',          [BTN.RT],                 true);  // Shade mode →
+gp.defineChord('R3',          [BTN.R3],                 true);  // Load tile texture
+gp.defineChord('SELECT',      [BTN.SELECT],             true);  // Cycle BG mode (exclusive — SELECT only)
+gp.defineChord('START',       [BTN.START],              true);  // Export GLB (exclusive — START only)
+gp.defineChord('START+SELECT',[BTN.START, BTN.SELECT],  true);  // Clear log
+gp.defineChord('L3+R3',       [BTN.L3,   BTN.R3],      true);  // Toggle swap sticks
+
+// ---------- CHORD HANDLERS -------------------------------------------
+gp.on('update', (pads) => {
+  if (!gpToggle.checked) return;
+  const pad = pads[0]; if (!pad) return;
+  const idx = pad.index;
+
+  // D-pad — Weld ε and max texture size
+  if (gp.chordJustFired(idx, 'UP'))
+    setTimeout(() => adjustInput('merge_threshold',  0.0005, 0.0001, 1, 0.0005, 'Weld ε → '), 1);
+  if (gp.chordJustFired(idx, 'DOWN'))
+    setTimeout(() => adjustInput('merge_threshold', -0.0005, 0.0001, 1, 0.0005, 'Weld ε → '), 1);
+  if (gp.chordJustFired(idx, 'RIGHT'))
+    setTimeout(() => adjustInput('option_maxsize',  256, 2, 4096, 256, 'Max texture size → '), 1);
+  if (gp.chordJustFired(idx, 'LEFT'))
+    setTimeout(() => adjustInput('option_maxsize', -256, 2, 4096, 256, 'Max texture size → '), 1);
+
+  // LB / RB  →  Undo / Redo
+  if (gp.chordJustFired(idx, 'LB'))
+    setTimeout(() => document.getElementById('undo_btn').click(), 1);
+  if (gp.chordJustFired(idx, 'RB'))
+    setTimeout(() => document.getElementById('redo_btn').click(), 1);
+
+  // Face buttons
+  if (gp.chordJustFired(idx, 'A'))
+    setTimeout(() => document.getElementById('merge_verts').click(), 1);
+  if (gp.chordJustFired(idx, 'B'))
+    setTimeout(() => document.getElementById('wire_toggle').click(), 1);
+  if (gp.chordJustFired(idx, 'X'))
+    setTimeout(() => document.getElementById('reset_view').click(), 1);
+  if (gp.chordJustFired(idx, 'Y'))
+    setTimeout(() => document.getElementById('file_chooser').click(), 1);
+
+  // LT / RT  →  Cycle shading mode backwards / forwards
+  const shadeModes = ['standard', 'gouraud', 'flat', 'normals', 'wireframe', 'depth'];
+  if (gp.chordJustFired(idx, 'LT')) {
+    const next = shadeModes[(shadeModes.indexOf(currentShadeMode) - 1 + shadeModes.length) % shadeModes.length];
+    log(`Gamepad LT: shade → ${next}`, 'dim');
+    setTimeout(() => { const b = document.querySelector(`[data-shade="${next}"]`); if (b) b.click(); }, 1);
+  }
+  if (gp.chordJustFired(idx, 'RT')) {
+    const next = shadeModes[(shadeModes.indexOf(currentShadeMode) + 1) % shadeModes.length];
+    log(`Gamepad RT: shade → ${next}`, 'dim');
+    setTimeout(() => { const b = document.querySelector(`[data-shade="${next}"]`); if (b) b.click(); }, 1);
+  }
+
+  // R3  →  Load tile texture
+  if (gp.chordJustFired(idx, 'R3')) {
+    log('Gamepad R3: open tile texture picker', 'info');
+    setTimeout(() => document.getElementById('tile-tex-input').click(), 1);
+  }
+
+  // SELECT (exclusive)  →  Cycle BG mode — 1 ms delay
+  if (gp.chordJustFired(idx, 'SELECT')) {
+    const bgModes = ['solid', 'gradient', 'image'];
+    const next = bgModes[(bgModes.indexOf(bgMode) + 1) % bgModes.length];
+    log(`Gamepad chord SELECT: background → ${next}`, 'dim');
+    setTimeout(() => {
+      const btn = document.querySelector(`[data-bg="${next}"]`);
+      if (btn) btn.click();
+    }, 1);
+  }
+  // START (exclusive)  →  Export GLB — 1 ms delay so dialog opens cleanly
+  if (gp.chordJustFired(idx, 'START')) {
+    log('Gamepad chord START: export GLB', 'info');
+    setTimeout(() => document.getElementById('export_glb').click(), 1);
+  }
+  // LB + A  →  Export OBJ — 1 ms delay
+  if (gp.chordJustFired(idx, 'LB+A')) {
+    log('Gamepad chord LB+A: export OBJ', 'info');
+    setTimeout(() => document.getElementById('export_obj').click(), 1);
+  }
+  // LB + B  →  Export MD3 — 1 ms delay
+  if (gp.chordJustFired(idx, 'LB+B')) {
+    log('Gamepad chord LB+B: export MD3', 'info');
+    setTimeout(() => document.getElementById('export_md3').click(), 1);
+  }
+  // LB + X  →  Toggle TRS checkbox
+  if (gp.chordJustFired(idx, 'LB+X')) {
+    setTimeout(() => {
+      const el = document.getElementById('option_trs');
+      el.checked = !el.checked;
+      el.dispatchEvent(new Event('change'));
+      log('Gamepad chord LB+X: TRS \u2192 ' + (el.checked ? 'ON' : 'OFF'), 'dim');
+    }, 1);
+  }
+  // LB + Y  →  Toggle Visible checkbox
+  if (gp.chordJustFired(idx, 'LB+Y')) {
+    setTimeout(() => {
+      const el = document.getElementById('option_visible');
+      el.checked = !el.checked;
+      el.dispatchEvent(new Event('change'));
+      log('Gamepad chord LB+Y: Visible \u2192 ' + (el.checked ? 'ON' : 'OFF'), 'dim');
+    }, 1);
+  }
+  // RB + A  →  Apply textures (only when the apply row is visible)
+  if (gp.chordJustFired(idx, 'RB+A')) {
+    setTimeout(() => {
+      const btn = document.getElementById('tex-apply-btn');
+      if (btn && document.getElementById('tex-apply-row').style.display !== 'none') {
+        btn.click();
+        log('Gamepad chord RB+A: apply textures', 'info');
+      } else {
+        log('Gamepad chord RB+A: no textures to apply', 'warn');
+      }
+    }, 1);
+  }
+  // RB + B  →  Clear textures
+  if (gp.chordJustFired(idx, 'RB+B')) {
+    log('Gamepad chord RB+B: clear textures', 'dim');
+    setTimeout(() => document.getElementById('tex-clear-all-btn').click(), 1);
+  }
+  // RB + X  →  Open texture file picker
+  if (gp.chordJustFired(idx, 'RB+X')) {
+    log('Gamepad chord RB+X: open texture picker', 'info');
+    setTimeout(() => document.getElementById('tex_file_input').click(), 1);
+  }
+  // RB + Y  →  Load background image
+  if (gp.chordJustFired(idx, 'RB+Y')) {
+    log('Gamepad chord RB+Y: open background image picker', 'info');
+    setTimeout(() => document.getElementById('bg-img-input').click(), 1);
+  }
+  // START + SELECT  →  Clear log
+  if (gp.chordJustFired(idx, 'START+SELECT')) {
+    setTimeout(() => {
+      document.getElementById('log-area').innerHTML = '';
+      log('Gamepad chord START+SELECT: log cleared', 'dim');
+    }, 1);
+  }
+  // L3 + R3  →  Toggle swap sticks
+  if (gp.chordJustFired(idx, 'L3+R3')) {
+    setTimeout(() => {
+      swapSticksCheck.checked = !swapSticksCheck.checked;
+      log('Gamepad chord L3+R3: swap sticks \u2192 ' + (swapSticksCheck.checked ? 'ON' : 'OFF'), 'dim');
+    }, 1);
+  }
+});
+
+// ---------- CLOCK ----------
+function tickClock() { const d=new Date(); document.getElementById('taskbar-clock').textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+tickClock(); setInterval(tickClock,1000);
+
+log('modelCRUNCH ready — chords: LB+A/B/X/Y · RB+A/B/X/Y · START+SELECT · L3+R3 | D‑pad ε/maxTex, LB/RB undo/redo, START export, A/B/X/Y face, swap sticks toggle','ok');
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brawl.io – Roadmap Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #1a1a2e;
+    font-family: 'Bangers', cursive;
+    color: #f0e68c;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at 50% 0%, #ff6347 0%, #1a1a2e 60%);
+  }
+  .container { max-width: 900px; width: 100%; }
+  h1 {
+    text-align: center; font-size: 3.5rem; margin-bottom: 0.25em;
+    color: #ffd700; text-shadow: 4px 4px 0 #b22222, 0 0 15px #ff4500;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .subtitle {
+    text-align: center; color: #ffa07a; margin-bottom: 2em;
+    font-size: 1.2rem; text-shadow: 2px 2px 0 #000;
+  }
+  .phase {
+    background: rgba(0,0,0,0.6);
+    border: 4px solid #ffd700;
+    border-radius: 12px;
+    margin-bottom: 2em; padding: 1.2em 1.5em;
+    box-shadow: 0 0 25px rgba(255,140,0,0.4), inset 0 0 15px rgba(0,0,0,0.7);
+  }
+  .phase-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+  }
+  .phase-title {
+    font-size: 1.8rem; color: #ffd700; text-shadow: 2px 2px 0 #000;
+    display: flex; align-items: center; gap: 0.5em;
+  }
+  .phase-title .icon { font-size:2rem; }
+  .phase-progress {
+    background: #222; border-radius: 8px; height: 12px; width: 160px;
+    overflow: hidden; border: 2px solid #ff4500;
+  }
+  .phase-progress-fill { background: #ff4500; height: 100%; width: 0%; transition: width 0.3s; }
+  .phase-percentage { font-size: 1rem; color: #ffa500; min-width: 3em; text-align: right; }
+  .phase-body { margin-top: 1em; padding-left: 1em; display: none; }
+  .phase-body.open { display:block; }
+  .system {
+    margin-bottom: 1.4em; background: rgba(255,255,255,0.1);
+    padding: 0.9em; border-radius: 8px; border: 1px solid #ffa500;
+    transition: border-color 0.3s;
+  }
+  .system.highlight {
+    border-color: #ff00ff;
+    box-shadow: 0 0 12px rgba(255,0,255,0.5);
+  }
+  .system-name {
+    font-weight: 700; color: #ffa500; margin-bottom: 0.3em;
+    text-shadow: 1px 1px 0 #000;
+    font-size: 1.2rem;
+  }
+  .task-list { padding-left: 2em; }
+  .task { margin: 0.3em 0; display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
+  .task input[type="checkbox"] {
+    appearance: none; width: 20px; height: 20px; border: 3px solid #ffd700;
+    border-radius: 4px; background: #000; position: relative; cursor: pointer; flex-shrink: 0;
+  }
+  .task input[type="checkbox"]:checked { background: #ffd700; border-color: #ffd700; }
+  .task input[type="checkbox"]:checked::after {
+    content: "✓"; color: #000; font-size: 14px; position: absolute;
+    top: -2px; left: 3px; text-shadow: none; font-weight: bold;
+  }
+  .task label { color: #f0e68c; font-size: 1rem; text-shadow: 1px 1px 0 #000; flex: 1; }
+  .task.completed label { color: #888; text-decoration: line-through; }
+  .images-section {
+    margin-top: 0.8em; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5em;
+  }
+  .attach-btn {
+    background: #b22222; color: #fff; border: 3px solid #8b0000; padding: 0.3em 0.8em;
+    border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.9rem;
+    text-shadow: 1px 1px 0 #000; box-shadow: 2px 2px 0 #000; margin-right: 0.5em;
+  }
+  .attach-btn:hover { background: #dc143c; }
+  .thumb-wrapper {
+    position: relative; display: inline-block; border: 3px solid #ffd700;
+    border-radius: 6px; background: #000; overflow: hidden;
+  }
+  .thumb-wrapper img { display: block; max-height: 100px; max-width: 150px; object-fit: cover; }
+  .thumb-remove {
+    position: absolute; top: 2px; right: 2px; background: #b22222; color: white;
+    border: 1px solid #8b0000; border-radius: 4px; font-size: 0.8rem; cursor: pointer;
+    line-height: 1; padding: 0 3px; font-family: inherit;
+  }
+  .thumb-remove:hover { background: #ff0000; }
+  .reset-btn {
+    display: block; margin: 2em auto 0; padding: 0.7em 2.2em;
+    font-family: 'Bangers', cursive; font-size: 1.2rem;
+    background: #ffd700; color: #000; border: 4px solid #b8860b;
+    border-radius: 8px; cursor: pointer; text-transform: uppercase;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .reset-btn:hover { background: #ffed4a; }
+  .overall-bar {
+    background: #222; border: 4px solid #ffd700; border-radius: 8px;
+    height: 18px; width: 100%; margin: 1.2em 0; overflow: hidden;
+  }
+  .overall-fill { background: #ff4500; height: 100%; width: 0%; transition: width 0.3s; }
+  .overall-text { text-align: center; margin-bottom: 0.8em; color: #ffd700; text-shadow: 1px 1px 0 #000; font-size: 1.1rem; }
+  .quota-warning { color: #ff6666; font-size: 0.8rem; margin-top: 0.3em; }
+  .load-indicator {
+    text-align: center; color: #ffa500; margin: 2em 0; font-size: 1.3rem;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.1em 0.5em;
+    border-radius: 4px;
+    text-transform: uppercase;
+    line-height: 1.4;
+    font-family: sans-serif;
+    font-weight: bold;
+  }
+  .system-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.3em;
+  }
+  .system-notes {
+    font-size: 0.85rem;
+    color: #ddd;
+    margin-bottom: 0.4em;
+    opacity: 0.85;
+  }
+  .dep-link {
+    font-size: 0.8rem;
+    color: #ffd700;
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+  }
+  .dep-link:hover { color: #fff; }
+  .task-priority {
+    font-size: 0.6rem;
+    padding: 0 0.3em;
+    border-radius: 3px;
+    text-transform: uppercase;
+    margin-left: 0.5em;
+    font-weight: bold;
+  }
+  .task-notes-icon {
+    cursor: help;
+    font-size: 1rem;
+    margin-left: 0.3em;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💥 Brawl.io</h1>
+  <div class="subtitle">4‑Player Platform Brawler – Roadmap Tracker</div>
+  <div class="overall-text">Overall Completion: <span id="overall-percent">0</span>%</div>
+  <div class="overall-bar"><div class="overall-fill" id="overall-fill"></div></div>
+  <div class="load-indicator" id="load-msg">Loading roadmap data…</div>
+  <div id="phases-container"></div>
+  <button class="reset-btn" id="reset-btn">⟲ Reset All Progress</button>
+</div>
+
+<script>
+// ---------- Pure renderer ----------
+let roadmapData = [];
+let state = { images: {}, openPhases: ["phase1"] };
+const phaseSystemMap = new Map();
+const PRIORITY_COLORS = {
+  low: '#666',
+  medium: '#d97706',
+  high: '#dc2626',
+  critical: '#7f1d1d'
+};
+const STATUS_COLORS = {
+  planned: '#4b5563',
+  'in-progress': '#2563eb',
+  complete: '#16a34a'
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('brawl_roadmap');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.images) state.images = parsed.images;
+      if (parsed.openPhases) state.openPhases = parsed.openPhases;
+      Object.keys(parsed).forEach(key => {
+        if (key !== 'images' && key !== 'openPhases') state[key] = parsed[key];
+      });
+    }
+  } catch(e) { console.warn('Failed to load state.'); }
+}
+
+function saveState() {
+  try {
+    const toSave = { ...state };
+    localStorage.setItem('brawl_roadmap', JSON.stringify(toSave));
+    document.querySelector('.quota-warning')?.remove();
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      const warn = document.createElement('div');
+      warn.className = 'quota-warning';
+      warn.textContent = '⚠️ Storage full! Remove some images to save changes.';
+      document.querySelector('.container').insertBefore(warn, document.querySelector('#phases-container'));
+    }
+  }
+}
+
+function scrollToSystem(sysDiv) {
+  sysDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  sysDiv.classList.add('highlight');
+  setTimeout(() => sysDiv.classList.remove('highlight'), 2000);
+}
+
+function renderAll() {
+  const container = document.getElementById('phases-container');
+  container.innerHTML = '';
+  document.getElementById('load-msg').style.display = 'none';
+  phaseSystemMap.clear();
+
+  roadmapData.forEach(phase => {
+    const phaseDiv = document.createElement('div');
+    phaseDiv.className = 'phase';
+    phaseDiv.id = 

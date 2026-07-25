@@ -1,0 +1,27 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+#shredButton {
+    padding: 10px 15px;
+    background-color: #dc3545; /* Red for destructive action */
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+#fileInput {
+    padding: 5px;
+}
+
+.security-note {
+    border: 1px solid #ffc107;
+    padding: 10px;
+    background-color: #fff3cd;
+    color: #856404;
+    font-weight: bold;
+}

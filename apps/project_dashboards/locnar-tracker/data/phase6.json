@@ -1,0 +1,49 @@
+{
+  "id": "phase6",
+  "icon": "⚡",
+  "title": "Phase 6 – Performance & Stability",
+  "systems": [
+    {
+      "name": "6.1 Codebase Cleanup & Modularisation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Split main.js into multiple modules (player.js, enemyManager.js, gameLogic.js) and remove dead code (geometry.js soft‑render bridge, unused modules).",
+      "tasks": [
+        "Extract player logic into player.js",
+        "Move wave and enemy management into waveManager.js",
+        "Delete dead code: geometry.js bridge section, textureloader.js",
+        "Consolidate mesh building into meshbuilders.js"
+      ]
+    },
+    {
+      "name": "6.2 Rendering Performance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Optimise the soft‑renderer to handle 50+ entities at 60fps. Use object pooling, LOD, and early‑out culling.",
+      "tasks": [
+        "Implement LOD system: distant enemies use simpler geometry",
+        "Add triangle count limit per frame (dynamic quality scaling)",
+        "Profile and eliminate GC spikes in canvas2D drawing",
+        "Use OffscreenCanvas for the soft‑render target"
+      ]
+    },
+    {
+      "name": "6.3 Bug Fixing & Footgun Resolution",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Address all known footguns: applyVertexColors prototype hack, _emitPartTris joint approximation, setInterval particles, mobile joystick defineProperty, etc.",
+      "tasks": [
+        "Replace applyVertexColors with explicit THREE.BufferAttribute import",
+        "Use proper child mesh hierarchy for limb rotation",
+        "Replace setInterval with rAF‑based particle timers",
+        "Refactor mobile joystick to avoid Object.defineProperty"
+      ]
+    }
+  ]
+}

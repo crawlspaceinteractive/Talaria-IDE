@@ -1,0 +1,45 @@
+{
+  "id": "phase7",
+  "icon": "📦",
+  "title": "Phase 7 – Documentation & Release",
+  "systems": [
+    {
+      "name": "7.1 User Guide & Wiki",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Write comprehensive documentation on how to use BUILD2UDMF for Witchaven/TekWar conversion, including texture remapping and actor setup.",
+      "tasks": [
+        "Write README with step-by-step instructions",
+        "Create a wiki page on GitHub with detailed guides",
+        "Record a video tutorial"
+      ]
+    },
+    {
+      "name": "7.2 Source Code Cleanup & Release",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Prepare BUILD2UDMF repository for public release: add license, clean up code, ensure it runs offline without external dependencies.",
+      "tasks": [
+        "Add MIT or GPL license",
+        "Remove any hardcoded external CDN scripts",
+        "Create a downloadable zip with all game-specific presets"
+      ]
+    },
+    {
+      "name": "7.3 Community & Feedback",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "Share the tool on Doomworld, ZDoom forums, and relevant Discord servers. Collect feedback for future improvements.",
+      "tasks": [
+        "Post announcement thread with screenshots",
+        "Respond to bug reports and feature requests"
+      ]
+    }
+  ]
+}

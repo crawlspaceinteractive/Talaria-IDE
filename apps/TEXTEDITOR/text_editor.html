@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDE95 // Talaria Editor</title>
+    <style>
+        :root {
+            --face: #c0c0c0;
+            --hilite: #ffffff;
+            --shadow: #808080;
+            --dark-shadow: #0a0a0a;
+            --font-stack: "Courier New", Courier, monospace;
+            --syn-keyword: #0000ff;
+            --syn-string: #2f7e2f;
+            --syn-comment: #7d8b99;
+            --syn-number: #c92c2c;
+            --syn-type: #7a3e9d;
+            --syn-pointer: #000000;
+        }
+
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: var(--font-stack); 
+            -webkit-font-smoothing: none; 
+        }
+
+        body, html { 
+            width: 100%; 
+            height: 100%; 
+            background-color: var(--face); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+        }
+
+        /* top toolbar */
+        .editor-control-deck {
+            display: flex; 
+            gap: 6px; 
+            padding: 4px; 
+            background-color: var(--face);
+            border-bottom: 2px solid var(--shadow); 
+            align-items: center; 
+            flex-shrink: 0;
+            flex-wrap: wrap;
+        }
+
+        .btn-deck {
+            font-size: 11px; 
+            background-color: var(--face); 
+            border: 2px solid;
+            border-top-color: var(--hilite); 
+            border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); 
+            border-bottom-color: var(--dark-shadow);
+            padding: 2px 6px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            height: 26px;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            user-select: none;
+        }
+
+        .btn-deck:active {
+            border-top-color: var(--dark-shadow); 
+            border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); 
+            border-bottom-color: var(--hilite);
+            padding: 3px 5px 1px 7px;
+        }
+
+        .btn-deck:hover {
+            background-color: #d0d0d0;
+        }
+
+        .editor-filename-field {
+            font-size: 11px; 
+            height: 24px; 
+            background-color: #ffffff;
+            border: 2px solid; 
+            border-top-color: var(--shadow); 
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite); 
+            border-bottom-color: var(--hilite);
+            padding: 2px 6px; 
+            outline: none; 
+            width: 200px;
+            font-weight: normal;
+        }
+
+        .editor-filename-field:focus {
+            background-color: #ffffcc;
+        }
+
+        /* find/replace panel */
+        .find-replace-panel {
+            background-color: var(--face);
+            border-bottom: 1px solid var(--shadow);
+            padding: 6px 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .find-replace-panel input, .find-replace-panel select {
+            background: #fff;
+            border: 2px solid;
+            border-top-color: var(--shadow);
+            border-left-color: var(--shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+            padding: 4px 6px;
+            font-size: 11px;
+            outline: none;
+            height: 26px;
+            font-weight: normal;
+        }
+
+        .find-replace-panel input:focus {
+            background-color: #ffffcc;
+        }
+
+        .find-replace-panel button {
+            font-size: 11px;
+            background-color: var(--face);
+            border: 2px solid;
+            border-top-color: var(--hilite);
+            border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow);
+            border-bottom-color: var(--dark-shadow);
+            padding: 2px 8px;
+            cursor: pointer;
+            height: 26px;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        .find-replace-panel button:active {
+            border-top-color: var(--dark-shadow);
+            border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite);
+            border-bottom-color: var(--hilite);
+        }
+
+        .find-replace-panel button:hover {
+            background-color: #d0d0d0;
+        }
+
+        .hotkey-hint {
+            font-family: monospace;
+            letter-spacing: 0.5px;
+            margin-left: auto;
+            color: #222;
+            font-size: 10px;
+        }
+
+        /* main split container */
+        .ide-main-split {
+            flex: 1;
+            display: flex;
+            gap: 6px;
+            padding: 6px;
+            background-color: #555;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .editor-area {
+            flex: 1;
+            position: relative;
+            background: #444;
+            border: 2px solid var(--dark-shadow);
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .editor-container {
+            flex: 1;
+            position: relative;
+            background: #ffffff;
+            margin: 4px;
+            border: 2px inset var(--shadow);
+            overflow: hidden;
+        }
+
+        #txt-viewport, #txt-highlighter {
+            position: absolute;
+            top: 0; 
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            font-family: var(--font-stack);
+            font-size: 13px;
+            line-height: 1.5;
+            tab-size: 4;
+            white-space: pre;
+            word-wrap: normal;
+            border: none;
+            overflow: auto;
+            margin: 0;
+        }
+
+        #txt-viewport {
+            background: transparent;
+            color: transparent;
+            caret-color: #000;
+            z-index: 2;
+            outline: none;
+            resize: none;
+        }
+
+        #txt-highlighter {
+            background: #ffffff;
+            color: #000;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .syn-keyword { color: var(--syn-keyword); font-weight: bold; }
+        .syn-string { color: var(--syn-string); }
+        .syn-comment { color: var(--syn-comment); font-style: italic; }
+        .syn-number { color: var(--syn-number); }
+        .syn-type { color: var(--syn-type); font-weight: bold; }
+        .syn-directive { color: #c92c2c; font-weight: bold; }
+        .syn-decorator { color: #7a3e9d; }
+        .syn-function { color: #0000ff; }
+
+        /* Status bar */
+        .status-bar {
+            background-color: var(--face);
+            border-top: 2px solid var(--shadow);
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            flex-shrink: 0;
+            color: #333;
+        }
+
+        .status-item {
+            padding: 0 8px;
+            border-right: 1px solid var(--shadow);
+        }
+
+        .status-item:last-child {
+            border-right: none;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--face);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--shadow);
+            border: 2px solid var(--face);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #606060;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: var(--face);
+        }
+
+        /* Splitter */
+        .resize-handle {
+            width: 6px;
+            cursor: col-resize;
+            background: linear-gradient(to right, var(--shadow) 2px, transparent 2px, transparent 4px, var(--shadow) 4px);
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="editor-control-deck">
+    <button class="btn-deck" onclick="newFile()">New</button>
+    <button class="btn-deck" onclick="openFile()">Open</button>
+    <button class="btn-deck" onclick="saveFile()">Save</button>
+    <input type="text" class="editor-filename-field" id="filename" placeholder="Untitled" value="Untitled">
+    <button class="btn-deck" onclick="toggleFindPanel()">Find</button>
+    <button class="btn-deck" onclick="cycleSyntax()">Mode</button>
+    <span style="margin-left: auto; padding-right: 8px; font-size: 11px; font-weight: bold;" id="syntax-mode">Mode: Plain Text</span>
+</div>
+
+<div class="find-replace-panel" id="find-panel" style="display: none;">
+    <label>Find:</label>
+    <input type="text" id="find-input" placeholder="Search text...">
+    <button onclick="findNext()">Find Next</button>
+    <button onclick="findPrev()">Find Prev</button>
+    <button onclick="toggleReplace()">Replace</button>
+    <input type="text" id="replace-input" placeholder="Replace with..." style="display: none;">
+    <button id="replace-btn" onclick="replaceOne()" style="display: none;">Replace</button>
+    <button id="replace-all-btn" onclick="replaceAll()" style="display: none;">Replace All</button>
+    <span class="hotkey-hint">Ctrl+H to close</span>
+</div>
+
+<div class="ide-main-split">
+    <div class="editor-area">
+        <div class="editor-container">
+            <textarea id="txt-viewport" spellcheck="false"></textarea>
+            <pre id="txt-highlighter"></pre>
+        </div>
+    </div>
+</div>
+
+<div class="status-bar">
+    <span class="status-item">Lines: <span id="line-count">1</span></span>
+    <span class="status-item">Col: <span id="col-count">1</span></span>
+    <span class="status-item">Chars: <span id="char-count">0</span></span>
+    <span class="status-item" id="file-status">Untitled</span>
+</div>
+
+<script>
+    const syntaxModes = ['Plain Text', 'ZScript', 'ACS', 'Decorate', 'Doom Info', 'GL Info'];
+    const modeIndex = {
+        'Plain Text': 0,
+        'ZScript': 1,
+        'ACS': 2,
+        'Decorate': 3,
+        'Doom Info': 4,
+        'GL Info': 5
+    };
+
+    let currentMode = 'Plain Text';
+    let findPanel = document.getElementById('find-panel');
+    let findInput = document.getElementById('find-input');
+    let replaceInput = document.getElementById('replace-input');
+    let replaceBtn = document.getElementById('replace-btn');
+    let replaceAllBtn = document.getElementById('replace-all-btn');
+    let viewport = document.getElementById('txt-viewport');
+    let highlighter = document.getElementById('txt-highlighter');
+    let filenameField = document.getElementById('filename');
+    let syntaxModeDisplay = document.getElementById('syntax-mode');
+
+    // Syntax definitions
+    const syntaxRules = {
+        'ZScript': {
+            keywords: ['class', 'struct', 'enum', 'native', 'ui', 'virtual', 'override', 'const', 'static', 'action', 'extends', 'private', 'protected', 'public', 'void', 'int', 'double', 'bool', 'string', 'actor', 'vector3', 'state', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default', 'break', 'continue', 'return', 'new', 'null', 'true', 'false', 'self', 'owner', 'target', 'tracer', 'master'],
+            types: ['int', 'double', 'bool', 'string', 'void', 'Actor', 'PlayerInfo', 'Weapon', 'Ammo', 'Inventory', 'Health', 'PowerupGiver', 'Key'],
+            directives: ['#include', '#define', '#ifdef', '#ifndef', '#endif'],
+            comment: '//',
+            blockComment: ['/*', '*/'],
+            string: ['"', "'"],
+            number: /\b\d+\b/g
+        },
+        'ACS': {
+            keywords: ['function', 'void', 'int', 'return', 'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default', 'break', 'continue', 'script', 'open', 'respawn', 'nonet', 'net', 'global', 'world', 'thing', 'sector', 'linedef', 'polyobject', 'struct', 'enum', 'class', 'const', 'static'],
+            types: ['int', 'void', 'script', 'function'],
+            directives: ['#include', '#define', '#ifdef', '#ifndef', '#endif', '#region', '#endregion'],
+            comment: '//',
+            blockComment: ['/*', '*/'],
+            string: ['"', "'"],
+            number: /\b\d+\b/g
+        },
+        'Decorate': {
+            keywords: ['ACTOR', 'PICKUP', 'PROJECTILE', 'WEAPON', 'AMMO', 'STATES', 'SPAWN', 'DEATH', 'PAIN', 'MELEE', 'MISSILE', 'CRASH', 'XDEATH', 'HEIGHT', 'RADIUS', 'MASS', 'SPEED', 'REACTIONTIME', 'PAINCHANCE', 'HEALTH', 'DAMAGE', 'ACTION', 'TRANSLATION', 'SCALE', 'ALPHA', 'RENDERMODE', 'SPRITE', 'FRAME', 'LIGHT', 'BRIGHT', 'DECAL', 'FLAT', 'FULLBRIGHT', 'NOGRAVITY', 'NOCLIP', 'FLOAT', 'DROPOFF', 'FLOORCLIP', 'ISMONSTER', 'COUNTKILL', 'COUNTITEM', 'SOLID', 'SHOOTABLE', 'NOSECTOR', 'NOBLOCKMAP', 'ACTIVATEIMPACT', 'ACTIVATEPUSH', 'DONTBLAST', 'TELEPORT', 'CANTLEAVEFLOOR'],
+            types: [],
+            directives: [],
+            comment: '//',
+            blockComment: ['/*', '*/'],
+            string: ['"', "'"],
+            number: /\b\d+\b/g
+        },
+        'Doom Info': {
+            keywords: ['IWAD', 'PWAD', 'MAP', 'EMULATE', 'MAPINFO', 'EPISODE', 'SKILL', 'CLEARFLAGS', 'SKYBOX', 'EXITPIC', 'ENTERPIC', 'INTERMUSIC', 'MUSIC', 'INTERTEXT', 'INTERTEXTS', 'INTERMISSION', 'BOSSACTION', 'SPAWNNUMS', 'SPAWNSPOTS', 'MONSTERBACKPACK', 'NOINFIGHTING'],
+            types: [],
+            directives: ['[', ']', '{', '}'],
+            comment: '//',
+            blockComment: ['/*', '*/'],
+            string: ['"', "'"],
+            number: /\b\d+\b/g
+        },
+        'GL Info': {
+            keywords: ['light', 'material', 'shader', 'texture', 'sprite', 'object', 'voxel', 'surface', 'floor', 'ceiling', 'wall', 'brightmap', 'gloss', 'displacement', 'normal', 'spec', 'roughness', 'metallic', 'emissive', 'detailmap', 'blendmode', 'alpha', 'cull', 'depthtest', 'depthwrite', 'colorwrite'],
+            types: [],
+            directives: [],
+            comment: '//',
+            blockComment: ['/*', '*/'],
+            string: ['"', "'"],
+            number: /\b\d+\b/g
+        },
+        'Plain Text': {
+            keywords: [],
+            types: [],
+            directives: [],
+            comment: null,
+            blockComment: null,
+            string: null,
+            number: null
+        }
+    };
+
+    // Tokenize and highlight
+    function highlightCode(code, mode) {
+        if (mode === 'Plain Text') {
+            return code;
+        }
+
+        const rules = syntaxRules[mode] || syntaxRules['Plain Text'];
+        let highlighted = code;
+
+        // Escape HTML
+        highlighted = highlighted.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        // Block comments
+        if (rules.blockComment) {
+            const [start, end] = rules.blockComment;
+            const blockRegex = new RegExp(`${start.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\\s\\S]*?${end.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+            highlighted = highlighted.replace(blockRegex, match => `<span class="syn-comment">${match}</span>`);
+        }
+
+        // Line comments
+        if (rules.comment) {
+            const commentRegex = new RegExp(`${rules.comment.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*?$`, 'gm');
+            highlighted = highlighted.replace(commentRegex, match => `<span class="syn-comment">${match}</span>`);
+        }
+
+        // Strings
+        if (rules.string) {
+            rules.string.forEach(quote => {
+                const stringRegex = new RegExp(`${quote}(?:\\\\.|[^${quote}\\n])*${quote}`, 'g');
+                highlighted = highlighted.replace(stringRegex, match => `<span class="syn-string">${match}</span>`);
+            });
+        }
+
+        // Numbers
+        if (rules.number) {
+            highlighted = highlighted.replace(/\b\d+\b/g, match => `<span class="syn-number">${match}</span>`);
+        }
+
+        // Directives
+        if (rules.directives && rules.directives.length > 0) {
+            rules.directives.forEach(directive => {
+                const dirRegex = new RegExp(`\\${directive.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^<]*?(?=<|$)`, 'g');
+                highlighted = highlighted.replace(dirRegex, match => {
+                    if (!match.includes('span')) {
+                        return `<span class="syn-directive">${match}</span>`;
+                    }
+                    return match;
+                });
+            });
+        }
+
+        // Keywords (last, to avoid overwriting other spans)
+        if (rules.keywords && rules.keywords.length > 0) {
+            const keywordRegex = new RegExp(`\\b(${rules.keywords.join('|')})\\b`, 'g');
+            highlighted = highlighted.replace(keywordRegex, (match) => {
+                if (!match.includes('span')) {
+                    return `<span class="syn-keyword">${match}</span>`;
+                }
+                return match;
+            });
+        }
+
+        // Types
+        if (rules.types && rules.types.length > 0) {
+            const typeRegex = new RegExp(`\\b(${rules.types.join('|')})\\b`, 'g');
+            highlighted = highlighted.replace(typeRegex, (match) => {
+                if (!match.includes('span') && !match.includes('syn-keyword')) {
+                    return `<span class="syn-type">${match}</span>`;
+                }
+                return match;
+            });
+        }
+
+        return highlighted;
+    }
+
+    function updateHighlight() {
+        highlighter.innerHTML = highlightCode(viewport.value, currentMode);
+    }
+
+    function syncScroll() {
+        highlighter.scrollTop = viewport.scrollTop;
+        highlighter.scrollLeft = viewport.scrollLeft;
+    }
+
+    function updateStats() {
+        const text = viewport.value;
+        const lines = text.split('\n').length;
+        const cols = text.substring(0, viewport.selectionStart).split('\n').pop().length + 1;
+        
+        document.getElementById('line-count').textContent = lines;
+        document.getElementById('col-count').textContent = cols;
+        document.getElementById('char-count').textContent = text.length;
+    }
+
+    function cycleSyntax() {
+        const modes = Object.keys(modeIndex);
+        const currentIndex = modeIndex[currentMode];
+        currentMode = modes[(currentIndex + 1) % modes.length];
+        syntaxModeDisplay.textContent = `Mode: ${currentMode}`;
+        updateHighlight();
+    }
+
+    function toggleFindPanel() {
+        if (findPanel.style.display === 'none') {
+            findPanel.style.display = 'flex';
+            findInput.focus();
+        } else {
+            findPanel.style.display = 'none';
+        }
+    }
+
+    function toggleReplace() {
+        const showing = replaceInput.style.display !== 'none';
+        replaceInput.style.display = showing ? 'none' : 'block';
+        replaceBtn.style.display = showing ? 'none' : 'block';
+        replaceAllBtn.style.display = showing ? 'none' : 'block';
+    }
+
+    function findNext() {
+        const searchText = findInput.value;
+        if (!searchText) return;
+        
+        const text = viewport.value;
+        const startPos = viewport.selectionEnd;
+        const index = text.indexOf(searchText, startPos);
+        
+        if (index !== -1) {
+            viewport.setSelectionRange(index, index + searchText.length);
+            viewport.focus();
+        } else {
+            const wrapIndex = text.indexOf(searchText, 0);
+            if (wrapIndex !== -1) {
+                viewport.setSelectionRange(wrapIndex, wrapIndex + searchText.length);
+                viewport.focus();
+            }
+        }
+    }
+
+    function findPrev() {
+        const searchText = findInput.value;
+        if (!searchText) return;
+        
+        const text = viewport.value;
+        const startPos = viewport.selectionStart;
+        const index = text.lastIndexOf(searchText, startPos - 1);
+        
+        if (index !== -1) {
+            viewport.setSelectionRange(index, index + searchText.length);
+            viewport.focus();
+        }
+    }
+
+    function replaceOne() {
+        const searchText = findInput.value;
+        const replaceText = replaceInput.value;
+        if (!searchText) return;
+        
+        const text = viewport.value;
+        const startPos = viewport.selectionStart;
+        const index = text.indexOf(searchText, startPos);
+        
+        if (index !== -1) {
+            viewport.value = text.substring(0, index) + replaceText + text.substring(index + searchText.length);
+            viewport.setSelectionRange(index, index + replaceText.length);
+            updateHighlight();
+            updateStats();
+        }
+    }
+
+    function replaceAll() {
+        const searchText = findInput.value;
+        const replaceText = replaceInput.value;
+        if (!searchText) return;
+        
+        viewport.value = viewport.value.split(searchText).join(replaceText);
+        updateHighlight();
+        updateStats();
+    }
+
+    function newFile() {
+        if (viewport.value && !confirm('Discard current file?')) return;
+        viewport.value = '';
+        filenameField.value = 'Untitled';
+        currentMode = 'Plain Text';
+        syntaxModeDisplay.textContent = 'Mode: Plain Text';
+        updateHighlight();
+        updateStats();
+    }
+
+    function saveFile() {
+        const filename = filenameField.value || 'Untitled';
+        const content = viewport.value;
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename.endsWith('.txt') ? filename : filename + '.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function openFile() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    viewport.value = event.target.result;
+                    filenameField.value = file.name;
+                    
+                    // Auto-detect syntax mode from extension
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    const extMap = { 'zs': 'ZScript', 'acs': 'ACS', 'dec': 'Decorate', 'txt': 'Plain Text', 'info': 'Doom Info', 'gl': 'GL Info' };
+                    if (extMap[ext]) {
+                        currentMode = extMap[ext];
+                        syntaxModeDisplay.textContent = `Mode: ${currentMode}`;
+                    }
+                    
+                    updateHighlight();
+                    updateStats();
+                };
+                reader.readAsText(file);
+            }
+        };
+        input.click();
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                toggleFindPanel();
+            } else if (e.key === 'h' || e.key === 'H') {
+                e.preventDefault();
+                findPanel.style.display = 'none';
+            } else if (e.key === 's' || e.key === 'S') {
+                e.preventDefault();
+                saveFile();
+            } else if (e.key === 'o' || e.key === 'O') {
+                e.preventDefault();
+                openFile();
+            } else if (e.key === 'n' || e.key === 'N') {
+                e.preventDefault();
+                newFile();
+            }
+        }
+    });
+
+    // Event listeners
+    viewport.addEventListener('input', updateHighlight);
+    viewport.addEventListener('input', updateStats);
+    viewport.addEventListener('scroll', syncScroll);
+    viewport.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = viewport.selectionStart;
+            const end = viewport.selectionEnd;
+            viewport.value = viewport.value.substring(0, start) + '\t' + viewport.value.substring(end);
+            viewport.selectionStart = viewport.selectionEnd = start + 1;
+            updateHighlight();
+            updateStats();
+        }
+    });
+
+    findInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') findNext();
+    });
+
+    // Initialize
+    updateStats();
+</script>
+
+</body>
+</html>

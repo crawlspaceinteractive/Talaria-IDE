@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* Status classes for clear security grading */
+.status-pass {
+    color: green;
+    font-weight: bold;
+}
+.status-fail {
+    color: red;
+    font-weight: bold;
+    background-color: #ffe0e0;
+    padding: 2px 5px;
+}
+.status-warning {
+    color: orange;
+    font-weight: bold;
+}
+
+#analyzeButton {
+    padding: 10px 15px;
+    background-color: #007bff; /* Blue for analysis/intelligence action */
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+.intro-note {
+    font-style: italic;
+    color: #6c757d;
+}
+.check-area {
+    padding: 15px;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+}

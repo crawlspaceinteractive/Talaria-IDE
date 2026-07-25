@@ -1,0 +1,63 @@
+{
+  "id": "phase1",
+  "icon": "🎥",
+  "title": "Phase 1 – Core Engine & Fixed Cameras",
+  "systems": [
+    {
+      "name": "1.1 Fixed Camera System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Implement multi‑camera setup with trigger zones. Each room/angle has a predefined static camera position, FOV, and orientation. Smooth transitions when moving between cameras.",
+      "tasks": [
+        "Define camera data per room (position, target, FOV)",
+        "Camera trigger volumes (boxes or distance checks)",
+        "Smooth interpolation between camera switches (lerp over 0.5s)",
+        "Letterbox or vignette effect during transition"
+      ]
+    },
+    {
+      "name": "1.2 Prerendered Background Pipeline",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Render static background images from 3D scenes (pre‑baked offline) and load them as full‑screen canvases. Ensure 3D objects (player, items, enemies) depth‑sort correctly against the background.",
+      "tasks": [
+        "Load background image per camera angle",
+        "Draw background as full‑screen quad",
+        "Depth buffer from pre‑rendered depth map (if available)",
+        "Sort 3D objects against background depth"
+      ]
+    },
+    {
+      "name": "1.3 3D Object Rendering",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_1"],
+      "notes": "Software rasterizer draws player, enemies, and items on top of the prerendered background. Use depth testing or painter's algorithm for correct occlusion.",
+      "tasks": [
+        "Integrate GLB model loading (via Three.js parsing)",
+        "Transform and project 3D models for each camera",
+        "Depth sorting for multiple objects",
+        "Handle transparency and dithering for visual consistency"
+      ]
+    },
+    {
+      "name": "1.4 Input & Movement System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Tank controls (classic survival horror) with optional modern analog controls. Relative movement based on camera direction must feel natural regardless of camera angle.",
+      "tasks": [
+        "Tank controls: up = forward relative to character",
+        "Analog stick alternative (directional movement)",
+        "Camera‑relative movement option",
+        "Quick turn (180° button)"
+      ]
+    }
+  ]
+}

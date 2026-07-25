@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<title>BUILD2UDMF</title>
+<style>
+:root{
+  --bg:#115599;--panel:#9c9c9c;--panel-deep:#888888;--ink:#101010;--muted:#3a3a3a;--line:#5a5a5a;--line-lite:#cfcfcf;--accent:#0a3d77;--accent2:#1f6b1f;--bad:#8a1f22;
+  --cv-bg:#06060a;--cv-panel:#15141b;--cv-ink:#e7e3d4;--cv-muted:#8a8676;--cv-line:#2a2733;--cv-accent:#d97a2a;--cv-accent2:#5aa15a;--cv-bad:#c2484c;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 20px 64px;}
+h1{font-family:Georgia,serif;font-weight:600;margin:0 0 4px;font-size:24px;letter-spacing:.4px;color:#101010;}
+.sub{color:#3a3a3a;font-size:12px;margin-bottom:0}
+.sub .pill{background:#b4b4b4;color:#101010;border-color:#5a5a5a}
+.panel{background:var(--panel);border:1px solid #2a2a2a;border-top-color:#dcdcdc;border-left-color:#dcdcdc;border-right-color:#5a5a5a;border-bottom-color:#5a5a5a;border-radius:3px;padding:14px;margin-bottom:10px;color:var(--ink);box-shadow:0 1px 0 rgba(0,0,0,.2);}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.row:last-child{margin-bottom:0}
+label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+input[type=number],input[type=text],select{background:#fff;color:#101010;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;border-radius:0;padding:5px 7px;font-family:inherit;font-size:12px;}
+input[type=number]{width:78px}input[type=text]{width:78px}
+input[type=file]{color:#101010;font-family:inherit;font-size:12px;}
+button{background:#bdbdbd;color:#101010;border:1px solid #2a2a2a;border-top-color:#fff;border-left-color:#fff;border-right-color:#4a4a4a;border-bottom-color:#4a4a4a;border-radius:0;padding:7px 16px;font-weight:700;cursor:pointer;font-family:inherit;font-size:12px;}
+button:hover{background:#c8c8c8}
+button:active{border-top-color:#4a4a4a;border-left-color:#4a4a4a;border-right-color:#fff;border-bottom-color:#fff;background:#a8a8a8;}
+button.sec{background:#a8a8a8;color:#101010;font-weight:500;}button.sec:hover{background:#b4b4b4;}
+button.sm{padding:4px 10px;font-size:11px;}
+.status{margin:10px 0 4px;padding:9px 12px;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;background:#b4b4b4;color:#101010;font-size:12px;border-radius:0;}
+.status.err{background:#d9b0b1;color:#3a0a0c}.status.warn{background:#d9c9a8;color:#3a2a0a}
+pre#out{background:#0a0a14;color:#b8d8ff;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;border-radius:0;padding:12px;max-height:400px;overflow:auto;font-size:11px;line-height:1.5}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-top:8px;font-size:12px}
+.stat{background:#b4b4b4;border:1px solid #2a2a2a;border-top-color:#dcdcdc;border-left-color:#dcdcdc;border-right-color:#5a5a5a;border-bottom-color:#5a5a5a;border-radius:0;padding:7px 9px;color:var(--ink)}
+.stat b{display:block;color:var(--accent);font-size:13px}.stat span{color:var(--muted)}
+details{margin-top:8px}summary{cursor:pointer;color:var(--ink);font-size:12px;padding:3px 0}
+code{color:var(--accent2)}
+.pill{display:inline-block;padding:1px 7px;border:1px solid var(--line);border-radius:99px;font-size:11px;color:var(--muted);margin-right:4px;background:#b4b4b4}
+.canvas-wrap{margin-top:10px;background:var(--cv-bg);border:1px solid var(--cv-line);border-radius:6px;overflow:hidden;position:relative}
+#preview{display:block;width:100%;height:440px;cursor:grab}#preview:active{cursor:grabbing}
+.legend{position:absolute;top:8px;left:10px;background:rgba(10,9,15,.85);border:1px solid var(--cv-line);border-radius:4px;padding:7px 9px;font-size:11px;color:var(--cv-muted);line-height:1.8;backdrop-filter:blur(4px)}
+.legend i{display:inline-block;width:16px;height:2px;vertical-align:middle;margin-right:5px}
+.ctools{position:absolute;top:8px;right:10px;display:flex;gap:5px;}
+.ctools button{background:rgba(10,9,15,.85);color:var(--cv-ink);border:1px solid var(--cv-line);padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500}
+.ctools button:hover{background:rgba(30,28,42,.95)}.ctools button:active{background:rgba(0,0,0,.95)}
+.hud{position:absolute;bottom:6px;left:10px;font-size:11px;color:var(--cv-muted);background:rgba(10,9,15,.65);padding:2px 7px;border-radius:3px;}
+.sh{font-size:11px;color:var(--ink);text-transform:uppercase;letter-spacing:.8px;margin:12px 0 6px;border-bottom:1px solid #5a5a5a;padding-bottom:3px;font-weight:700;}
+.tex-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 7px;background:#b4b4b4;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;font-size:11px;color:var(--muted);}
+.tex-badge b{color:var(--accent);}
+#remapPanel{display:none}
+.remap-grid{display:flex;flex-wrap:wrap;gap:5px;max-height:220px;overflow-y:auto;padding:3px;margin-bottom:8px;background:#888;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;}
+.remap-grid.full{max-height:300px;}
+.tc{background:#0a090f;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;border-radius:0;padding:4px;cursor:pointer;text-align:center;width:80px;flex-shrink:0;position:relative;transition:border-color .12s;}
+.tc:hover{outline:1px solid var(--accent);}
+.tc.sel{outline:2px solid #ffd24a;background:#1c1408;}
+.tc.remapped{outline:1px solid var(--cv-accent2);}
+.tc img,.tc .ph{width:64px;height:64px;display:block;image-rendering:pixelated;object-fit:contain;background:#111;}
+.tc .ph{display:flex;align-items:center;justify-content:center;font-size:10px;color:#444;border-radius:0;}
+.tc .tn{font-size:9px;color:#d6d6d6;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:72px;}
+.tc .tp{font-size:8px;color:#ffd24a;margin-bottom:1px;}
+.tc .tm{font-size:8px;color:var(--cv-accent2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:72px;margin-top:1px;}
+.tc-x{position:absolute;top:2px;right:3px;background:0;border:0;color:#d6d6d6;cursor:pointer;font-size:10px;line-height:1;padding:0;}
+.tc-x:hover{color:var(--bad);}
+.rtbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;}
+input[type=search]{background:#fff;color:#101010;border:1px solid #2a2a2a;border-top-color:#5a5a5a;border-left-color:#5a5a5a;border-right-color:#dcdcdc;border-bottom-color:#dcdcdc;border-radius:0;padding:5px 8px;font-family:inherit;font-size:12px;width:180px;}
+.remap-hint{font-size:12px;color:var(--muted);padding:8px 0;}
+.decode-bar{font-size:11px;color:var(--muted);margin:4px 0;}
+.tab-row{display:flex;gap:0;margin-bottom:10px;border-bottom:1px solid #5a5a5a}
+.tab{padding:6px 12px;cursor:pointer;color:var(--muted);font-size:12px;background:#888;border:1px solid #2a2a2a;border-top-color:#dcdcdc;border-left-color:#dcdcdc;border-right-color:#5a5a5a;border-bottom:0;margin-right:2px;}
+.tab.active{background:var(--panel);color:var(--ink);font-weight:700;position:relative;top:1px}
+</style>
+</head>
+<body><div class="wrap">
+<div class="panel">
+  <h1>BUILD2UDMF</h1>
+  <div class="sub">Build v6/v7 + Blood <span class="pill">Y-flip</span><span class="pill">Z norm</span><span class="pill">2-sided dedup</span><span class="pill">lotag map</span><span class="pill">texture remapper</span><span class="pill">v0.9.2</span></div>
+</div>
+
+<div class="panel">
+  <div class="sh">Map File</div>
+  <div class="row">
+    <input type="file" id="file" accept=".map,.MAP" onchange="onMapLoad()">
+    <button onclick="convert()">Convert</button>
+    <button class="sec" onclick="copyOut()">Copy UDMF</button>
+  </div>
+  <div class="sh">Source Art (Optional for Preview)</div>
+  <div class="row">
+    <label>Palette<input type="file" id="paletteFile" accept=".dat"></label>
+    <label>ART Tiles<input type="file" id="artFiles" accept=".art" multiple="" onchange="loadArt()"></label>
+  </div>
+  <div class="sh">Scale &amp; Geometry</div>
+  <div class="row">
+    <label>XY divisor<input type="number" id="xyScale" value="16" min="1"></label>
+    <label>Z divisor<input type="number" id="zScale" value="512" min="1"></label>
+    <label>Floor zero
+      <select id="zMode">
+        <option value="min" selected="selected">Min floor → 0</option>
+        <option value="first">First sector → 0</option>
+        <option value="none">None</option>
+      </select>
+    </label>
+    <label><span style="visibility:hidden">x</span>
+      <label style="flex-direction:row;align-items:center;gap:5px;color:var(--ink)">
+        <input type="checkbox" id="flipY" checked="checked"> flip Y
+      </label>
+    </label>
+    <label><span style="visibility:hidden">x</span>
+      <label style="flex-direction:row;align-items:center;gap:5px;color:var(--ink)" title="Emit GZDoom floorplane_a/b/c/d slope equation derived from Build's first-wall heinum geometry.">
+        <input type="checkbox" id="bamSlope" checked="checked"> Slopes
+      </label>
+    </label>
+  </div>
+  <div class="sh">Texture Namespace</div>
+  <div class="row">
+    <label>Mode
+      <select id="texMode" onchange="onTexModeChange()">
+        <option value="prefix" selected="selected">Prefix + picnum</option>
+        <option value="wad">Texture WAD lookup</option>
+      </select>
+    </label>
+    <label id="pfxLabel">Prefix<input type="text" id="texPrefix" value="TILE" maxlength="4" oninput="updateTexBadge()"></label>
+    <label id="padLabel">Pad digits
+      <select id="texPad" onchange="updateTexBadge()">
+        <option value="4" selected="selected">4 — TILE0042</option>
+        <option value="3">3 — TILE042</option>
+        <option value="2">2 — TILE42</option>
+        <option value="0">None</option>
+      </select>
+    </label>
+    <div id="wadWrap" style="display:none;flex-direction:column;gap:3px;">
+      <span style="font-size:12px;color:var(--muted)">Texture WAD</span>
+      <input type="file" id="texWad" accept=".wad,.WAD" onchange="loadTexWad()">
+    </div>
+  </div>
+  <div class="row"><div class="tex-badge" id="texBadge">Mode: <b>prefix · TILE+4-pad</b></div></div>
+  <div class="status" id="status">Awaiting .MAP file…</div>
+  <div class="stats" id="stats"></div>
+  <div class="canvas-wrap">
+    <canvas id="preview" width="728" height="440"></canvas>
+    <div class="legend">
+      <div><i style="background:#d97a2a"></i>one-sided</div>
+      <div><i style="background:#5aa15a"></i>two-sided</div>
+      <div><i style="background:#c2484c"></i>blocking</div>
+      <div><i style="background:#ffd24a;width:6px;height:6px"></i>sprite</div>
+      <div><i style="background:#e7e3d4;width:6px;height:6px;border-radius:50%"></i>player</div>
+    </div>
+    <div class="ctools">
+      <button onclick="resetView()">reset</button>
+      <button onclick="fitView()">fit</button>
+    </div>
+    <div class="hud" id="hud">x=0 y=0 | zoom:1.000</div>
+  </div>
+</div>
+
+<div class="panel" id="remapPanel" style="display: block;">
+  <div class="tab-row">
+    <div class="tab active" id="tabTex" onclick="switchTab('tex')">Texture Remapper</div>
+    <div class="tab" id="tabSprite" onclick="switchTab('sprite')">Sprite (Thing) Remapper</div>
+  </div>
+  <div id="remapHint" class="remap-hint">Load a MAP and optionally ART/WAD files to enable remapping.</div>
+  <div id="remapContent">
+    <div class="decode-bar" id="decodeBar"></div>
+    <div id="remapUsedWrap" style="display:none">
+      <div class="rtbar">
+        <span style="font-size:12px;color:var(--muted)" id="usedLabel">Used items</span>
+        <button class="sec sm" onclick="clearAllRemap()">Reset All</button>
+      </div>
+      <div class="remap-grid" id="usedGrid"></div>
+    </div>
+    <div id="remapPickerWrap" style="display:none">
+      <div class="sh" id="pickerTitle">WAD Textures — click to assign</div>
+      <div id="spriteInputWrap" style="display:none;margin-bottom:10px;">
+        <label>Enter Thing Type (ID) for <b id="selItemLabel" style="color:var(--accent)">–</b>
+          <input type="number" id="manualThingType" placeholder="9999" onchange="assignManualThing()">
+        </label>
+      </div>
+      <div class="rtbar" id="texSearchWrap">
+        <input type="search" id="texSearch" placeholder="filter…" oninput="filterPicker()">
+        <span style="font-size:11px;color:var(--muted)" id="pickerCount"></span>
+      </div>
+      <div class="remap-grid full" id="pickerGrid"></div>
+    </div>
+  </div>
+</div>
+
+<details open=""><summary>UDMF Output</summary><pre id="out">// UDMF will appear here after conversion.</pre></details>
+</div>
+
+<script>
+// ══ Binary Reader ══════════════════════════════════════════════════════════
+class R{constructor(b){this.dv=new DataView(b);this.o=0;}seek(o){this.o=o;}
+u8(){return this.dv.getUint8(this.o++);}i8(){return this.dv.getInt8(this.o++);}
+u16(){const v=this.dv.getUint16(this.o,true);this.o+=2;return v;}
+i16(){const v=this.dv.getInt16(this.o,true);this.o+=2;return v;}
+i32(){const v=this.dv.getInt32(this.o,true);this.o+=4;return v;}
+str8(){let s='';for(let i=0;i<8;i++){const c=this.dv.getUint8(this.o+i);if(!c)break;s+=String.fromCharCode(c);}this.o+=8;return s.toUpperCase().trim();}}
+
+// ══ ART & Palette ══════════════════════════════════════════════════════════
+async function loadPalette(buffer){const raw=new Uint8Array(buffer,0,768),pal=new Uint8Array(768);for(let i=0;i<768;i++)pal[i]=raw[i]<<2;return pal;}
+
+async function loadArtFile(buffer,palette){
+  const r=new R(buffer);r.i32();r.i32();
+  const localStart=r.i32(),localEnd=r.i32(),count=localEnd-localStart+1;
+  const widths=new Uint16Array(count),heights=new Uint16Array(count);
+  for(let i=0;i<count;i++)widths[i]=r.u16();
+  for(let i=0;i<count;i++)heights[i]=r.u16();
+  r.seek(r.o+count*4);
+  const tiles=new Map();
+  for(let i=0;i<count;i++){
+    const w=widths[i],h=heights[i];if(!w||!h)continue;
+    const pixels=new Uint8Array(buffer,r.o,w*h);r.o+=w*h;
+    const rgba=new Uint8ClampedArray(w*h*4);
+    for(let x=0;x<w;x++)for(let y=0;y<h;y++){const pi=pixels[x*h+y],pos=(y*w+x)*4;rgba[pos]=palette[pi*3];rgba[pos+1]=palette[pi*3+1];rgba[pos+2]=palette[pi*3+2];rgba[pos+3]=255;}
+    tiles.set(localStart+i,{url:toDataUrl({data:rgba,width:w,height:h}),width:w,height:h});
+  }
+  return tiles;
+}
+
+// ══ MAP Parsers ════════════════════════════════════════════════════════════
+const readHdr=r=>({version:r.i32(),posx:r.i32(),posy:r.i32(),posz:r.i32(),ang:r.i16(),cursect:r.i16(),numsectors:r.u16()});
+const rSV6=r=>({wallptr:r.u16(),wallnum:r.u16(),ceilingpicnum:r.i16(),floorpicnum:r.i16(),ceilingheinum:r.i16(),floorheinum:r.i16(),ceilingz:r.i32(),floorz:r.i32(),ceilingshade:r.i8(),floorshade:r.i8(),ceilingxpan:r.u8(),floorxpan:r.u8(),ceilingypan:r.u8(),floorypan:r.u8(),ceilingstat:r.u8(),floorstat:r.u8(),ceilingpal:r.u8(),floorpal:r.u8(),visibility:r.u8(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+const rSV7=r=>({wallptr:r.i16(),wallnum:r.i16(),ceilingz:r.i32(),floorz:r.i32(),ceilingstat:r.i16(),floorstat:r.i16(),ceilingpicnum:r.i16(),ceilingheinum:r.i16(),ceilingshade:r.i8(),ceilingpal:r.u8(),ceilingxpan:r.u8(),ceilingypan:r.u8(),floorpicnum:r.i16(),floorheinum:r.i16(),floorshade:r.i8(),floorpal:r.u8(),floorxpan:r.u8(),floorypan:r.u8(),visibility:r.u8(),_f:r.u8(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+const rWV6=r=>({x:r.i32(),y:r.i32(),point2:r.i16(),nextsector:r.i16(),nextwall:r.i16(),picnum:r.i16(),overpicnum:r.i16(),shade:r.i8(),pal:r.u8(),cstat:r.i16(),xrepeat:r.u8(),yrepeat:r.u8(),xpanning:r.u8(),ypanning:r.u8(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+const rWV7=r=>({x:r.i32(),y:r.i32(),point2:r.i16(),nextwall:r.i16(),nextsector:r.i16(),cstat:r.i16(),picnum:r.i16(),overpicnum:r.i16(),shade:r.i8(),pal:r.u8(),xrepeat:r.u8(),yrepeat:r.u8(),xpanning:r.u8(),ypanning:r.u8(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+const rSpV6=r=>({x:r.i32(),y:r.i32(),z:r.i32(),cstat:r.i16(),shade:r.i8(),pal:r.u8(),clipdist:r.u8(),xrepeat:r.i8(),yrepeat:r.i8(),xoffset:r.i8(),yoffset:r.i8(),picnum:r.i16(),ang:r.i16(),xvel:r.i16(),yvel:r.i16(),zvel:r.i16(),owner:r.i16(),sectnum:r.i16(),statnum:r.i16(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+const rSpV7=r=>({x:r.i32(),y:r.i32(),z:r.i32(),cstat:r.i16(),picnum:r.i16(),shade:r.i8(),pal:r.u8(),clipdist:r.u8(),_f:r.u8(),xrepeat:r.u8(),yrepeat:r.u8(),xoffset:r.i8(),yoffset:r.i8(),sectnum:r.i16(),statnum:r.i16(),ang:r.i16(),owner:r.i16(),xvel:r.i16(),yvel:r.i16(),zvel:r.i16(),lotag:r.i16(),hitag:r.i16(),extra:r.i16()});
+
+// Blood dbCrypt: simple incrementing XOR (NBlood db.cpp)
+function dbCrypt(arr, offset, length, key) {
+  for (let i = 0; i < length; i++) { arr[offset+i] ^= key & 0xFF; key = (key+1)>>>0; }
+}
+
+function parseMap(buf){
+  const raw=new Uint8Array(buf);
+  const dv=new DataView(buf);
+  const isBlood=(raw[0]===0x42&&raw[1]===0x4C&&raw[2]===0x4D&&raw[3]===0x1A);
+
+  if(isBlood){
+    const ver=dv.getUint16(4,true);
+    const bloodMajor=(ver>>8)&0xFF, bloodMinor=ver&0xFF;
+    if(bloodMajor!==6&&bloodMajor!==7)throw new Error('Unsupported Blood version 0x'+ver.toString(16));
+    const isV7=bloodMajor===7;
+    const kMattID2=0x7474614D|0; // signed 32-bit
+
+    // BLMHEADER_MAIN (37 bytes): always decrypt for v7 with key=kMattID2
+    const mhBuf=new Uint8Array(buf.slice(6,6+37));
+    if(isV7) dbCrypt(mhBuf,0,37,kMattID2);
+    const mhdv=new DataView(mhBuf.buffer);
+    const posx=mhdv.getInt32(0,true),posy=mhdv.getInt32(4,true),posz=mhdv.getInt32(8,true);
+    const ang=mhdv.getInt16(12,true),cursect=mhdv.getInt16(14,true);
+    const skyBits=mhdv.getInt16(16,true);
+    const gMapRev=mhdv.getInt32(27,true);
+    const numsectors=mhdv.getUint16(31,true);
+    const numwalls=mhdv.getUint16(33,true);
+    const numsprites=mhdv.getUint16(35,true);
+    let pos=6+37;
+
+    // Extra data disk sizes (vanilla Blood defaults)
+    let xsecSiz=60, xwalSiz=24, xsprSiz=56;
+
+    if(isV7){
+      // BLMHEADER_EXTRA (128 bytes): decrypt with key=numwalls
+      const mh2=new Uint8Array(buf.slice(pos,pos+128));
+      dbCrypt(mh2,0,128,numwalls);
+      // xsprSiz/xwalSiz/xsecSiz live at offsets 64,68,72 in the extra header
+      const mh2dv=new DataView(mh2.buffer);
+      const xs=mh2dv.getInt32(64,true),xw=mh2dv.getInt32(68,true),xse=mh2dv.getInt32(72,true);
+      if(xs>0&&xs<=256) xsprSiz=xs;
+      if(xw>0&&xw<=256) xwalSiz=xw;
+      if(xse>0&&xse<=256) xsecSiz=xse;
+      pos+=128;
+      // Sky tile offsets: gSkyCount = min(1<<skyBits, 256), nSkySize = gSkyCount*2 bytes
+      const nSkySize=Math.min(1<<skyBits,256)*2;
+      const skyBuf=new Uint8Array(buf.slice(pos,pos+nSkySize));
+      dbCrypt(skyBuf,0,nSkySize,nSkySize);
+      pos+=nSkySize;
+    } else {
+      const nSkySize=Math.min(1<<skyBits,256)*2;
+      pos+=nSkySize; // v6: sky not encrypted
+    }
+
+    // Key formulas from NBlood db.cpp:
+    //   sectors: nKey = gMapRev * sizeof(sectortype)          = gMapRev*40
+    //   walls:   nKey = gMapRev * sizeof(sectortype) | kMattID2  (NOT wall size!)
+    //   sprites: nKey = gMapRev * sizeof(spritetype) | kMattID2  = gMapRev*44 | kMattID2
+    const secSize=40, wallSize=32, sprSize=44;
+    const secKey =(Math.imul(gMapRev,secSize))>>>0;
+    const wallKey=((Math.imul(gMapRev,secSize))|kMattID2)>>>0;
+    const sprKey =((Math.imul(gMapRev,sprSize))|kMattID2)>>>0;
+
+    function readRec(size,key){
+      const b=new Uint8Array(buf.slice(pos,pos+size)); pos+=size;
+      if(isV7) dbCrypt(b,0,size,key);
+      return new DataView(b.buffer);
+    }
+
+    // Sectors — with interleaved XSECTOR extra data per record when extra > 0
+    const sectors=[];
+    for(let i=0;i<numsectors;i++){
+      const d=readRec(secSize,secKey);
+      const s={wallptr:d.getInt16(0,true),wallnum:d.getInt16(2,true),ceilingz:d.getInt32(4,true),floorz:d.getInt32(8,true),ceilingstat:d.getInt16(12,true),floorstat:d.getInt16(14,true),ceilingpicnum:d.getInt16(16,true),ceilingheinum:d.getInt16(18,true),ceilingshade:d.getInt8(20),ceilingpal:d.getUint8(21),ceilingxpan:d.getUint8(22),ceilingypan:d.getUint8(23),floorpicnum:d.getInt16(24,true),floorheinum:d.getInt16(26,true),floorshade:d.getInt8(28),floorpal:d.getUint8(29),floorxpan:d.getUint8(30),floorypan:d.getUint8(31),visibility:d.getUint8(32),_f:d.getUint8(33),lotag:d.getInt16(34,true),hitag:d.getInt16(36,true),extra:d.getInt16(38,true)};
+      sectors.push(s);
+      if(s.extra>0) pos+=xsecSiz; // skip interleaved XSECTOR
+    }
+
+    // Walls — with interleaved XWALL extra data per record when extra > 0
+    const walls=[];
+    for(let i=0;i<numwalls;i++){
+      const d=readRec(wallSize,wallKey);
+      const w={x:d.getInt32(0,true),y:d.getInt32(4,true),point2:d.getInt16(8,true),nextwall:d.getInt16(10,true),nextsector:d.getInt16(12,true),cstat:d.getInt16(14,true),picnum:d.getInt16(16,true),overpicnum:d.getInt16(18,true),shade:d.getInt8(20),pal:d.getUint8(21),xrepeat:d.getUint8(22),yrepeat:d.getUint8(23),xpanning:d.getUint8(24),ypanning:d.getUint8(25),lotag:d.getInt16(26,true),hitag:d.getInt16(28,true),extra:d.getInt16(30,true)};
+      walls.push(w);
+      if(w.extra>0) pos+=xwalSiz; // skip interleaved XWALL
+    }
+
+    // Sprites — with interleaved XSPRITE extra data per record when extra > 0
+    const sprites=[];
+    for(let i=0;i<numsprites;i++){
+      const d=readRec(sprSize,sprKey);
+      const s={x:d.getInt32(0,true),y:d.getInt32(4,true),z:d.getInt32(8,true),cstat:d.getInt16(12,true),picnum:d.getInt16(14,true),shade:d.getInt8(16),pal:d.getUint8(17),clipdist:d.getUint8(18),_f:d.getUint8(19),xrepeat:d.getUint8(20),yrepeat:d.getUint8(21),xoffset:d.getInt8(22),yoffset:d.getInt8(23),sectnum:d.getInt16(24,true),statnum:d.getInt16(26,true),ang:d.getInt16(28,true),owner:d.getInt16(30,true),xvel:d.getInt16(32,true),yvel:d.getInt16(34,true),zvel:d.getInt16(36,true),lotag:d.getInt16(38,true),hitag:d.getInt16(40,true),extra:d.getInt16(42,true)};
+      sprites.push(s);
+      if(s.extra>0) pos+=xsprSiz; // skip interleaved XSPRITE
+    }
+
+    const header={posx,posy,posz,ang,cursect,numsectors};
+    return{header,version:bloodMajor,isBlood:true,bloodSubVer:bloodMinor,sectors,walls,sprites};
+  }
+
+  // Plain Build MAP (Witchaven, Duke3D, Shadow Warrior, Ion Fury, etc.)
+  const r=new R(buf),hdr=readHdr(r);
+  if(hdr.version<6||hdr.version>9)throw new Error('Unsupported version '+hdr.version);
+  const v6=hdr.version===6;
+  // v7/v8/v9 all use the same on-disk struct layout; v9 encodes TROR in bitfields
+  const readSec = v6?rSV6:rSV7;
+  const readWall= v6?rWV6:rWV7;
+  const readSpr = v6?rSpV6:rSpV7;
+  const sectors=Array.from({length:hdr.numsectors},()=>readSec(r));
+  const nw=r.u16(),walls=Array.from({length:nw},()=>readWall(r));
+  const ns=r.u16(),sprites=Array.from({length:ns},()=>readSpr(r));
+
+  // v9 TROR: decode YAX bunch/portal links from existing bitfields
+  // Sector: bit 10 (0x400) of ceilingstat/floorstat → xpanning holds bunch number
+  // Wall:   bit 10 (0x400) of cstat → lotag holds upwall; bit 11 (0x800) → extra holds dnwall
+  const isTROR = hdr.version===9;
+  if(isTROR){
+    for(const s of sectors){
+      s._ceilBunch=(s.ceilingstat&0x400)?s.ceilingxpan:-1;
+      s._florBunch=(s.floorstat&0x400)?s.floorxpan:-1;
+      if(s.ceilingstat&0x400) s.ceilingxpan=0;
+      if(s.floorstat&0x400)   s.floorxpan=0;
+      s.ceilingstat&=~0x400; s.floorstat&=~0x400;
+    }
+    for(const w of walls){
+      w._upwall=(w.cstat&0x400)?w.lotag:-1;
+      w._dnwall=(w.cstat&0x800)?w.extra:-1;
+      if(w.cstat&0x400) w.lotag=0;
+      if(w.cstat&0x800) w.extra=-1;
+      w.cstat&=~0xC00;
+    }
+  }
+
+  return{header:hdr,version:hdr.version,isBlood:false,bloodSubVer:0,isTROR,sectors,walls,sprites};
+}
+
+// ══ WAD / Doom texture helpers ════════════════════════════════════════════
+function makeFallbackPal(){const p=new Uint8Array(768);for(let i=0;i<256;i++){p[i*3]=p[i*3+1]=p[i*3+2]=i;}return p;}
+function parsePal(lumps,buf){const l=lumps.find(x=>x.name==='PLAYPAL');return(l&&l.size>=768)?new Uint8Array(buf.slice(l.off,l.off+768)):makeFallbackPal();}
+function parsePnames(bytes){const dv=new DataView(bytes.buffer),n=dv.getInt32(bytes.byteOffset,true),names=[];for(let i=0;i<n;i++){let s='';for(let j=0;j<8;j++){const c=bytes[4+i*8+j];if(!c)break;s+=String.fromCharCode(c);}names.push(s.toUpperCase().trim());}return names;}
+function parseTex1Defs(bytes){
+  const dv=new DataView(bytes.buffer),base=bytes.byteOffset,n=dv.getInt32(base,true),defs=[];
+  for(let i=0;i<n;i++){
+    const off=base+dv.getInt32(base+4+i*4,true);let nm='';for(let j=0;j<8;j++){const c=bytes[off-base+j];if(!c)break;nm+=String.fromCharCode(c);}nm=nm.toUpperCase().trim();
+    const w=dv.getUint16(off+12,true),h=dv.getUint16(off+14,true),pc=dv.getUint16(off+20,true),patches=[];
+    for(let j=0;j<pc;j++){const po=off+22+j*10;patches.push({ox:dv.getInt16(po,true),oy:dv.getInt16(po+2,true),idx:dv.getUint16(po+4,true)});}
+    defs.push({name:nm,width:w,height:h,patches});
+  }
+  return defs;
+}
+function decodePic(bytes,pal){
+  if(!bytes||bytes.length<8)return null;
+  const dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),w=dv.getInt16(0,true),h=dv.getInt16(2,true);
+  if(w<=0||h<=0||w>2048||h>2048||bytes.length<8+w*4)return null;
+  const rgba=new Uint8ClampedArray(w*h*4);
+  for(let x=0;x<w;x++){let c=dv.getUint32(8+x*4,true);if(c<8||c>=bytes.length)continue;
+    while(c<bytes.length){const td=bytes[c++];if(td===0xFF)break;if(c>=bytes.length)break;const len=bytes[c++];c++;
+      for(let i=0;i<len;i++){if(c>=bytes.length)break;const pi=bytes[c++],y=td+i;if(y>=0&&y<h){const p=(y*w+x)*4;rgba[p]=pal[pi*3];rgba[p+1]=pal[pi*3+1];rgba[p+2]=pal[pi*3+2];rgba[p+3]=255;}}c++;}}
+  return{data:rgba,width:w,height:h};
+}
+function toDataUrl(decoded,maxSize=64){
+  const{data,width,height}=decoded,sc=Math.min(1,maxSize/Math.max(width,height,1)),dw=Math.max(1,Math.round(width*sc)),dh=Math.max(1,Math.round(height*sc));
+  const src=document.createElement('canvas');src.width=width;src.height=height;src.getContext('2d').putImageData(new ImageData(data,width,height),0,0);
+  const dst=document.createElement('canvas');dst.width=dw;dst.height=dh;const c=dst.getContext('2d');c.imageSmoothingEnabled=false;c.drawImage(src,0,0,dw,dh);return dst.toDataURL();
+}
+function compositeTex(def,patchMap,pal,maxSize=64){
+  const w=Math.max(1,def.width),h=Math.max(1,def.height),base=document.createElement('canvas');base.width=w;base.height=h;
+  const ctx=base.getContext('2d');ctx.fillStyle='#111';ctx.fillRect(0,0,w,h);
+  for(const p of def.patches){const bytes=patchMap.get(p.patchName);if(!bytes)continue;const dec=decodePic(bytes,pal);if(!dec)continue;const pc=document.createElement('canvas');pc.width=dec.width;pc.height=dec.height;pc.getContext('2d').putImageData(new ImageData(dec.data,dec.width,dec.height),0,0);ctx.drawImage(pc,p.ox,p.oy);}
+  const sc=Math.min(1,maxSize/Math.max(w,h,1)),out=document.createElement('canvas');out.width=Math.max(1,Math.round(w*sc));out.height=Math.max(1,Math.round(h*sc));
+  const oc=out.getContext('2d');oc.imageSmoothingEnabled=false;oc.drawImage(base,0,0,out.width,out.height);return out.toDataURL();
+}
+
+// ══ State ══════════════════════════════════════════════════════════════════
+let _artTiles=new Map(),_customPalette=null;
+let _wadBuf=null,_wadLumps=[],_texMap=new Map(),_texUrls=new Map(),_texNames=[],_texWadLoaded=false,_texWadName='',_palette=null;
+let _mapData=null,_usedPicnums=new Set(),_usedSpritePicnums=new Set();
+let _remapping=new Map(),_spriteRemapping=new Map(),_selectedPicnum=null,_activeTab='tex';
+
+function parseWadLumps(buf){
+  const sig=String.fromCharCode(...new Uint8Array(buf,0,4));if(sig!=='IWAD'&&sig!=='PWAD')throw new Error('Not a valid WAD');
+  const dv=new DataView(buf),nLumps=dv.getInt32(4,true),dirOff=dv.getInt32(8,true),lumps=[];
+  for(let i=0;i<nLumps;i++){const off=dv.getInt32(dirOff+i*16,true),size=dv.getInt32(dirOff+i*16+4,true);let name='';for(let j=0;j<8;j++){const c=dv.getUint8(dirOff+i*16+8+j);if(!c)break;name+=String.fromCharCode(c);}lumps.push({off,size,name:name.toUpperCase().trim()});}
+  return lumps;
+}
+
+async function loadArt(){
+  const files=document.getElementById('artFiles').files,palInput=document.getElementById('paletteFile').files[0];
+  if(!palInput){setStatus('Load a PALETTE.DAT first.','err');return;}
+  try{
+    _customPalette=await loadPalette(await palInput.arrayBuffer());
+    for(const f of files){const newTiles=await loadArtFile(await f.arrayBuffer(),_customPalette);for(const[id,data]of newTiles)_artTiles.set(id,data);}
+    _imgCache.clear();renderPreview();
+    setStatus(`Loaded ${_artTiles.size} Build tiles.`,'');renderUsedGrid();
+  }catch(e){setStatus('ART Error: '+e.message,'err');}
+}
+
+async function loadTexWad(){
+  const fi=document.getElementById('texWad');if(!fi.files.length)return;
+  const f=fi.files[0];
+  try{
+    _wadBuf=await f.arrayBuffer();_wadLumps=parseWadLumps(_wadBuf);_texWadName=f.name;_texWadLoaded=true;
+    _texMap=new Map();_texUrls=new Map();_texNames=[];_remapping=new Map();_palette=parsePal(_wadLumps,_wadBuf);
+    const t1=_wadLumps.find(l=>l.name==='TEXTURE1'),pnL=_wadLumps.find(l=>l.name==='PNAMES');
+    if(t1&&pnL){
+      const pnames=parsePnames(new Uint8Array(_wadBuf.slice(pnL.off,pnL.off+pnL.size))),texDefs=parseTex1Defs(new Uint8Array(_wadBuf.slice(t1.off,t1.off+t1.size))),patchMap=new Map();
+      for(const nm of pnames){const pl=_wadLumps.find(l=>l.name===nm);if(pl&&pl.size>8)patchMap.set(nm,new Uint8Array(_wadBuf.slice(pl.off,pl.off+pl.size)));}
+      texDefs.forEach((def,i)=>{def.patches.forEach(p=>{p.patchName=pnames[p.idx]||'';});_texMap.set(i,def.name);_texNames.push({idx:i,name:def.name});});
+      for(let i=0;i<texDefs.length;i++){try{_texUrls.set(i,compositeTex(texDefs[i],patchMap,_palette));}catch(e){_texUrls.set(i,null);}}
+    } else {
+      let inBlock=false,blockType='',idx=0;
+      for(const l of _wadLumps){
+        const isStart=l.name.endsWith('_START')||['TX_START','TX_SWITCH','TX_SKIES','F_START','P_START','S_START','FF_START','PP_START','SS_START'].includes(l.name);
+        const isEnd=l.name.endsWith('_END');
+        if(isStart){inBlock=true;blockType=l.name.replace('_START','');continue;}
+        if(isEnd){inBlock=false;blockType='';continue;}
+        if(!inBlock||l.size<8)continue;
+        const bytes=new Uint8Array(_wadBuf.slice(l.off,l.off+l.size));let dec=null;
+        if(blockType==='F'&&l.size===4096){const rgba=new Uint8ClampedArray(4096*4);for(let i=0;i<4096;i++){const pi=bytes[i];rgba[i*4]=_palette[pi*3];rgba[i*4+1]=_palette[pi*3+1];rgba[i*4+2]=_palette[pi*3+2];rgba[i*4+3]=255;}dec={data:rgba,width:64,height:64};}
+        else dec=decodePic(bytes,_palette);
+        if(dec){_texUrls.set(idx,toDataUrl(dec));_texMap.set(idx,l.name);_texNames.push({idx,name:l.name});idx++;}
+      }
+    }
+    updateTexBadge();setStatus('WAD loaded: '+f.name+' — '+_texNames.length+' textures.','');rebuildRemapper();
+  }catch(e){_texWadLoaded=false;setStatus('WAD error: '+e.message,'err');}
+}
+
+// ══ Remapper ══════════════════════════════════════════════════════════════
+function collectUsedPicnums(){
+  if(!_mapData)return;_usedPicnums=new Set();_usedSpritePicnums=new Set();
+  for(const s of _mapData.sectors){if(s.floorpicnum>0)_usedPicnums.add(s.floorpicnum);if(s.ceilingpicnum>0)_usedPicnums.add(s.ceilingpicnum);}
+  for(const w of _mapData.walls){if(w.picnum>0)_usedPicnums.add(w.picnum);if(w.overpicnum>0)_usedPicnums.add(w.overpicnum);}
+  for(const sp of _mapData.sprites){if(sp.picnum>0)_usedSpritePicnums.add(sp.picnum);}
+}
+
+function switchTab(t){
+  _activeTab=t;
+  document.getElementById('tabTex').className='tab'+(t==='tex'?' active':'');
+  document.getElementById('tabSprite').className='tab'+(t==='sprite'?' active':'');
+  _selectedPicnum=null;renderUsedGrid();renderPickerGrid('');updatePickerVisibility();
+}
+
+function rebuildRemapper(){
+  document.getElementById('remapPanel').style.display='block';
+  if(!_mapData&&!(_artTiles.size>0||_texWadLoaded)){document.getElementById('remapHint').style.display='';document.getElementById('remapContent').style.display='none';return;}
+  document.getElementById('remapHint').style.display='none';document.getElementById('remapContent').style.display='block';
+  document.getElementById('remapUsedWrap').style.display='block';renderUsedGrid();updatePickerVisibility();
+}
+
+function renderUsedGrid(){
+  const grid=document.getElementById('usedGrid');grid.innerHTML='';
+  const set=_activeTab==='tex'?_usedPicnums:_usedSpritePicnums;
+  const remap=_activeTab==='tex'?_remapping:_spriteRemapping;
+  for(const pic of [...set].sort((a,b)=>a-b)){
+    const val=remap.get(pic),tile=_artTiles.get(pic),card=document.createElement('div');
+    card.className='tc'+(_selectedPicnum===pic?' sel':'')+(remap.has(pic)?' remapped':'');
+    if(tile&&tile.url){const img=document.createElement('img');img.src=tile.url;card.appendChild(img);}
+    else{const ph=document.createElement('div');ph.className='ph';ph.textContent=pic;card.appendChild(ph);}
+    const tp=document.createElement('div');tp.className='tp';tp.textContent='pic#'+pic;card.appendChild(tp);
+    if(val!=null){const tn=document.createElement('div');tn.className='tm';tn.textContent=val;card.appendChild(tn);}
+    card.onclick=()=>selectPicnum(pic);grid.appendChild(card);
+  }
+}
+
+function renderPickerGrid(filter){
+  const grid=document.getElementById('pickerGrid');grid.innerHTML='';
+  if(_activeTab==='sprite')return;
+  const q=filter.toLowerCase(),visible=_texNames.filter(t=>!q||t.name.toLowerCase().includes(q));
+  document.getElementById('pickerCount').textContent=visible.length+'/'+_texNames.length+' textures';
+  for(const{idx,name}of visible){
+    const url=_texUrls.get(idx),card=document.createElement('div');card.className='tc';card.title=name;
+    if(url){const img=document.createElement('img');img.src=url;card.appendChild(img);}
+    else{const ph=document.createElement('div');ph.className='ph';ph.textContent='?';card.appendChild(ph);}
+    const tn=document.createElement('div');tn.className='tn';tn.textContent=name;card.appendChild(tn);
+    card.onclick=()=>assignTexture(name);grid.appendChild(card);
+  }
+}
+
+function selectPicnum(pic){
+  _selectedPicnum=pic;document.getElementById('selItemLabel').textContent='pic#'+pic;
+  if(_activeTab==='sprite')document.getElementById('manualThingType').value=_spriteRemapping.get(pic)||'';
+  renderUsedGrid();updatePickerVisibility();
+}
+function updatePickerVisibility(){
+  const showTex=_activeTab==='tex'&&_texWadLoaded&&_texNames.length>0;
+  const showSprite=_activeTab==='sprite'&&_selectedPicnum!==null;
+  document.getElementById('remapPickerWrap').style.display=(showTex||showSprite)?'block':'none';
+  document.getElementById('texSearchWrap').style.display=showTex?'flex':'none';
+  document.getElementById('spriteInputWrap').style.display=showSprite?'block':'none';
+  document.getElementById('pickerTitle').textContent=showTex?'WAD Textures — click to assign':'Assign Doom Thing ID';
+  if(showTex)renderPickerGrid(document.getElementById('texSearch').value);
+}
+function assignTexture(name){if(_selectedPicnum===null)return;_remapping.set(_selectedPicnum,name);renderUsedGrid();}
+function assignManualThing(){if(_selectedPicnum===null)return;const val=parseInt(document.getElementById('manualThingType').value);if(!isNaN(val))_spriteRemapping.set(_selectedPicnum,val);renderUsedGrid();}
+function filterPicker(){renderPickerGrid(document.getElementById('texSearch').value);}
+function clearAllRemap(){if(_activeTab==='tex')_remapping=new Map();else _spriteRemapping=new Map();_selectedPicnum=null;renderUsedGrid();updatePickerVisibility();}
+
+// ══ Namespace UI ══════════════════════════════════════════════════════════
+function onTexModeChange(){const wad=document.getElementById('texMode').value==='wad';document.getElementById('pfxLabel').style.display=wad?'none':'';document.getElementById('padLabel').style.display=wad?'none':'';document.getElementById('wadWrap').style.display=wad?'flex':'none';updateTexBadge();}
+function updateTexBadge(){const wad=document.getElementById('texMode').value==='wad',b=document.getElementById('texBadge');if(!wad){const pfx=document.getElementById('texPrefix').value||'TILE',pad=document.getElementById('texPad').value;b.innerHTML='Mode: <b>prefix · '+pfx+(+pad>0?'+'+pad+'-pad':'')+'</b>';}else b.innerHTML='Mode: <b>WAD lookup</b> · '+(_texWadLoaded?`<span style="color:var(--accent2)">${_texWadName}</span>`:'<span style="color:var(--bad)">no WAD</span>');}
+function makeTexResolver(){
+  const wad=document.getElementById('texMode').value==='wad',pfx=(document.getElementById('texPrefix').value||'TILE').slice(0,4).toUpperCase(),pad=parseInt(document.getElementById('texPad').value)||4;
+  return pic=>{if(pic<=0)return'-';if(_remapping.has(pic))return _remapping.get(pic);if(wad&&_texWadLoaded&&_texMap.has(pic))return _texMap.get(pic);return pfx+(pad>0?String(pic).padStart(pad,'0'):String(pic));};
+}
+
+// ══ Lotag Maps ════════════════════════════════════════════════════════════
+const SS_WH={1:{s:0,n:'water'},2:{s:0,n:'underwater'},6:{s:0,n:'WH generic'},10:{s:12,n:'Door_Raise'},13:{s:0,n:'swing door'},15:{s:62,n:'Plat_DownWaitUpStay'},16:{s:73,n:'Ceiling_CrushAndRaiseDist'},17:{s:0,n:'earthquake'},18:{s:0,n:'lava damage'},20:{s:0,n:'exit'}};
+const LS_WH={10:{s:12,n:'Door_Raise'},15:{s:62,n:'Plat_DownWaitUpStay'},20:{s:74,n:'Teleport_NewMap'},31:{s:11,n:'Exit_Normal'}};
+const SS_BLOOD={1:{s:0,n:'underwater'},2:{s:0,n:'water'},9:{s:0,n:'above water'},10:{s:12,n:'Door_Raise'},12:{s:62,n:'Plat_DownWaitUpStay'},14:{s:73,n:'Ceiling_CrushAndRaiseDist'}};
+const LS_BLOOD={1:{s:12,n:'Door_Raise'},3:{s:12,n:'Door_Raise (key)'},6:{s:62,n:'Plat_DownWaitUpStay'},9:{s:74,n:'Teleport_NewMap'},10:{s:11,n:'Exit_Normal'}};
+let SS=SS_WH, LS=LS_WH;
+
+// ══ UDMF Builder ══════════════════════════════════════════════════════════
+function buildUDMF(map,opts,tn){
+  const XY=Math.max(1,opts.xyScale|0),Z=Math.max(1,opts.zScale|0),fy=!!opts.flipY,zm=opts.zMode||'min',slopes=opts.bamSlope!==false;
+  const tx=x=>Math.round(x/XY),ty=y=>Math.round((fy?-y:y)/XY),tz=z=>-z/Z;
+  const sgn=fy?-1:1;
+  let zo=0;if(zm==='first'&&map.sectors.length)zo=-tz(map.sectors[0].floorz);
+  else if(zm==='min'){let lo=Infinity;for(const s of map.sectors){const f=tz(s.floorz);if(f<lo)lo=f;}if(isFinite(lo))zo=-lo;}
+  const vIdx=new Map(),verts=[],addV=(bx,by)=>{const x=tx(bx),y=ty(by),k=x+','+y;let id=vIdx.get(k);if(id===undefined){id=verts.length;verts.push({x,y});vIdx.set(k,id);}return id;};
+  for(const w of map.walls)addV(w.x,w.y);
+  const wSec=new Int32Array(map.walls.length).fill(-1);
+  map.sectors.forEach((s,si)=>{for(let i=0;i<s.wallnum;i++){const wi=s.wallptr+i;if(wi>=0&&wi<map.walls.length)wSec[wi]=si;}});
+  const out=['namespace = "zdoom";',''];
+  for(const v of verts)out.push('vertex { x = '+v.x+'.0; y = '+v.y+'.0; }');
+  const sectorFloorZ=map.sectors.map(s=>Math.round(tz(s.floorz)+zo));
+  // Derive GZDoom UDMF slope plane (a*x + b*y + c*z + d = 0, c = -1 → z = a*x + b*y + d)
+  // from Build's first-wall heinum geometry. Returns null if not slopable.
+  function slopePlane(s, isCeiling) {
+    const heinum = isCeiling ? s.ceilingheinum : s.floorheinum;
+    if (!heinum || s.wallnum < 2) return null;
+    const w0 = map.walls[s.wallptr]; if (!w0) return null;
+    const w1 = map.walls[w0.point2]; if (!w1) return null;
+    const dx = w1.x - w0.x, dy = w1.y - w0.y, len2 = dx*dx + dy*dy;
+    if (len2 < 1) return null;
+    const len = Math.sqrt(len2);
+    const baseZ = isCeiling ? s.ceilingz : s.floorz;
+    const m = heinum * XY / (4096 * len * Z);
+    const opx = tx(w0.x), opy = ty(w0.y), opz = tz(baseZ) + zo;
+    const A = m * dy, B = -m * sgn * dx, D = opz - A*opx - B*opy;
+    return { a: A, b: B, c: -1, d: D };
+  }
+
+  map.sectors.forEach((s,si)=>{
+    const fz=sectorFloorZ[si],cz=Math.round(tz(s.ceilingz)+zo),lv=Math.max(0,Math.min(255,192-(s.floorshade|0)*4)),sp=SS[s.lotag];
+    const ln=[
+      'sector {',
+      '  heightfloor = '+fz+';',
+      '  heightceiling = '+cz+';',
+      '  texturefloor = "'+tn(s.floorpicnum)+'";',
+      '  textureceiling = "'+tn(s.ceilingpicnum)+'";',
+      '  lightlevel = '+lv+';'
+    ];
+    if (slopes) {
+      if ((s.floorstat & 2)) {
+        const p = slopePlane(s, false);
+        if (p) {
+          ln.push('  floorplane_a = '+p.a.toFixed(6)+';');
+          ln.push('  floorplane_b = '+p.b.toFixed(6)+';');
+          ln.push('  floorplane_c = '+p.c.toFixed(6)+';');
+          ln.push('  floorplane_d = '+p.d.toFixed(6)+';');
+        }
+      }
+      if ((s.ceilingstat & 2)) {
+        const p = slopePlane(s, true);
+        if (p) {
+          ln.push('  ceilingplane_a = '+p.a.toFixed(6)+';');
+          ln.push('  ceilingplane_b = '+p.b.toFixed(6)+';');
+          ln.push('  ceilingplane_c = '+p.c.toFixed(6)+';');
+          ln.push('  ceilingplane_d = '+p.d.toFixed(6)+';');
+        }
+      }
+    }
+    if(sp&&sp.s)ln.push('  special = '+sp.s+';');if(s.lotag)ln.push('  id = '+(s.lotag&0xffff)+';');
+    out.push(ln.join('\n')+'\n}');
+  });
+  const sds=[],lds=[],segs=[];let one=0,two=0,skip=0;
+  for(let wi=0;wi<map.walls.length;wi++){
+    const w=map.walls[wi],si=wSec[wi];if(si<0||w.point2<0||w.point2>=map.walls.length){skip++;continue;}
+    const w2=map.walls[w.point2],ts=w.nextsector!==-1&&w.nextsector>=0&&w.nextsector<map.sectors.length;
+    if(ts){if(w.nextwall>=0&&w.nextwall<wi)continue;two++;}else one++;
+    const v1=addV(w.x,w.y),v2=addV(w2.x,w2.y);if(v1===v2){skip++;continue;}
+    segs.push({x1:verts[v1].x,y1:verts[v1].y,x2:verts[v2].x,y2:verts[v2].y,twoSided:ts,blocking:!!(w.cstat&1)});
+    const fi=sds.length;sds.push('sidedef {\n  sector = '+si+';\n  texturemiddle = "'+tn(w.picnum)+'";\n}');
+    let bi=-1;if(ts){bi=sds.length;const bk=(w.nextwall>=0&&w.nextwall<map.walls.length)?map.walls[w.nextwall]:w;
+      sds.push('sidedef {\n  sector = '+w.nextsector+';\n  texturetop = "'+tn(bk.picnum)+'";\n  texturebottom = "'+tn(bk.picnum)+'";\n  texturemiddle = "'+tn(bk.overpicnum)+'";\n}');
+      // Also fix front sidedef for two-sided: upper/lower instead of middle
+      sds[fi]='sidedef {\n  sector = '+si+';\n  texturetop = "'+tn(w.picnum)+'";\n  texturebottom = "'+tn(w.picnum)+'";\n  texturemiddle = "'+tn(w.overpicnum)+'";\n}';
+    }
+    const lsp=LS[w.lotag],ld=['linedef {','  v1 = '+v1+';','  v2 = '+v2+';','  sidefront = '+fi+';'];
+    if(bi>=0)ld.push('  sideback = '+bi+';','  twosided = true;');if(w.cstat&1)ld.push('  blocking = true;');
+    if(lsp&&lsp.s){ld.push('  special = '+lsp.s+';');if(w.hitag)ld.push('  arg0 = '+(w.hitag&0xffff)+';');}
+    lds.push(ld.join('\n')+'\n}');
+  }
+  for(const s of sds)out.push(s);for(const l of lds)out.push(l);
+
+  // TROR → GZDoom 3D floors (Sector_Set3dFloor, special 160)
+  // For each bunch, find the "upper" sector (has floorbunch set) and "lower" sector
+  // (has ceilbunch set to same number). The upper sector acts as the 3D floor control sector.
+  // We emit a tiny 2-vertex linedef inside the lower sector tagged to the upper sector.
+  if(map.isTROR){
+    // Build bunch→sectors map
+    const bunchUpper=new Map(), bunchLower=new Map();
+    map.sectors.forEach((s,si)=>{
+      if(s._florBunch>=0){if(!bunchUpper.has(s._florBunch))bunchUpper.set(s._florBunch,[]);bunchUpper.get(s._florBunch).push(si);}
+      if(s._ceilBunch>=0){if(!bunchLower.has(s._ceilBunch))bunchLower.set(s._ceilBunch,[]);bunchLower.get(s._ceilBunch).push(si);}
+    });
+    let trorTag=1000;
+    for(const[bunch,uppers] of bunchUpper){
+      const lowers=bunchLower.get(bunch)||[];
+      for(const upperSi of uppers){
+        const upperSect=map.sectors[upperSi];
+        // Assign a unique tag to the upper (control) sector
+        const ctrlTag=trorTag++;
+        // Patch the sector tag
+        out.push('// TROR control sector '+upperSi+' for bunch '+bunch);
+        // We need to re-emit sector with id; instead just note it. 
+        // In GZDoom, use a linedef with Sector_Set3dFloor (160) inside each lower sector,
+        // with arg0 = control sector tag, arg1 = type (1=solid), arg2 = flags(0), arg3=alpha(255)
+        // We place a tiny 2-unit linedef at the lower sector's first wall position
+        for(const lowerSi of lowers){
+          const ls=map.sectors[lowerSi];
+          if(ls.wallptr<0||ls.wallptr>=map.walls.length)continue;
+          const w0=map.walls[ls.wallptr];
+          const ax=tx(w0.x),ay=ty(w0.y);
+          const vA=addV(w0.x,w0.y+1), vB=addV(w0.x+1,w0.y+1);
+          const sdFront=sds.length;
+          sds.push('sidedef {\n  sector = '+lowerSi+';\n  texturemiddle = "-";\n}');
+          lds.push(['linedef {','  v1 = '+vA+';','  v2 = '+vB+';',
+            '  sidefront = '+sdFront+';','  special = 160;',
+            '  arg0 = '+ctrlTag+';','  arg1 = 1;','  arg2 = 0;','  arg3 = 255;','  arg4 = 0;',
+            '  comment = "TROR bunch '+bunch+' upper='+upperSi+' lower='+lowerSi+'";',
+          '}'].join('\n'));
+        }
+        // Patch upper sector's id by pushing an override — we re-emit a sector entry  
+        // (GZDoom UDMF allows multiple tag assignments via 'id' on the existing sector,
+        //  but since we already emitted sectors above, append a sector tag override comment)
+        // Simplest correct approach: rebuild upper sector entry with the TROR tag.
+        // We can't easily go back, so we output a MapInfo-style TROR note in comments.
+        // The real fix is to pass ctrlTag down during sector emission — future improvement.
+        out.push('// TROR: set tag '+ctrlTag+' on sector '+upperSi+' manually in editor for 3D floor to function');
+      }
+    }
+    // Also emit the new sidedefs/linedefs we just built above
+    for(let i=0;i<sds.length;i++)if(!out.includes(sds[i]))out.push(sds[i]);
+    for(let i=0;i<lds.length;i++)if(!out.includes(lds[i]))out.push(lds[i]);
+  }
+  map.sprites.forEach(s=>{
+    let type,comment;
+    if(map.isBlood){
+      const btype=s.lotag; // Blood sprite type field
+      const info=BLOOD_TYPE_MAP[btype];
+      // Player1Start (type 231) → standard GZDoom player start (EdNum 1)
+      type=(btype===231)?1:bloodEdNum(btype);
+      comment=info?info.n:('BloodType'+btype);
+    } else {
+      type=_spriteRemapping.get(s.picnum)||9999;
+      comment='picnum '+s.picnum;
+    }
+    const absZ=Math.round(tz(s.z)+zo);
+    let h=absZ;if(s.sectnum>=0&&s.sectnum<sectorFloorZ.length)h=absZ-sectorFloorZ[s.sectnum];
+    out.push(['thing {','  x = '+tx(s.x)+'.0;','  y = '+ty(s.y)+'.0;','  height = '+h+'.0;','  type = '+type+';','  angle = '+Math.round(((s.ang/2048)*360+360)%360)+';','  comment = "'+comment+' sect '+s.sectnum+'";','}'].join('\n'));
+  });
+  // Sector polygons for floor rendering
+  const sectorPolys=[];
+  for(let si=0;si<map.sectors.length;si++){
+    const s=map.sectors[si],wlast=s.wallptr+s.wallnum,loops=[],visited=new Set();
+    for(let i=s.wallptr;i<wlast;i++){
+      if(visited.has(i))continue;const loop=[];let wi=i,g=0;
+      while(g++<5000&&wi>=s.wallptr&&wi<wlast&&!visited.has(wi)){visited.add(wi);const w=map.walls[wi];if(!w)break;loop.push({x:tx(w.x),y:ty(w.y)});wi=w.point2;}
+      if(loop.length>=3)loops.push(loop);
+    }
+    sectorPolys.push({loops,floorpicnum:s.floorpicnum|0,floorshade:s.floorshade|0});
+  }
+  const spriteList=map.sprites.map(s=>({x:tx(s.x),y:ty(s.y),picnum:s.picnum|0,ang:s.ang|0}));
+  return{text:out.join('\n'),stats:{vertices:verts.length,sectors:map.sectors.length,linedefsOneSided:one,linedefsTwoSided:two,wallsSkipped:skip,sprites:map.sprites.length},geometry:{segments:segs,vertices:verts,polys:sectorPolys,sprites:spriteList,playerStart:{x:tx(map.header.posx),y:ty(map.header.posy),angle:Math.round(((map.header.ang/2048)*360+360)%360)}}};
+}
+
+// ══ Blood Type → GZDoom EdNum Map ════════════════════════════════════════
+// EdNums use 9000+type to avoid collisions. Player start = 1 (standard).
+const BLOOD_TYPE_MAP = {
+  // Weapons
+  40:{n:'WeaponRandom'},41:{n:'WeaponSawedOff'},42:{n:'WeaponTommygun'},
+  43:{n:'WeaponFlarePistol'},44:{n:'WeaponVoodooDoll'},45:{n:'WeaponTeslaCannon'},
+  46:{n:'WeaponNapalm'},47:{n:'WeaponPitchfork'},48:{n:'WeaponSprayCan'},
+  49:{n:'WeaponTNT'},50:{n:'WeaponLifeLeech'},
+  // Ammo
+  60:{n:'AmmoSprayCan'},62:{n:'AmmoTNTBundle'},63:{n:'AmmoTNTBox'},
+  64:{n:'AmmoProxBomb'},65:{n:'AmmoRemoteBomb'},66:{n:'AmmoTrappedSoul'},
+  67:{n:'AmmoShellsFew'},68:{n:'AmmoShellsBox'},69:{n:'AmmoBulletsFew'},
+  70:{n:'AmmoVoodooDoll'},72:{n:'AmmoBulletsDrum'},73:{n:'AmmoTeslaCharge'},
+  76:{n:'AmmoFlares'},79:{n:'AmmoGasolineCan'},
+  // Keys
+  100:{n:'KeySkull'},101:{n:'KeyEye'},102:{n:'KeyFire'},103:{n:'KeyDagger'},
+  104:{n:'KeySpider'},105:{n:'KeyMoon'},106:{n:'Key7'},
+  // Health
+  107:{n:'ItemDoctorBag'},108:{n:'ItemMedPouch'},109:{n:'ItemLifeEssense'},
+  110:{n:'ItemLifeSeed'},111:{n:'ItemRedPotion'},
+  // Powerups
+  112:{n:'ItemFeatherFall'},113:{n:'ItemShadowCloak'},114:{n:'ItemDeathMask'},
+  115:{n:'ItemJumpBoots'},117:{n:'ItemTwoGuns'},118:{n:'ItemDivingSuit'},
+  119:{n:'ItemGasMask'},121:{n:'ItemCrystalBall'},123:{n:'ItemDoppleganger'},
+  124:{n:'ItemReflectShots'},125:{n:'ItemBeastVision'},127:{n:'ItemShroomRage'},
+  128:{n:'ItemShroomDelirium'},129:{n:'ItemShroomGrow'},130:{n:'ItemShroomShrink'},
+  136:{n:'ItemTome'},137:{n:'ItemBlackChest'},138:{n:'ItemWoodenChest'},
+  // Armor
+  139:{n:'ArmorAsbestos'},140:{n:'ArmorBasic'},141:{n:'ArmorBody'},
+  142:{n:'ArmorFire'},143:{n:'ArmorSpirit'},144:{n:'ArmorSuper'},
+  // Dudes (enemies)
+  201:{n:'CultistTommy'},202:{n:'CultistShotgun'},203:{n:'ZombieAxe'},
+  204:{n:'ZombieButcher'},205:{n:'ZombieAxeBuried'},206:{n:'GargoyleFlesh'},
+  207:{n:'GargoyleStone'},208:{n:'GargoyleStatueFlesh'},209:{n:'GargoyleStatueStone'},
+  210:{n:'Phantasm'},211:{n:'HellHound'},212:{n:'Hand'},213:{n:'SpiderBrown'},
+  214:{n:'SpiderRed'},215:{n:'SpiderBlack'},216:{n:'SpiderMother'},
+  217:{n:'GillBeast'},218:{n:'BoneEel'},219:{n:'Bat'},220:{n:'Rat'},
+  221:{n:'PodGreen'},222:{n:'TentacleGreen'},223:{n:'PodFire'},
+  224:{n:'TentacleFire'},225:{n:'PodMother'},226:{n:'TentacleMother'},
+  227:{n:'CerberusTwoHead'},228:{n:'CerberusOneHead'},229:{n:'Tchernobog'},
+  230:{n:'CultistTommyProne'},239:{n:'BurningInnocent'},240:{n:'BurningCultist'},
+  241:{n:'BurningZombieAxe'},242:{n:'BurningZombieButcher'},244:{n:'ZombieAxeLaying'},
+  245:{n:'Innocent'},246:{n:'CultistShotgunProne'},247:{n:'CultistTesla'},
+  248:{n:'CultistTNT'},249:{n:'CultistBeast'},250:{n:'TinyCaleb'},
+  251:{n:'Beast'},252:{n:'BurningTinyCaleb'},253:{n:'BurningBeast'},
+  // Player starts (231-238 = P1-P8)
+  231:{n:'Player1Start'},232:{n:'Player2Start'},233:{n:'Player3Start'},
+  234:{n:'Player4Start'},235:{n:'Player5Start'},236:{n:'Player6Start'},
+  237:{n:'Player7Start'},238:{n:'Player8Start'},
+  // Things / physics objects
+  400:{n:'TNTBarrel'},401:{n:'ArmedProxBomb'},402:{n:'ArmedRemoteBomb'},
+  405:{n:'CrateFace'},406:{n:'GlassWindow'},407:{n:'Fluorescent'},
+  408:{n:'WallCrack'},409:{n:'WoodBeam'},410:{n:'SpiderWeb'},
+  411:{n:'MetalGrate'},412:{n:'FlammableTree'},413:{n:'TrapMachinegun'},
+  414:{n:'FallingRock'},415:{n:'KickablePail'},416:{n:'ObjectGib'},
+  417:{n:'ObjectExplode'},418:{n:'ArmedTNTStick'},419:{n:'ArmedTNTBundle'},
+  420:{n:'ArmedSpray'},421:{n:'Bone'},423:{n:'DripWater'},424:{n:'DripBlood'},
+  425:{n:'BloodBits'},426:{n:'BloodChunks'},427:{n:'ZombieHead'},
+  428:{n:'NapalmBall'},
+  // Traps
+  452:{n:'TrapFlame'},454:{n:'TrapSawCircular'},456:{n:'TrapZap'},
+  457:{n:'TrapPendulum'},458:{n:'TrapGuillotine'},459:{n:'TrapExploder'},
+  // Generators
+  700:{n:'GenTrigger'},701:{n:'GenDripWater'},702:{n:'GenDripBlood'},
+  703:{n:'GenMissileFireball'},704:{n:'GenMissileEctoSkull'},
+  705:{n:'GenDart'},706:{n:'GenBubble'},707:{n:'GenBubbleMulti'},708:{n:'GenSound'},
+};
+function bloodEdNum(type){ return 9000+type; }
+function buildBloodDECORATE(map){
+  if(!map.isBlood) return null;
+  // Collect unique types actually used
+  const usedTypes=new Set(map.sprites.map(s=>s.lotag).filter(t=>t>0));
+  const lines=['// Blood actor stubs — generated by BUILD2UDMF',
+    '// Load alongside your map WAD in GZDoom.',
+    '// Replace stub bodies with real actor definitions.',
+    ''];
+  for(const type of [...usedTypes].sort((a,b)=>a-b)){
+    const info=BLOOD_TYPE_MAP[type];
+    const name=info?info.n:('BloodType'+type);
+    lines.push('actor '+name+' '+bloodEdNum(type)+' { }');
+  }
+  // Player 1 start: type 231 → ednum 9231, but GZDoom also needs standard DoomPlayer(1)
+  // We output it as type=1 directly in the UDMF for the primary start
+  return lines.join('\n');
+}
+let _geom=null,_view={scale:1,ox:0,oy:0};
+const SPRITE_PX=18,SPRITE_AR_MIN=0.6,SPRITE_AR_MAX=1.4;
+const _imgCache=new Map();
+function getTileImg(picnum){
+  if(picnum<=0)return null;if(_imgCache.has(picnum))return _imgCache.get(picnum);
+  const t=_artTiles.get(picnum);if(!t||!t.url){_imgCache.set(picnum,null);return null;}
+  const img=new Image();img.onload=()=>renderPreview();img.src=t.url;_imgCache.set(picnum,img);return img;
+}
+function shadeToFill(sh){const l=Math.max(20,Math.min(180,90-(sh|0)*1.2));return`rgb(${l|0},${(l*.94)|0},${(l*.82)|0})`;}
+const CV=()=>document.getElementById('preview');
+function w2s(x,y){return{sx:x*_view.scale+_view.ox,sy:-y*_view.scale+_view.oy};}
+function s2w(sx,sy){return{x:(sx-_view.ox)/_view.scale,y:-(sy-_view.oy)/_view.scale};}
+function fitView(){
+  if(!_geom)return;
+  const b=_geom.segments.length===0?{xn:-100,xx:100,yn:-100,yx:100}:_geom.segments.reduce((a,s)=>{a.xn=Math.min(a.xn,s.x1,s.x2);a.xx=Math.max(a.xx,s.x1,s.x2);a.yn=Math.min(a.yn,s.y1,s.y2);a.yx=Math.max(a.yx,s.y1,s.y2);return a;},{xn:Infinity,xx:-Infinity,yn:Infinity,yx:-Infinity});
+  const c=CV(),rc=c.getBoundingClientRect(),p=28,sc=Math.min((rc.width-p*2)/Math.max(1,b.xx-b.xn),(rc.height-p*2)/Math.max(1,b.yx-b.yn));
+  _view.scale=sc;_view.ox=rc.width/2-(b.xn+b.xx)/2*sc;_view.oy=rc.height/2+(b.yn+b.yx)/2*sc;renderPreview();
+}
+function resetView(){_view={scale:1,ox:0,oy:0};fitView();}
+
+function renderPreview(){
+  const dpr=window.devicePixelRatio||1,c=CV(),ctx=c.getContext('2d'),rc=c.getBoundingClientRect();
+  if(c.width!==Math.floor(rc.width*dpr)||c.height!==Math.floor(rc.height*dpr)){c.width=Math.floor(rc.width*dpr);c.height=Math.floor(rc.height*dpr);}
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rc.width,rc.height);
+  if(!_geom)return;
+  // Floor polygons
+  if(_geom.polys&&_geom.polys.length){
+    ctx.save();ctx.setTransform(dpr*_view.scale,0,0,-dpr*_view.scale,dpr*_view.ox,dpr*_view.oy);
+    for(const p of _geom.polys){
+      if(!p.loops.length)continue;
+      ctx.beginPath();
+      for(const loop of p.loops){ctx.moveTo(loop[0].x,loop[0].y);for(let i=1;i<loop.length;i++)ctx.lineTo(loop[i].x,loop[i].y);ctx.closePath();}
+      const img=getTileImg(p.floorpicnum);
+      if(img&&img.complete&&img.naturalWidth>0){
+        const pat=ctx.createPattern(img,'repeat');
+        if(pat){const sc=64/img.naturalWidth,m=new DOMMatrix();m.scaleSelf(sc,-sc);pat.setTransform(m);ctx.fillStyle=pat;}
+        else ctx.fillStyle=shadeToFill(p.floorshade);
+      }else ctx.fillStyle=shadeToFill(p.floorshade);
+      ctx.fill('evenodd');
+    }
+    ctx.restore();ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle='rgba(6,6,10,.18)';ctx.fillRect(0,0,rc.width,rc.height);
+  }
+  ctx.lineCap='round';
+  const dw=(segs,col,lw,test)=>{ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.beginPath();for(const s of segs){if(!test(s))continue;const a=w2s(s.x1,s.y1),b=w2s(s.x2,s.y2);ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);}ctx.stroke();};
+  dw(_geom.segments,'#3d6f3d',1,s=>s.twoSided);
+  dw(_geom.segments,'#d97a2a',1.4,s=>!s.twoSided&&!s.blocking);
+  dw(_geom.segments,'#c2484c',1.6,s=>s.blocking);
+  // Sprites — world space, scales with zoom
+  if(_geom.sprites&&_geom.sprites.length){
+    ctx.save();
+    ctx.setTransform(dpr*_view.scale,0,0,-dpr*_view.scale,dpr*_view.ox,dpr*_view.oy);
+    const r=SPRITE_PX/2;
+    for(const sp of _geom.sprites){
+      const img=getTileImg(sp.picnum);
+      if(img&&img.complete&&img.naturalWidth>0){
+        const ar=img.naturalWidth/Math.max(1,img.naturalHeight);
+        const sw=SPRITE_PX*Math.min(SPRITE_AR_MAX,Math.max(SPRITE_AR_MIN,ar)),sh=SPRITE_PX;
+        ctx.save();ctx.translate(sp.x,sp.y);ctx.rotate((sp.ang/2048)*Math.PI*2);
+        ctx.imageSmoothingEnabled=false;ctx.drawImage(img,-sw/2,-sh/2,sw,sh);
+        ctx.restore();
+        ctx.strokeStyle='rgba(255,210,74,.55)';ctx.lineWidth=1/_view.scale;
+        ctx.strokeRect(sp.x-sw/2,sp.y-sh/2,sw,sh);
+      }else{
+        // Diamond fallback — also SPRITE_PX sized
+        ctx.fillStyle='#ffd24a';
+        ctx.beginPath();ctx.moveTo(sp.x,sp.y-r);ctx.lineTo(sp.x+r,sp.y);ctx.lineTo(sp.x,sp.y+r);ctx.lineTo(sp.x-r,sp.y);ctx.closePath();ctx.fill();
+        ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1/_view.scale;ctx.stroke();
+      }
+    }
+    ctx.restore();
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  if(_geom.playerStart){const p=_geom.playerStart,a=w2s(p.x,p.y);ctx.fillStyle='#e7e3d4';ctx.beginPath();ctx.arc(a.sx,a.sy,4,0,Math.PI*2);ctx.fill();}
+  const hud=document.getElementById('hud');if(hud)hud.textContent='segs:'+_geom.segments.length+' | sprites:'+(_geom.sprites?_geom.sprites.length:0)+' | zoom:'+_view.scale.toFixed(3);
+}
+(()=>{const c=CV();let drag=false,lx=0,ly=0;
+  c.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY;});
+  window.addEventListener('mouseup',()=>{drag=false;});
+  window.addEventListener('mousemove',e=>{if(!drag)return;_view.ox+=e.clientX-lx;_view.oy+=e.clientY-ly;lx=e.clientX;ly=e.clientY;renderPreview();});
+  c.addEventListener('wheel',e=>{e.preventDefault();const rc=c.getBoundingClientRect(),mx=e.clientX-rc.left,my=e.clientY-rc.top,w=s2w(mx,my),f=Math.pow(1.0015,-e.deltaY);_view.scale*=f;_view.ox=mx-w.x*_view.scale;_view.oy=my+w.y*_view.scale;renderPreview();},{passive:false});
+  window.addEventListener('resize',renderPreview);
+})();
+
+// ══ UI ════════════════════════════════════════════════════════════════════
+function setStatus(msg,cls){const s=document.getElementById('status');s.textContent=msg;s.className='status'+(cls?' '+cls:'');}
+function setStats(st,ver){
+  const el=document.getElementById('stats');el.innerHTML='';
+  [['MAP version','v'+ver],['Sectors',st.sectors],['Vertices',st.vertices],['1-sided LDs',st.linedefsOneSided],['2-sided LDs',st.linedefsTwoSided],['Sprites',st.sprites],['Walls skipped',st.wallsSkipped]].forEach(([k,v])=>{const d=document.createElement('div');d.className='stat';d.innerHTML='<b>'+v+'</b><span>'+k+'</span>';el.appendChild(d);});
+}
+async function onMapLoad(){
+  const fi=document.getElementById('file');if(!fi.files.length)return;
+  try{const buf=await fi.files[0].arrayBuffer();_mapData=parseMap(buf);collectUsedPicnums();rebuildRemapper();const bloodInfo=_mapData.isBlood?' [Blood subver '+_mapData.bloodSubVer+']':'';setStatus('MAP loaded: v'+_mapData.version+bloodInfo+', '+_mapData.sectors.length+' sectors.','');}
+  catch(e){setStatus('MAP error: '+e.message,'err');}
+}
+async function convert(){
+  if(!_mapData){setStatus('Load a MAP file first.','err');return;}
+  try{
+    SS=_mapData.isBlood?SS_BLOOD:SS_WH; LS=_mapData.isBlood?LS_BLOOD:LS_WH;
+    const opts={xyScale:+document.getElementById('xyScale').value,zScale:+document.getElementById('zScale').value,flipY:document.getElementById('flipY').checked,zMode:document.getElementById('zMode').value,bamSlope:document.getElementById('bamSlope').checked};
+    const{text,stats,geometry}=buildUDMF(_mapData,opts,makeTexResolver());
+    document.getElementById('out').textContent=text;setStats(stats,_mapData.version);_geom=geometry;fitView();
+    setStatus('Converted: v'+_mapData.version+(_mapData.isBlood?' [Blood]':'')+' | '+stats.sectors+' sectors | '+stats.sprites+' sprites.','');
+    // For Blood maps, auto-trigger DECORATE stub download
+    if(_mapData.isBlood){
+      const dec=buildBloodDECORATE(_mapData);
+      if(dec){
+        const b=new Blob([dec],{type:'text/plain'});const a=document.createElement('a');
+        a.href=URL.createObjectURL(b);a.download='BLOODACTORS.DEC';a.click();
+        setStatus('Converted [Blood] | '+stats.sectors+' sectors | '+stats.sprites+' sprites. BLOODACTORS.DEC downloaded — load alongside your WAD in GZDoom.','');
+      }
+    }
+  }catch(e){setStatus('Error: '+e.message,'err');}
+}
+function copyOut(){const t=document.getElementById('out').textContent;if(t)navigator.clipboard.writeText(t).then(()=>setStatus('Copied.'));}
+renderPreview();updateTexBadge();document.getElementById('remapPanel').style.display='block';
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9fb746fb7c63dada',t:'MTc3ODczNDE3Ng=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: medium; visibility: hidden;"></iframe><script defer="defer" src="Witchaven%20%E2%86%92%20UDMF_files/v8c78df7c7c0f484497ecbca7046644da1771523124516.es" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon="{&quot;version&quot;:&quot;2024.11.0&quot;,&quot;token&quot;:&quot;7f7b0fd8732c4326aae4b9d58d5c514a&quot;,&quot;server_timing&quot;:{&quot;name&quot;:{&quot;cfCacheStatus&quot;:true,&quot;cfEdge&quot;:true,&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfOrigin&quot;:true,&quot;cfSpeedBrain&quot;:true},&quot;location_startswith&quot;:null}}" crossorigin="anonymous"></script>
+
+</body></html>

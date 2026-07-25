@@ -1,0 +1,81 @@
+{
+  "id": "phase3",
+  "icon": "🟠",
+  "title": "Tier 3 – Early Stages (0–15%)",
+  "systems": [
+    {
+      "name": "Raider's Republic – 10% Complete",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Needs track layout. More race themed props to make. Booster ramps. Camera distance change for Mongeese.",
+      "tasks": [
+        "Design and block out full track layout",
+        "Create race-themed props and decorations",
+        "Add booster ramps at strategic locations",
+        "Adjust camera distance for Mongoose vehicles",
+        "Playtest track flow and lap times"
+      ]
+    },
+    {
+      "name": "Trampoline Park – 10% Complete",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Animated trampoline needed. Fix vehicle floor clipping. Add more fun activities.",
+      "tasks": [
+        "Script animated trampoline bounce mechanics",
+        "Fix vehicle clipping through floor surfaces",
+        "Add variety of fun interactive elements",
+        "Design park layout with distinct zones"
+      ]
+    },
+    {
+      "name": "Queens Court – 5% Complete",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Alice in Wonderland chessboard theme. Chessboard layout done. Stone/concrete theme confirmed. Cheshire Cat Easter Egg, Vorpal Sword spawn, Tea Party power-up spawner.",
+      "tasks": [
+        "Complete chessboard layout with red/black stone motifs",
+        "Script Cheshire Cat Easter Egg appearance",
+        "Place Vorpal Sword weapon spawn",
+        "Build Tea Party power-up spawner area",
+        "Add Wonderland-themed decorations and atmosphere"
+      ]
+    },
+    {
+      "name": "Consumed (Guiltier Spark Part 3) – 5% Complete",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 35,
+      "dependencies": ["phase2_4", "phase2_1"],
+      "notes": "Everything still to do — currently just a building shell. Follows from Swamp Project and Overgrowth.",
+      "tasks": [
+        "Design and block out full map layout",
+        "Create Flood-consumed environment aesthetic",
+        "Add story beats and encounters",
+        "Script finale sequence",
+        "Full lighting, navmesh, and balancing pass"
+      ]
+    },
+    {
+      "name": "Volcano – In Progress (Canvas v17)",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Actively being worked on in Canvas. Version 17. Volcanic theme.",
+      "tasks": [
+        "Complete terrain and volcanic landscape",
+        "Add lava flows and environmental hazards",
+        "Design interior cave/cavern sections",
+        "Lighting pass (volcanic glow, embers)",
+        "Playtest and spawn balancing"
+      ]
+    }
+  ]
+}

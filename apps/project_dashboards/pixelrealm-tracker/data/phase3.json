@@ -1,0 +1,47 @@
+{
+  "id": "phase3",
+  "icon": "💎",
+  "title": "Phase 3 – Item Economy & Crafting",
+  "systems": [
+    {
+      "name": "3.1 Horadric Cube / Transmutation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_2"],
+      "notes": "Implement a recipe system where players combine items in a special UI to create new ones. Recipes are discovered and can be shared.",
+      "tasks": [
+        "Cube UI with input/output slots",
+        "Recipe discovery (trial or scroll drops)",
+        "Common recipes (3 gems → better gem, etc.)",
+        "Craftable items with guaranteed affix"
+      ]
+    },
+    {
+      "name": "3.2 Socketing & Gems",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_2", "phase3_0"],
+      "notes": "Add socketable gems that drop from enemies. Gems can be inserted into items to add stats, upgraded via cube.",
+      "tasks": [
+        "Gem types (ruby, sapphire, emerald, diamond, skull)",
+        "Socket generation on item drop (random 1–3 sockets)",
+        "Gem insertion and removal UI"
+      ]
+    },
+    {
+      "name": "3.3 Gambling & Economy Balance",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase2_1"],
+      "notes": "Add gambling NPC where players spend gold for random items. Balance gold drops, repair costs, and vendor prices.",
+      "tasks": [
+        "Gambling interface with item reveal animation",
+        "Gold drop scaling with player level",
+        "Item repair costs"
+      ]
+    }
+  ]
+}

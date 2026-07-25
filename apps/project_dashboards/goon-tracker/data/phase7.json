@@ -1,0 +1,47 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Release & Community",
+  "systems": [
+    {
+      "name": "7.1 Packaging & Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package the game as a standalone web app. Deploy to itch.io and GitHub Pages.",
+      "tasks": [
+        "Create offline HTML build",
+        "Zip distribution with README",
+        "Deploy to itch.io",
+        "GitHub Pages setup"
+      ]
+    },
+    {
+      "name": "7.2 Documentation & Wiki",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Write modding guide, map editor tutorial, and code documentation.",
+      "tasks": [
+        "API reference for map format",
+        "Map editor guide",
+        "How to add custom textures/sprites"
+      ]
+    },
+    {
+      "name": "7.3 Community Features",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Add leaderboard for speedruns, custom map sharing, and mod support.",
+      "tasks": [
+        "Online leaderboard (Star Leaderboard SDK)",
+        "Map sharing via URL",
+        "Mod folder loading"
+      ]
+    }
+  ]
+}

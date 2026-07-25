@@ -1,0 +1,102 @@
+{
+  "id": "phase3",
+  "icon": "🚂",
+  "title": "Phase 3 – Trains, Tracks & Logistics",
+  "systems": [
+    {
+      "name": "3.1 Track Placement & Network Graph",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 22,
+      "dependencies": ["phase1_0", "phase1_3"],
+      "notes": "Builds on the host-authoritative placement and persistence from Phase 1. The track system uses 2D billboard sprites for performance, backed by a graph for routing. Switches and junctions must be synced across clients.",
+      "tasks": [
+        {
+          "text": "Place 2D billboarded track sprites (drop shadow)",
+          "priority": "high",
+          "notes": "Performance-friendly; use the existing block placement pipeline."
+        },
+        {
+          "text": "Underlying node graph for connectivity",
+          "priority": "high",
+          "notes": "Graph updates on track placed/destroyed; used for pathfinding."
+        },
+        {
+          "text": "Snap rules: straight, curve, T-junction, switch",
+          "priority": "medium",
+          "notes": "Auto-connect to nearest valid node within range."
+        },
+        {
+          "text": "Switch toggling (right-click)",
+          "priority": "medium",
+          "notes": "Toggling changes graph edge connections; must be synced."
+        },
+        {
+          "text": "Host validates connections to dock",
+          "priority": "high",
+          "notes": "Reject orphan tracks or track floating in air."
+        }
+      ]
+    },
+    {
+      "name": "3.2 Hauler Cart & Train Physics",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase3_0"],
+      "notes": "Hauler physics are simple: constant speed along graph edges. Host simulates and broadcasts position; clients interpolate. Fuel consumption and cargo weight affect speed and range.",
+      "tasks": [
+        {
+          "text": "Train entity moving along graph (host simulated)",
+          "priority": "high",
+          "notes": "Pathfinding uses Dijkstra on the track graph."
+        },
+        {
+          "text": "Cargo capacity, fuel consumption (distance+weight)",
+          "priority": "high",
+          "notes": "Incentivises upgrading carts and engines later."
+        },
+        {
+          "text": "Schedule UI: dock → signal post → return",
+          "priority": "medium",
+          "notes": "Player places signal posts as waypoints."
+        },
+        {
+          "text": "Visual: model or block structure gliding",
+          "priority": "low",
+          "notes": "Use the custom steam-hauler model from Phase 1."
+        },
+        {
+          "text": "Client interpolation for multiplayer",
+          "priority": "high",
+          "notes": "Smooth movement; similar to partner rig lerp from v14a."
+        }
+      ]
+    },
+    {
+      "name": "3.3 Logistics Interface",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_1", "phase3_1"],
+      "notes": "UI flow for loading/unloading cargo from chests into carts, setting routes, and automated deliveries. Leverages chest sync from Phase 1.",
+      "tasks": [
+        {
+          "text": "Hauler dock UI: load/unload from chests",
+          "priority": "high",
+          "notes": "Drag items or use buttons; integrates with inventory module."
+        },
+        {
+          "text": "Route planner (set destination marker)",
+          "priority": "medium",
+          "notes": "Select a signal post on the map or from a list."
+        },
+        {
+          "text": "Auto delivery: go, unload, return",
+          "priority": "medium",
+          "notes": "Cart becomes a persistent entity; delivers when track is complete."
+        }
+      ]
+    }
+  ]
+}

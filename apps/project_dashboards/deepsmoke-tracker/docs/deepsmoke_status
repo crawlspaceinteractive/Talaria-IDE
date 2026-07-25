@@ -1,0 +1,36 @@
+# PROJECT: Deepsmoke Star
+
+## STATUS
+Active
+
+## CURRENT STATE
+Deepsmoke Star is a rich, first-person voxel co-op drilling survival game featuring procedurally generated biomes, real-time weather and lighting cycles, and a custom steam-hauler logistics loop.
+
+## CURRENT FOCUS
+Improving the co-op multiplayer systems (Star Multiplayer SDK) to support full synchronization of block placements, chest inventories, and hauler/dock states.
+
+## NEXT ACTION
+Implement action handlers and sync logic for block placement and chest storage containers across multiplayer sessions.
+
+## BLOCKERS
+- Block placement and chest inventories are currently local-only and not synchronized across network clients.
+
+## RECENT CHANGE
+Expanded the world scale 8x vertically, introduced procedural biome bands (mountains, deserts, valleys, buttes) and floating islands, and implemented a camp steam-hauler automation system.
+
+## OUTPUT ARTIFACTS
+- `index.html` (Pixelify Sans, custom brass & cobalt panel UI, canvas settings)
+- JavaScript modules (`main.js`, `coop.js`, `gamepad.js`, `hotbar.js`, `hud.js`, `input.js`, `inventory.js`, `items.js`, `mobs.js`, `npcs.js`, `partner.js`, `player.js`, `textures.js`, `trees.js`, `ui.js`, `upgrades.js`, `world.js`)
+- Documentation (`ARCHITECTURE.md`, `DESIGN.md`)
+- Audio assets (`Under_the_Canopy(1).mp3`, `breach_clang.mp3`, `cave_ambience.mp3`)
+- Image resources (`GEM_HANDLE.png`, `SLIDER_BAR.png`, `helmet_overlay.png`)
+
+## RELATED SYSTEMS
+- **Three.js** (v0.160 WebGL 3D rendering)
+- **Star Multiplayer SDK** (Real-time client synchronization)
+- **Star Audio SDK** (Directional sound and score effects)
+- **Star Leaderboard SDK** (Global and run-based high scores)
+- **Tailwind CSS** (Fast-styled layouts and HUD components)
+
+## NOTES (OPTIONAL)
+Hotbar positioning is vertically stacked on the right edge of the viewport to prevent overlap with Grub’s bottom-center status meters. All GUI buttons are styled procedurally to avoid static image assets.

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beat Em Up Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+    #game-root { position: relative; width: 100%; max-width: 640px; }
+    canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+    #hud {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 6px 10px;
+      pointer-events: none;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: #fff;
+      text-shadow: 1px 1px 0 #000, -1px -1px 0 #000;
+      z-index: 10;
+    }
+    /* CRT scanline overlay — pure CSS, zero CPU */
+    #scanlines {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 1px,
+        rgba(0,0,0,0.07) 1px,
+        rgba(0,0,0,0.07) 2px
+      );
+      pointer-events: none;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-root">
+    <canvas id="gameCanvas"></canvas>
+    <div id="scanlines"></div>
+    <div id="hud">
+      <div id="hud-left"></div>
+      <div id="hud-right"></div>
+    </div>
+  </div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>

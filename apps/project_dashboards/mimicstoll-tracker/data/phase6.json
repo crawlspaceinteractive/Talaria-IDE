@@ -1,0 +1,65 @@
+{
+  "id": "phase6",
+  "icon": "💀",
+  "title": "Phase 6 – Meta-Game: Campfire, Trophy Room & Campaign",
+  "systems": [
+    {
+      "name": "6.1 The Campfire (Lobby)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0", "phase1_2"],
+      "notes": "The pre-game lobby where the party strategises. The Mimic exists as the campfire itself, listening to all communication. Atmospheric, immersive.",
+      "tasks": [
+        "Design campfire scene (visual: dark forest clearing, animated fire)",
+        "Open voice/text chat for all players during campfire phase",
+        "Mimic hidden: no visible presence, but hears all communication",
+        "Ready-up system and chapter start countdown"
+      ]
+    },
+    {
+      "name": "6.2 The Trophy Room (Mimic Meta-Screen)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase3_2", "phase1_3"],
+      "notes": "The Mimic's persistent meta-screen showing collected skulls. Each skull is labelled with the player's name and chapter. Goal is accumulation across the campaign.",
+      "tasks": [
+        "Design Trophy Room UI (dark, collector aesthetic, shelves of skulls)",
+        "Each skull displays: player name, class, chapter eliminated",
+        "New skull added with animation after each elimination",
+        "Skull count tracked across entire campaign"
+      ]
+    },
+    {
+      "name": "6.3 Campaign Structure & Chapters",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase5_0", "phase6_0"],
+      "notes": "Design the full campaign: 5–8 chapters with escalating difficulty, new dungeon themes, and narrative beats. Each chapter introduces new mechanics or enemies.",
+      "tasks": [
+        "Chapter 1: The Crypt (tutorial, basic mechanics)",
+        "Chapter 2: The Catacombs (introduce traps and ghost mechanics)",
+        "Chapter 3: The Archives (tight corridors, social deduction pressure)",
+        "Chapter 4: The Prison (multiple floors, verticality)",
+        "Chapter 5: The Sanctum (final chapter, high stakes, unique boss encounter)",
+        "Narrative cutscenes between chapters"
+      ]
+    },
+    {
+      "name": "6.4 End-of-Campaign Scoring & Stats",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase6_2"],
+      "notes": "After the final chapter, display campaign stats: survivors, skulls collected, party achievements, Mimic's most effective tactics.",
+      "tasks": [
+        "Campaign summary screen with stats and highlights",
+        "Mimic score: skulls collected, successful ambushes, deception rate",
+        "Party score: chapters survived, spirit checks passed, traps avoided",
+        "Hall of Fame: top Mimics and top Survivors"
+      ]
+    }
+  ]
+}

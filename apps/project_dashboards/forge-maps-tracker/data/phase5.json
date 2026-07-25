@@ -1,0 +1,49 @@
+{
+  "id": "phase5",
+  "icon": "💡",
+  "title": "Tier 5 – Future Concepts & Game Modes",
+  "systems": [
+    {
+      "name": "Raiders Republic Game Mode",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": ["phase3_0"],
+      "notes": "Turn Raiders Republic into its own game mode so customs browser shows 'Raider's Republic – Map Name'. Creates a platform for multiple race maps.",
+      "tasks": [
+        "Design Raiders Republic game mode variant",
+        "Configure mode settings and rules",
+        "Test with existing Raider's Republic map",
+        "Document for future race map additions"
+      ]
+    },
+    {
+      "name": "Surfing Map Concept",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Figure out how the Mario Kart Mongoose is so small and fuse that with a Surfboard to make a surfing map.",
+      "tasks": [
+        "Research Mario Kart Mongoose scaling technique",
+        "Prototype surfboard vehicle from Mongoose base",
+        "Design wave/water map layout",
+        "Test surfing physics and gameplay feel"
+      ]
+    },
+    {
+      "name": "Additional Future Ideas",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 0,
+      "dependencies": [],
+      "notes": "Parking lot for additional concepts and brainstorms. Add new ideas here as they come.",
+      "tasks": [
+        "Brainstorm new map themes and game mode fusions",
+        "Evaluate community feedback for most-wanted content",
+        "Prototype any promising concepts",
+        "Add detailed specs to this tracker when ready"
+      ]
+    }
+  ]
+}

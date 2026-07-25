@@ -1,0 +1,61 @@
+{
+  "id": "phase5",
+  "icon": "📟",
+  "title": "Phase 5 – UI & Menus",
+  "systems": [
+    {
+      "name": "5.1 Main Menu & Title Screen",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Create a polished main menu with options, credits, and a level select.",
+      "tasks": [
+        "Title screen with animated background",
+        "New Game, Continue, Level Select, Options",
+        "Keyboard/gamepad navigation"
+      ]
+    },
+    {
+      "name": "5.2 In-Game HUD Overhaul",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Redesign HUD to show health, armor, ammo, keys, minimap, and weapon slots.",
+      "tasks": [
+        "Health and armor bars",
+        "Ammo counter and weapon selector",
+        "Minimap overlay",
+        "Keycard indicator"
+      ]
+    },
+    {
+      "name": "5.3 Shop Interface",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Build post-boss shop UI where players spend score on weapons and upgrades.",
+      "tasks": [
+        "Shop menu layout",
+        "Weapon purchase logic",
+        "Upgrade options",
+        "Gold/score display"
+      ]
+    },
+    {
+      "name": "5.4 Options & Controls",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase5_0"],
+      "notes": "Add graphics, audio, and control options menus.",
+      "tasks": [
+        "Graphics: resolution, fullscreen, filters",
+        "Audio: master, SFX, music volume",
+        "Controls: rebind keys, mouse sensitivity"
+      ]
+    }
+  ]
+}

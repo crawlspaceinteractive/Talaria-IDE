@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidNode: Delete-Chip</title>
+    <style>
+        :root {
+            --win95-teal: #008080;
+            --win95-gray: #C0C0C0;
+            --win95-darkgray: #808080;
+            --win95-blue-start: #000080;
+            --win95-blue-end: #1084D0;
+            --win95-button-face: #DFDFDF;
+            --win95-white: #FFFFFF;
+            --win95-black: #000000;
+            --win95-yellow: #FFFF00;
+            --win95-red: #cc0000;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "MS Sans Serif", "Segoe UI", sans-serif;
+            font-size: 13px;
+            background-color: var(--win95-teal);
+            min-height: 100vh;
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .window {
+            background-color: var(--win95-gray);
+            max-width: 680px;
+            margin: 0 auto;
+            box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+            border-top: 2px solid var(--win95-white);
+            border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black);
+            border-bottom: 2px solid var(--win95-black);
+        }
+        .title-bar {
+            background: linear-gradient(to right, #500000, #900000);
+            padding: 3px 4px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .title-text { color: #fff; font-weight: bold; font-size: 13px; margin-left: 4px; }
+        .title-button {
+            width: 18px; height: 18px; background-color: var(--win95-gray);
+            border-top: 2px solid var(--win95-white); border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black); border-bottom: 2px solid var(--win95-black);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: bold; cursor: pointer;
+        }
+        .content { padding: 12px; }
+        .warning-banner {
+            background-color: #ffdddd;
+            border: 2px solid var(--win95-red);
+            padding: 7px 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.5;
+        }
+        .win95-button {
+            background-color: var(--win95-button-face);
+            border-top: 2px solid var(--win95-white); border-left: 2px solid var(--win95-white);
+            border-right: 2px solid var(--win95-black); border-bottom: 2px solid var(--win95-black);
+            padding: 4px 16px; font-size: 13px; cursor: pointer; min-width: 90px;
+        }
+        .win95-button:active {
+            border-top: 2px solid var(--win95-black); border-left: 2px solid var(--win95-black);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 5px 15px 3px 17px;
+        }
+        .win95-button:disabled { color: var(--win95-darkgray); cursor: not-allowed; }
+        .btn-shred { background-color: #f0d0d0; font-weight: bold; }
+        .section { margin-bottom: 12px; }
+        .section-header {
+            background-color: var(--win95-darkgray); color: #fff;
+            padding: 2px 8px; font-weight: bold; font-size: 12px; margin-bottom: 6px;
+        }
+        .panel {
+            background-color: var(--win95-white);
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 8px 10px;
+        }
+        .file-row { display: flex; align-items: center; gap: 8px; }
+        .file-display {
+            flex: 1;
+            background-color: var(--win95-white);
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 3px 6px; font-size: 12px; font-family: "Courier New", monospace;
+            height: 24px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+        }
+        input[type="file"] { display: none; }
+        .download-link {
+            display: none;
+            background-color: #ffdddd;
+            border: 2px solid var(--win95-red);
+            border-top-color: var(--win95-white); border-left-color: var(--win95-white);
+            padding: 6px 12px; font-weight: bold; color: var(--win95-red);
+            text-decoration: none; margin-top: 8px; font-size: 12px;
+            cursor: pointer;
+        }
+        .status-bar {
+            background-color: var(--win95-gray);
+            border-top: 1px solid var(--win95-darkgray);
+            padding: 3px 8px; font-size: 11px;
+        }
+        .status-section {
+            border-top: 2px solid var(--win95-darkgray); border-left: 2px solid var(--win95-darkgray);
+            border-right: 2px solid var(--win95-white); border-bottom: 2px solid var(--win95-white);
+            padding: 1px 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="window">
+    <div class="title-bar">
+        <div class="title-text">VoidNode — Delete-Chip (Secure Deletion)</div>
+        <div class="title-button">✕</div>
+    </div>
+    <div class="content">
+        <div class="warning-banner">
+            <strong>WARNING:</strong> This tool destroys file content in memory using a 3-pass overwrite. You must manually download the shredded file to overwrite the original on disk.
+        </div>
+
+        <div class="section">
+            <div class="section-header">1. File Selection</div>
+            <div class="panel">
+                <div class="file-row">
+                    <div class="file-display" id="fileDisplayName">No file selected</div>
+                    <button class="win95-button" id="browseBtn">Browse...</button>
+                    <button class="win95-button btn-shred" id="shredButton" disabled>Shred (3-Pass)</button>
+                </div>
+                <input type="file" id="fileInput">
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">2. Status &amp; Disposal</div>
+            <div class="panel">
+                <div style="font-size:12px;" id="shredStatus">Awaiting file selection...</div>
+                <a class="download-link" id="downloadLink" download>CLICK HERE TO DOWNLOAD &amp; OVERWRITE ORIGINAL FILE</a>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="status-section" id="statusBarText">Ready</div>
+    </div>
+</div>
+<script>
+    // Wire browse button to hidden file input
+    document.getElementById('browseBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+    // Update display name on file select
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const f = e.target.files[0];
+        document.getElementById('fileDisplayName').textContent = f ? f.name : 'No file selected';
+    });
+</script>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+{
+  "id": "phase2",
+  "icon": "🧱",
+  "title": "Phase 2 – Basic Modeling",
+  "systems": [
+    {
+      "name": "2.1 Working with Cubes & Elements",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 2,
+      "dependencies": [],
+      "notes": "Master the fundamental building blocks: cubes, elements, pivot points, and basic transformations.",
+      "tasks": [
+        "Create a multi‑element model (e.g., a simple table)",
+        "Move/rotate/scale elements using the gizmo and numeric input",
+        "Adjust element pivot points for better rotation",
+        {
+          "text": "Tutorial: Building with cubes",
+          "link": "https://www.blockbench.net/wiki/tutorials/#basic-modeling"
+        }
+      ]
+    },
+    {
+      "name": "2.2 Mesh Modeling (Cubes → Meshes)",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1.5,
+      "dependencies": ["phase2_0"],
+      "notes": "Convert cubes to meshes to gain vertex‑level control.",
+      "tasks": [
+        "Convert a cube to a mesh",
+        "Select and move individual vertices",
+        "Add edge loops and subdivisions",
+        "Practise by modeling a simple vase or bottle"
+      ]
+    },
+    {
+      "name": "2.3 UV Mapping Basics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1,
+      "dependencies": ["phase2_0"],
+      "notes": "Understand how textures wrap around 3D geometry.",
+      "tasks": [
+        {
+          "text": "Watch the UV unwrapping tutorial",
+          "link": "https://www.youtube.com/watch?v=QyKwGZn7c3w"
+        },
+        "Auto‑unwrap a simple model",
+        "Manually adjust UV islands to prevent stretching",
+        "Export a UV template for painting"
+      ]
+    }
+  ]
+}

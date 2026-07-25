@@ -1,0 +1,45 @@
+{
+  "id": "phase6",
+  "icon": "📟",
+  "title": "Phase 6 – Menus & UI",
+  "systems": [
+    {
+      "name": "6.1 Title Screen & Main Menu",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "PS1‑style title screen with rotating 3D logo, menu options (Start, Options, Credits).",
+      "tasks": [
+        "Title screen background (static image or simple scene)",
+        "Menu system (keyboard / gamepad navigation)",
+        "Save file selection (3 slots)"
+      ]
+    },
+    {
+      "name": "6.2 In‑Game HUD",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase4_0", "phase4_1"],
+      "notes": "Health meter, coin counter, lives, collected stars. Keep minimal and diegetic where possible.",
+      "tasks": [
+        "Health bar (hearts or meter)",
+        "Coin / gem counter",
+        "Lives icon"
+      ]
+    },
+    {
+      "name": "6.3 Pause & Options Menu",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase6_0"],
+      "notes": "Pause overlay, resume, restart level, quit to hub, volume sliders.",
+      "tasks": [
+        "Pause toggle with overlay",
+        "Options: volume, controls display"
+      ]
+    }
+  ]
+}

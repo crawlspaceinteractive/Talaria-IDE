@@ -1,0 +1,63 @@
+{
+  "id": "phase13",
+  "icon": "🎨",
+  "title": "Phase 13 – Art, Audio & Full Asset Polish",
+  "systems": [
+    {
+      "name": "13.1 Hand‑Painted Models",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": [],
+      "notes": "Replace procedural models for ancient mechs, kaiju, Ghost King, dreadnaught parts with detailed hand‑sculpted Blockbench models.",
+      "tasks": [
+        "Sculpt Ghost King model (weathered, translucent, mohawk)",
+        "Create dreadnaught and component models (cockpit, drill, etc.)",
+        "Model each kaiju (Sand Wyrm, Magma Leviathan, Storm Roc)",
+        "Animate all models (idle, attack, death, specials)"
+      ]
+    },
+    {
+      "name": "13.2 Sprite & Texture Overhaul",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase13_0"],
+      "notes": "Paint custom textures for biomes, sky-castle interiors, dungeon walls, Vault environments. Add environmental storytelling (ancient goblin murals, rust, overgrowth).",
+      "tasks": [
+        "Design texture sets for each biome (base + corrupted)",
+        "Create sky-castle interior and exterior textures",
+        "Paint Vault of the Forgotten Sun environment",
+        "Add decals: ancient goblin murals, rust streaks, overgrowth"
+      ]
+    },
+    {
+      "name": "13.3 Original Soundtrack & SFX",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Compose distinct themes for dreadnaught combat, kaiju encounters, Ghost King dialogue, and Sun Engine activation. Procedural music system adapts to world tier.",
+      "tasks": [
+        "Compose main theme and biome variations",
+        "Create dreadnaught combat and kaiju encounter tracks",
+        "Implement procedural music layer switching based on world state",
+        "Design all new SFX (dreadnaught stomp, kaiju roar, Ghost King voice)"
+      ]
+    },
+    {
+      "name": "13.4 Ambient & Voice",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase13_2"],
+      "notes": "Goblin chatter, ancient machinery hums, Ghost King voice lines (weary, sarcastic). Wind and weather sound improvements.",
+      "tasks": [
+        "Record Ghost King voice lines (direction: tired old uncle)",
+        "Add ambient goblin camp sounds",
+        "Create ancient machinery loops for dungeons and Vault",
+        "Polish weather audio transitions"
+      ]
+    }
+  ]
+}

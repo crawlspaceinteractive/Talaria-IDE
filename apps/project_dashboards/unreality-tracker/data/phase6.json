@@ -1,0 +1,47 @@
+{
+  "id": "phase6",
+  "icon": "⚡",
+  "title": "Phase 6 – Performance & Compatibility",
+  "systems": [
+    {
+      "name": "6.1 Renderer Optimization",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Canvas 2D rendering can bottleneck with many enemies and particles. Use offscreen canvases for static layers, reduce overdraw, and batch sprite draws.",
+      "tasks": [
+        "Pre-render floor tiles and static props to cached canvases",
+        "Implement sprite atlas for enemy/player sheets",
+        "Particle pooling and early culling off-screen",
+        "Profile and reduce GC pressure"
+      ]
+    },
+    {
+      "name": "6.2 Input & Control Refinement",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Ensure flawless gamepad support with remapping, deadzone configuration, and simultaneous keyboard+gamepad for local co-op.",
+      "tasks": [
+        "Full controller remapping menu",
+        "Deadzone and sensitivity sliders",
+        "Local co-op: multiple gamepad + keyboard support"
+      ]
+    },
+    {
+      "name": "6.3 Bug Fixing & Balance Pass",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting across browsers and devices. Balance weapon damage, enemy HP scaling, and powerup drop rates.",
+      "tasks": [
+        "Adjust scaling for 2+ player co-op",
+        "Fix any desync or ghost collision issues",
+        "Mobile browser compatibility test"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Retro CRT Arcade Suite - Win95 Engine + Left Side Fullscreen</title>
+    <style>
+        * { box-sizing: border-box; user-select: none; }
+        html, body { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: #114499;
+            overflow: hidden;
+            font-family: 'Tahoma', 'Courier New', sans-serif;
+            -webkit-font-smoothing: none;
+        }
+        
+        .game-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            border: none;
+            z-index: 1;
+            filter: contrast(1) blur(0px); 
+            will-change: filter;
+            transition: filter 0.05s linear;
+        }
+
+        .crt-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            pointer-events: none; 
+            mix-blend-mode: multiply;
+            opacity: 0.95;
+        }
+
+        /* ========== RIGHT SIDE (Menu Button + Trigger Zone) ========== */
+        /* Invisible zone to trigger the top-right action buttons (menu only) */
+        .win95-trigger-zone-right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 99;
+            background: transparent;
+        }
+
+        /* Menu button (">") stays on the right side */
+        .win95-menu-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 101;
+            background: #9c9c9c;
+            color: #000000;
+            border: 2px solid;
+            border-color: #ffffff #404040 #404040 #ffffff;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            font-family: 'Tahoma', 'Courier New', monospace;
+            box-sizing: border-box;
+        }
+
+        /* Right trigger zone hover reveals menu button */
+        .win95-trigger-zone-right:hover + .win95-menu-btn,
+        .win95-menu-btn:hover {
+            opacity: 1 !important;
+        }
+
+        /* ========== LEFT SIDE (Fullscreen Button + Trigger Zone) ========== */
+        /* Left side invisible trigger zone */
+        .win95-trigger-zone-left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 99;
+            background: transparent;
+        }
+
+        /* Fullscreen button (⛶) on the left side */
+        .win95-fs-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: #9c9c9c;
+            color: #000000;
+            border: 2px solid;
+            border-color: #ffffff #404040 #404040 #ffffff;
+            width: 28px;
+            height: 28px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            font-family: 'Tahoma', 'Courier New', monospace;
+            box-sizing: border-box;
+            padding-bottom: 2px;
+        }
+
+        /* Left trigger zone hover reveals fullscreen button */
+        .win95-trigger-zone-left:hover + .win95-fs-btn,
+        .win95-fs-btn:hover {
+            opacity: 1 !important;
+        }
+
+        /* Active (pressed) state for both buttons */
+        .win95-menu-btn:active, .win95-fs-btn:active {
+            border-color: #404040 #ffffff #ffffff #404040;
+            padding-top: 2px;
+            padding-left: 2px;
+        }
+
+        /* Hide menu button when panel is open (override) */
+        .win95-menu-btn.hidden-override {
+            display: none !important;
+        }
+        
+        /* Fullscreen button never hides, only fades */
+        
+        /* Windows 95 Style Side Panel Window Container */
+        .win95-window {
+            position: absolute;
+            top: 15px;
+            right: -340px; 
+            width: 310px;
+            background: #9c9c9c;
+            border: 2px solid;
+            border-color: #ffffff #404040 #404040 #ffffff;
+            padding: 3px;
+            z-index: 100;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+            transition: right 0.2s steps(4, end);
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .win95-window.open {
+            right: 15px;
+        }
+
+        .win95-titlebar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: #ffffff;
+            padding: 3px 4px 4px 6px;
+            font-weight: bold;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: default;
+            user-select: none;
+        }
+
+        .win95-close-x {
+            background: #9c9c9c;
+            color: #000000;
+            border: 1px solid;
+            border-color: #ffffff #404040 #404040 #ffffff;
+            font-size: 11px;
+            width: 16px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding-bottom: 2px;
+            font-weight: bold;
+        }
+
+        .win95-close-x:active {
+            border-color: #404040 #ffffff #ffffff #404040;
+            padding: 0px 0px 1px 1px;
+        }
+
+        .win95-body {
+            padding: 12px;
+            overflow-y: auto;
+            color: #000000;
+            font-size: 12px;
+        }
+
+        .setting-group {
+            margin-bottom: 12px;
+        }
+
+        .setting-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+
+        .setting-group input[type="range"] {
+            width: 100%;
+            margin: 4px 0;
+            background: #404040;
+            height: 4px;
+        }
+
+        .setting-group select {
+            width: 100%;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid;
+            border-color: #404040 #ffffff #ffffff #404040;
+            padding: 2px;
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .setting-group input[type="text"] {
+            width: 100%;
+            background: #ffffff;
+            color: #000000;
+            border: 2px solid;
+            border-color: #404040 #ffffff #ffffff #404040;
+            padding: 4px;
+            font-family: inherit;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .setting-val {
+            float: right;
+            font-size: 11px;
+            background: #ffffff;
+            color: #000000;
+            padding: 0px 3px;
+            border: 1px solid #404040;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #404040;
+            border-bottom: 1px solid #ffffff;
+            margin: 12px 0;
+        }
+        
+        .win95-menu-btn, .win95-fs-btn {
+            box-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game Engine Frame Interface -->
+    <iframe id="gameFrame" class="game-frame" src="https://buildwithstar.com" width="100%" height="600" frameborder="0" allowfullscreen></iframe>
+    
+    <!-- Dynamic CRT Composite Filter Panel -->
+    <canvas id="crtCanvas" class="crt-overlay"></canvas>
+
+    <!-- ========== RIGHT SIDE: Menu Trigger Zone & Button ========== -->
+    <div class="win95-trigger-zone-right" id="triggerZoneRight"></div>
+    <button class="win95-menu-btn" id="toggleBtn">&gt;</button>
+    
+    <!-- ========== LEFT SIDE: Fullscreen Trigger Zone & Button ========== -->
+    <div class="win95-trigger-zone-left" id="triggerZoneLeft"></div>
+    <button class="win95-fs-btn" id="fullscreenBtn">⛶</button>
+
+    <!-- Windows 95 Dialog Box Frame Layout (Settings Panel) -->
+    <div class="win95-window" id="controlPanel">
+        <div class="win95-titlebar">
+            <span>CrtProperties</span>
+            <button class="win95-close-x" id="closeBtn">×</button>
+        </div>
+        <div class="win95-body">
+            
+            <!-- Live Game Loader Module -->
+            <div class="setting-group">
+                <label>Active Game ROM URL</label>
+                <input type="text" id="paramUrl" value="https://buildwithstar.com" placeholder="Paste game link here...">
+            </div>
+
+            <hr>
+            
+            <div class="setting-group">
+                <label>Scanline Count <span class="setting-val" id="scaleVal">640</span></label>
+                <input type="range" id="paramScale" min="200" max="1400" step="10" value="640">
+            </div>
+
+            <div class="setting-group">
+                <label>Scanline Opacity <span class="setting-val" id="darkVal">0.25</span></label>
+                <input type="range" id="paramDarkness" min="0.0" max="1.0" step="0.05" value="0.25">
+            </div>
+
+            <hr>
+
+            <div class="setting-group">
+                <label>Screen Softness (Blur) <span class="setting-val" id="blurVal">0.0</span></label>
+                <input type="range" id="paramBlur" min="0.0" max="4.0" step="0.1" value="0.0">
+            </div>
+
+            <div class="setting-group">
+                <label>Game Sharpness <span class="setting-val" id="sharpVal">1.0</span></label>
+                <input type="range" id="paramSharp" min="1.0" max="2.5" step="0.05" value="1.0">
+            </div>
+
+            <hr>
+
+            <div class="setting-group">
+                <label>Shadowmask Style Configuration</label>
+                <select id="paramMaskType">
+                    <option value="0">Aperture Grille (RGB Triads)</option>
+                    <option value="1">Fine Dot Mask (Honeycomb Grid)</option>
+                    <option value="2">VGA Monitor (High-Res Lines)</option>
+                </select>
+            </div>
+
+            <div class="setting-group">
+                <label>Shadowmask Weight <span class="setting-val" id="maskVal">0.40</span></label>
+                <input type="range" id="paramMask" min="0.0" max="1.0" step="0.05" value="0.40">
+            </div>
+
+            <div class="setting-group">
+                <label>60Hz Rolling Flicker <span class="setting-val" id="flickerVal">0.02</span></label>
+                <input type="range" id="paramFlicker" min="0.0" max="0.1" step="0.005" value="0.02">
+            </div>
+
+            <div class="setting-group">
+                <label>Tube Barrel Distortion <span class="setting-val" id="warpVal">0.08</span></label>
+                <input type="range" id="paramWarp" min="0.0" max="0.3" step="0.01" value="0.08">
+            </div>
+
+            <div class="setting-group">
+                <label>Rolling Sweep Bars <span class="setting-val" id="sweepVal">0.05</span></label>
+                <input type="range" id="paramSweep" min="0.0" max="0.2" step="0.01" value="0.05">
+            </div>
+
+            <hr>
+
+            <div class="setting-group">
+                <label>Color Profile Systems</label>
+                <select id="paramColorMode">
+                    <option value="0">Full RGB Standard Color</option>
+                    <option value="1">P3 Vintage Amber Phosphor</option>
+                    <option value="2">P1 Retro Green Matrix</option>
+                    <option value="3">Monochrome Grayscale Paper</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // DOM elements
+            const controlPanel = document.getElementById('controlPanel');
+            const toggleBtn = document.getElementById('toggleBtn');      // menu button ">" (right side)
+            const closeBtn = document.getElementById('closeBtn');
+            const gameFrame = document.getElementById('gameFrame');
+            const triggerZoneRight = document.getElementById('triggerZoneRight');
+            const inputUrl = document.getElementById('paramUrl');
+            
+            // Fullscreen button (left side)
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const triggerZoneLeft = document.getElementById('triggerZoneLeft');
+
+            // --- Panel visibility logic (original behavior) ---
+            toggleBtn.addEventListener('click', () => {
+                controlPanel.classList.add('open');
+                toggleBtn.classList.add('hidden-override');   // hide menu button when panel open
+                if (triggerZoneRight) triggerZoneRight.style.display = 'none';
+            });
+            
+            closeBtn.addEventListener('click', () => {
+                controlPanel.classList.remove('open');
+                toggleBtn.classList.remove('hidden-override');
+                if (triggerZoneRight) triggerZoneRight.style.display = 'block';
+            });
+
+            // Smart Router: Intercept changes to the text box
+            inputUrl.addEventListener('change', () => {
+                let targetUrl = inputUrl.value.trim();
+                if (!targetUrl) return;
+
+                if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+                    targetUrl = 'https://' + targetUrl;
+                }
+
+                if (targetUrl.includes('buildwithstar.com') && !targetUrl.endsWith('/embed')) {
+                    targetUrl = targetUrl.replace(/\/$/, "") + '/embed';
+                }
+
+                gameFrame.src = targetUrl;
+            });
+
+            // --- FULLSCREEN FUNCTIONALITY (Left Side Button) ---
+            function isFullscreenActive() {
+                return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+            }
+
+            // Visual feedback for fullscreen button (pressed look when active)
+            function updateFullscreenButtonVisual() {
+                if (isFullscreenActive()) {
+                    fullscreenBtn.style.borderColor = "#404040 #ffffff #ffffff #404040";
+                    fullscreenBtn.style.background = "#7c7c7c";
+                    fullscreenBtn.style.paddingTop = "2px";
+                    fullscreenBtn.style.paddingLeft = "2px";
+                } else {
+                    fullscreenBtn.style.borderColor = "#ffffff #404040 #404040 #ffffff";
+                    fullscreenBtn.style.background = "#9c9c9c";
+                    fullscreenBtn.style.paddingTop = "0px";
+                    fullscreenBtn.style.paddingLeft = "0px";
+                }
+            }
+
+            async function toggleFullscreen() {
+                try {
+                    if (isFullscreenActive()) {
+                        // exit fullscreen
+                        if (document.exitFullscreen) {
+                            await document.exitFullscreen();
+                        } else if (document.webkitExitFullscreen) {
+                            await document.webkitExitFullscreen();
+                        } else if (document.mozCancelFullScreen) {
+                            await document.mozCancelFullScreen();
+                        } else if (document.msExitFullscreen) {
+                            await document.msExitFullscreen();
+                        } else {
+                            console.warn("Fullscreen exit not supported");
+                        }
+                    } else {
+                        // Enter fullscreen on the documentElement (entire browser viewport)
+                        const rootElement = document.documentElement;
+                        if (rootElement.requestFullscreen) {
+                            await rootElement.requestFullscreen();
+                        } else if (rootElement.webkitRequestFullscreen) {
+                            await rootElement.webkitRequestFullscreen();
+                        } else if (rootElement.mozRequestFullScreen) {
+                            await rootElement.mozRequestFullScreen();
+                        } else if (rootElement.msRequestFullscreen) {
+                            await rootElement.msRequestFullscreen();
+                        } else if (gameFrame.requestFullscreen) {
+                            await gameFrame.requestFullscreen();
+                        } else {
+                            alert("Your browser does not support fullscreen mode.");
+                        }
+                    }
+                    updateFullscreenButtonVisual();
+                    // ensure canvas resize after fullscreen toggle
+                    setTimeout(() => {
+                        if (window.dispatchEvent) {
+                            window.dispatchEvent(new Event('resize'));
+                        }
+                    }, 50);
+                } catch (err) {
+                    console.warn("Fullscreen request failed: ", err);
+                    updateFullscreenButtonVisual();
+                }
+            }
+
+            // monitor fullscreen changes from other keys (F11, etc.)
+            function onFullscreenChange() {
+                updateFullscreenButtonVisual();
+                // resize the WebGL canvas overlay to match new dimensions
+                const canvasElem = document.getElementById('crtCanvas');
+                if (canvasElem && canvasElem.getContext) {
+                    canvasElem.width = window.innerWidth;
+                    canvasElem.height = window.innerHeight;
+                    const glContext = canvasElem.getContext('webgl');
+                    if (glContext) glContext.viewport(0, 0, canvasElem.width, canvasElem.height);
+                }
+                window.dispatchEvent(new Event('resize'));
+            }
+
+            document.addEventListener('fullscreenchange', onFullscreenChange);
+            document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+            document.addEventListener('mozfullscreenchange', onFullscreenChange);
+            document.addEventListener('MSFullscreenChange', onFullscreenChange);
+            
+            // attach click event for fullscreen button
+            fullscreenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleFullscreen();
+            });
+
+            // initial visual sync
+            updateFullscreenButtonVisual();
+
+            // ========== CRT WebGL Engine (full code, with robust overlay) ==========
+            const sliderScale = document.getElementById('paramScale');
+            const sliderDark = document.getElementById('paramDarkness');
+            const sliderBlur = document.getElementById('paramBlur');
+            const sliderSharp = document.getElementById('paramSharp');
+            const selectMaskType = document.getElementById('paramMaskType');
+            const sliderMask = document.getElementById('paramMask');
+            const sliderFlicker = document.getElementById('paramFlicker');
+            const sliderWarp = document.getElementById('paramWarp');
+            const sliderSweep = document.getElementById('paramSweep');
+            const selectColorMode = document.getElementById('paramColorMode');
+
+            const labelScale = document.getElementById('scaleVal');
+            const labelDark = document.getElementById('darkVal');
+            const labelBlur = document.getElementById('blurVal');
+            const labelSharp = document.getElementById('sharpVal');
+            const labelMask = document.getElementById('maskVal');
+            const labelFlicker = document.getElementById('flickerVal');
+            const labelWarp = document.getElementById('warpVal');
+            const labelSweep = document.getElementById('sweepVal');
+
+            const canvas = document.getElementById('crtCanvas');
+            const gl = canvas.getContext('webgl');
+            if (!gl) { console.error('WebGL Subsystem Offline.'); }
+            else {
+                console.log("WebGL initialized for CRT overlays");
+            }
+
+            const vsSource = `
+                attribute vec2 position;
+                varying vec2 vUv;
+                void main() {
+                    vUv = position * 0.5 + 0.5;
+                    vUv.y = 1.0 - vUv.y;
+                    gl_Position = vec4(position, 0.0, 1.0);
+                }
+            `;
+
+            const fsSource = `
+                precision highp float;
+                varying vec2 vUv;
+                
+                uniform vec2 uVirtualRes;
+                uniform float uDarkness;
+                uniform float uMaskStrength;
+                uniform int uMaskType;
+                uniform float uFlicker;
+                uniform float uWarp;
+                uniform float uSweep;
+                uniform int uColorMode;
+                uniform float uTime;
+
+                vec2 warpCoordinates(vec2 uv, float bend) {
+                    if (bend == 0.0) return uv;
+                    vec2 dc = uv - 0.5;
+                    float dist = dot(dc, dc);
+                    dc *= 1.0 + dist * bend * (1.0 + dist * bend);
+                    return dc + 0.5;
+                }
+
+                void main() {
+                    vec2 warpedUv = warpCoordinates(vUv, uWarp);
+                    
+                    if (warpedUv.x < 0.0 || warpedUv.x > 1.0 || warpedUv.y < 0.0 || warpedUv.y > 1.0) {
+                        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+                        return;
+                    }
+
+                    vec2 coord = warpedUv * uVirtualRes;
+                    vec3 color = vec3(1.0);
+
+                    // scanline effect: classic dark lines
+                    float scanline = mod(floor(coord.y), 2.0) < 1.0 ? 1.0 : uDarkness;
+                    color *= scanline;
+
+                    vec3 mask = vec3(uMaskStrength);
+                    if (uMaskType == 0) {
+                        float x_mod = mod(floor(coord.x), 3.0);
+                        if (x_mod < 1.0) mask.r = 1.0;
+                        else if (x_mod < 2.0) mask.g = 1.0;
+                        else mask.b = 1.0;
+                    } else if (uMaskType == 1) {
+                        float dotGrid = mod(floor(coord.x) + mod(floor(coord.y), 2.0) * 1.5, 3.0);
+                        if (dotGrid < 1.5) mask = vec3(1.0);
+                    } else {
+                        float vgaGrid = mod(floor(coord.x), 2.0);
+                        if (vgaGrid < 1.0) mask = vec3(1.0);
+                    }
+                    color *= mask;
+
+                    float sweepBar = sin((warpedUv.y * 5.5) - (uTime * 0.008));
+                    if (sweepBar > 0.93) {
+                        color -= uSweep;
+                    }
+
+                    color -= uFlicker;
+
+                    if (uColorMode == 1) {
+                        float gray = dot(color, vec3(0.299, 0.587, 0.114));
+                        color = vec3(gray * 1.0, gray * 0.7, gray * 0.1);
+                    } else if (uColorMode == 2) {
+                        float gray = dot(color, vec3(0.299, 0.587, 0.114));
+                        color = vec3(gray * 0.1, gray * 1.0, gray * 0.2);
+                    } else if (uColorMode == 3) {
+                        float gray = dot(color, vec3(0.299, 0.587, 0.114));
+                        color = vec3(gray);
+                    }
+
+                    color = max(color, 0.0);
+                    gl_FragColor = vec4(color, 1.0);
+                }
+            `;
+
+            function compileShader(gl, source, type) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(shader));
+                }
+                return shader;
+            }
+
+            const vs = compileShader(gl, vsSource, gl.VERTEX_SHADER);
+            const fs = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+
+            const buffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, -1,1, 1,-1, 1,1]), gl.STATIC_DRAW);
+
+            const posLoc = gl.getAttribLocation(program, 'position');
+            const resLoc = gl.getUniformLocation(program, 'uVirtualRes');
+            const darkLoc = gl.getUniformLocation(program, 'uDarkness');
+            const maskLoc = gl.getUniformLocation(program, 'uMaskStrength');
+            const typeLoc = gl.getUniformLocation(program, 'uMaskType');
+            const flickerLoc = gl.getUniformLocation(program, 'uFlicker');
+            const warpLoc = gl.getUniformLocation(program, 'uWarp');
+            const sweepLoc = gl.getUniformLocation(program, 'uSweep');
+            const colorLoc = gl.getUniformLocation(program, 'uColorMode');
+            const timeLoc = gl.getUniformLocation(program, 'uTime');
+
+            function resizeCanvasOverlay() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                if (gl) gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', () => {
+                resizeCanvasOverlay();
+            });
+            resizeCanvasOverlay();
+
+            function drawLoop(time) {
+                if (!gl) return;
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                gl.useProgram(program);
+                
+                gl.enableVertexAttribArray(posLoc);
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+                const scaleY = parseFloat(sliderScale.value);
+                const aspect = canvas.width / canvas.height;
+                const scaleX = scaleY * aspect;
+
+                // update labels
+                labelScale.innerText = Math.round(scaleY);
+                labelDark.innerText = parseFloat(sliderDark.value).toFixed(2);
+                labelBlur.innerText = parseFloat(sliderBlur.value).toFixed(1) + "px";
+                labelSharp.innerText = parseFloat(sliderSharp.value).toFixed(2) + "x";
+                labelMask.innerText = parseFloat(sliderMask.value).toFixed(2);
+                labelFlicker.innerText = parseFloat(sliderFlicker.value).toFixed(3);
+                labelWarp.innerText = parseFloat(sliderWarp.value).toFixed(2);
+                labelSweep.innerText = parseFloat(sliderSweep.value).toFixed(2);
+
+                const blurAmount = parseFloat(sliderBlur.value);
+                const contrastAmount = parseFloat(sliderSharp.value);
+                gameFrame.style.filter = `contrast(${contrastAmount}) blur(${blurAmount}px)`;
+
+                const flickerRate = parseFloat(sliderFlicker.value);
+                const activeFlicker = Math.sin(time * 0.05) * flickerRate * 0.5;
+
+                gl.uniform2f(resLoc, scaleX, scaleY);
+                gl.uniform1f(darkLoc, parseFloat(sliderDark.value));
+                gl.uniform1f(maskLoc, parseFloat(sliderMask.value));
+                gl.uniform1i(typeLoc, parseInt(selectMaskType.value));
+                gl.uniform1f(flickerLoc, Math.abs(activeFlicker) * 0.8);
+                gl.uniform1f(warpLoc, parseFloat(sliderWarp.value));
+                gl.uniform1f(sweepLoc, parseFloat(sliderSweep.value));
+                gl.uniform1i(colorLoc, parseInt(selectColorMode.value));
+                gl.uniform1f(timeLoc, time);
+                
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(drawLoop);
+            }
+            requestAnimationFrame(drawLoop);
+
+            // ensure that trigger zones behave correctly after panel open/close
+            function maintainTriggerZones() {
+                if (controlPanel.classList.contains('open')) {
+                    toggleBtn.classList.add('hidden-override');
+                    if (triggerZoneRight) triggerZoneRight.style.display = 'none';
+                } else {
+                    toggleBtn.classList.remove('hidden-override');
+                    if (triggerZoneRight) triggerZoneRight.style.display = 'block';
+                }
+                // left trigger zone always remains (fullscreen independent)
+                if (triggerZoneLeft) triggerZoneLeft.style.display = 'block';
+            }
+            
+            window.addEventListener('fullscreenchange', maintainTriggerZones);
+            window.addEventListener('resize', maintainTriggerZones);
+            maintainTriggerZones();
+        })();
+    </script>
+</body>
+</html>

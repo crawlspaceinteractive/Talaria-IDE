@@ -1,0 +1,82 @@
+{
+  "id": "phase7",
+  "icon": "👻",
+  "title": "Phase 7 – Ghost Goblin Chieftain & Puzzle Vaults",
+  "systems": [
+    {
+      "name": "7.1 NPC Dialogue & Quest System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_0", "phase4_4", "phase6_2"],
+      "notes": "Introduces the Ghost Goblin Chieftain NPC and a quest management system. Quests are shared per world (co-op). Dialogue UI uses procedural brass panels. Blueprint rewards tie into Tub's forge (Phase 4).",
+      "tasks": [
+        {
+          "text": "QuestManager: active/completed state (per world?)",
+          "priority": "high",
+          "notes": "Host-authoritative; sync quest states to all clients."
+        },
+        {
+          "text": "Dialogue UI (procedural brass panel)",
+          "priority": "high",
+          "notes": "Multiple choice responses; character portrait possible."
+        },
+        {
+          "text": "Fetch/repair quests; grant blueprints or items on completion",
+          "priority": "high",
+          "notes": "Quests involve retrieving items or activating ancient machinery."
+        }
+      ]
+    },
+    {
+      "name": "7.2 Environmental Puzzle Controller",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 28,
+      "dependencies": ["phase2_1", "phase4_1", "phase7_0"],
+      "notes": "Puzzle vaults sealed by the Chieftain. No combat — each puzzle uses existing hazard and building mechanics in creative ways. Failure costs resources or teleports the team out; puzzles reset.",
+      "tasks": [
+        {
+          "text": "Crystal Heart: drilling sequence, pressure gauges",
+          "priority": "high",
+          "notes": "Precision drilling puzzle; gauges show stress; must keep balance."
+        },
+        {
+          "text": "Furnace Bellows: lava flow redirect puzzle",
+          "priority": "high",
+          "notes": "Use block placement and steam vents to guide lava to the correct channels."
+        },
+        {
+          "text": "Mirror Maze: dark/light zones, suit lamp interaction",
+          "priority": "medium",
+          "notes": "Suit lamps create safe paths; staying in darkness drains fuel rapidly."
+        },
+        {
+          "text": "Failure: resource loss or teleport, puzzle resets",
+          "priority": "medium",
+          "notes": "Never a game over; team can retry after recovering."
+        }
+      ]
+    },
+    {
+      "name": "7.3 Flag Planting Milestone",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase1_0", "phase6_2"],
+      "notes": "Players plant a flag on claimed sky-castles. Acts as a permanent visual trophy and fast-travel point. Host tracks which islands are claimed.",
+      "tasks": [
+        {
+          "text": "Placeable flag model (like block placement)",
+          "priority": "medium",
+          "notes": "Uses custom flag model; snaps to specific pedestal locations."
+        },
+        {
+          "text": "Host tracks claimed islands, visual team colour",
+          "priority": "medium",
+          "notes": "Flag colour reflects the team who claimed it."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "id": "phase2",
+  "icon": "🌐",
+  "title": "Phase 2 – Multiplayer & Netcode Hardening",
+  "systems": [
+    {
+      "name": "2.1 Reconnection & Host Migration",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Players who disconnect mid-run can rejoin and recover their state. If host disconnects, client with best ping becomes new host and game resumes without restart.",
+      "tasks": [
+        "Server snapshot serialization for rejoining players",
+        "Host migration handshake and state transfer",
+        "Rejoin grace period and spectator lock",
+        "Prevent inventory/trinket loss on migration"
+      ]
+    },
+    {
+      "name": "2.2 Net Performance & Prediction",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0"],
+      "notes": "Reduce perceived latency with client-side prediction for movement and shooting. Send only delta updates for snapshot to reduce bandwidth.",
+      "tasks": [
+        "Client-side movement prediction and server reconciliation",
+        "Fire input prediction with server correction for missed shots",
+        "Delta snapshots instead of full state broadcast",
+        "Adaptive update rate based on player action intensity"
+      ]
+    },
+    {
+      "name": "2.3 Co-op Features & Communication",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_0"],
+      "notes": "Expand co-op interactions: revive mechanic (carry downed player to healing station), shared inventory chests, pinging system.",
+      "tasks": [
+        "Dragging downed teammate to revive point",
+        "Shared loot chests accessible by all players",
+        "Quick-ping system for highlighting enemies/items",
+        "Voice chat integration (optional)"
+      ]
+    }
+  ]
+}

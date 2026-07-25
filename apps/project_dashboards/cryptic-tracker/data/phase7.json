@@ -1,0 +1,47 @@
+{
+  "id": "phase7",
+  "icon": "🩸",
+  "title": "Phase 7 – Polish & Release",
+  "systems": [
+    {
+      "name": "7.1 Performance & Compatibility",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Software rasterizer must run smoothly with multiple 3D objects on top of high‑res backgrounds. Optimize projection and depth sort.",
+      "tasks": [
+        "Profile rendering loop",
+        "Background image compression",
+        "Reduce GLB vertex count for performance",
+        "Mobile browser compatibility test"
+      ]
+    },
+    {
+      "name": "7.2 Bug Fixing & Polish",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting. Fix camera transition jank, collision issues, and enemy AI edge cases.",
+      "tasks": [
+        "Camera switch pop/collision fixes",
+        "Item combination logic verification",
+        "Boss fight balance and exploits"
+      ]
+    },
+    {
+      "name": "7.3 Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package as standalone HTML. Deploy to itch.io. Prepare a spooky trailer.",
+      "tasks": [
+        "Offline build with all assets inlined",
+        "itch.io page and description",
+        "Release trailer and screenshots"
+      ]
+    }
+  ]
+}

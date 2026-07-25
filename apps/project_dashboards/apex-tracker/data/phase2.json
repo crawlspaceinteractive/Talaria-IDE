@@ -1,0 +1,49 @@
+{
+  "id": "phase2",
+  "icon": "🛤️",
+  "title": "Phase 2 – Track Generation & Environment",
+  "systems": [
+    {
+      "name": "2.1 Spline-Based Track Generator",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Generate track layouts from Catmull-Rom splines. Use Voronoi island system as floating raceway segments.",
+      "tasks": [
+        "Spline editor or procedural generation",
+        "Varying width, banking, and elevation",
+        "Segment types: straight, curve, hairpin, chicane",
+        "Export to track data format for renderer"
+      ]
+    },
+    {
+      "name": "2.2 Environment & Biome Decor",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0"],
+      "notes": "Leverage existing Voronoi islands and biome decors. Add racing‑themed props (barriers, signs, lights).",
+      "tasks": [
+        "Track-side barrier rails and cones",
+        "Direction signs and checkpoint markers",
+        "Nighttime neon glow and streetlamps",
+        "Biome integration: desert, city, neon, volcano"
+      ]
+    },
+    {
+      "name": "2.3 Track Hazards & Obstacles",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_0"],
+      "notes": "Add oil slicks, boost pads, speed ramps, and destructible barriers.",
+      "tasks": [
+        "Boost pad trigger with speed multiplier",
+        "Oil slick physics (reduce grip)",
+        "Destructible crates and barrels",
+        "Moving obstacles on track"
+      ]
+    }
+  ]
+}

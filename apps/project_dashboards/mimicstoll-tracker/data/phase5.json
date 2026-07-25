@@ -1,0 +1,49 @@
+{
+  "id": "phase5",
+  "icon": "🏚️",
+  "title": "Phase 5 – Dungeon & Environment Design",
+  "systems": [
+    {
+      "name": "5.1 Procedural Dungeon Generation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_1"],
+      "notes": "Each chapter features a procedurally generated dungeon with rooms, corridors, and set pieces. Dungeons must support stealth gameplay with multiple paths.",
+      "tasks": [
+        "Implement BSP or room-placement dungeon generator",
+        "Generate multiple room types (chamber, hallway, vault, crypt)",
+        "Place interactive objects (chests, crates, torches, traps)",
+        "Ensure multiple viable paths through each dungeon"
+      ]
+    },
+    {
+      "name": "5.2 Environmental Traps & Hazards",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase5_0"],
+      "notes": "Place traps throughout the dungeon. The Mimic can use them for ambushes. Ghosts can trigger them against the Mimic.",
+      "tasks": [
+        "Trap types: spike pits, poison gas, falling rocks, flame jets",
+        "Trap triggers: pressure plates, tripwires, proximity",
+        "Mimic can bait players into traps",
+        "Ghosts can remotely trigger traps"
+      ]
+    },
+    {
+      "name": "5.3 Prop & Object System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase5_0", "phase3_0"],
+      "notes": "Populate dungeons with objects the Mimic can possess. Objects should be varied and naturally placed.",
+      "tasks": [
+        "Object types: chests, crates, barrels, torches, statues, armour stands",
+        "Object placement logic: natural clusters, varied density",
+        "Objects must have collision and LOS-blocking properties",
+        "Visual polish: objects look like normal dungeon props"
+      ]
+    }
+  ]
+}

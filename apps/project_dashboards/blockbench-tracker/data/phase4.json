@@ -1,0 +1,51 @@
+{
+  "id": "phase4",
+  "icon": "🎞️",
+  "title": "Phase 4 – Animation",
+  "systems": [
+    {
+      "name": "4.1 Keyframe Animation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 2,
+      "dependencies": [],
+      "notes": "Learn the animation timeline, keyframes, and interpolation.",
+      "tasks": [
+        {
+          "text": "Watch the official animation tutorial",
+          "link": "https://www.youtube.com/watch?v=6wC2xvV8VrY"
+        },
+        "Create a simple idle animation (bobbing up and down)",
+        "Animate a walk cycle with at least 4 keyframes",
+        "Use the graph editor to refine easing"
+      ]
+    },
+    {
+      "name": "4.2 Rigging Basics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1.5,
+      "dependencies": ["phase4_0"],
+      "notes": "Add bones to a model and weight‑paint influence.",
+      "tasks": [
+        "Create a skeleton for a humanoid model",
+        "Bind the mesh to the armature",
+        "Weight‑paint the vertices to bones",
+        "Test the rig with a simple pose"
+      ]
+    },
+    {
+      "name": "4.3 Animated Textures & Effects",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 1,
+      "dependencies": ["phase3_0"],
+      "notes": "Use frame‑by‑frame textures to create glowing eyes, flipping pages, etc.",
+      "tasks": [
+        "Create a texture with multiple frames",
+        "Assign the animated texture to a model’s face",
+        "Play back the animation in the viewport"
+      ]
+    }
+  ]
+}

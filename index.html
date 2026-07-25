@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talaria Workstation v1.95 // Core Window Server</title>
+    <style>
+        /* Talaria Industrial Design System // WinSTEP Hybrid */
+        :root {
+            --win-bg: #114499;
+            --face: #c9c9c9;
+            --hilite: #ffffff;
+            --shadow: #808080;
+            --dark-shadow: #0a0a0a;
+            --bar-blue: #000080;
+            --bar-blue-txt: #ffffff;
+            --screen-bg: #000000;
+            --vfd-bg: #0d0800;
+            --vfd-glow: #ffb000;
+            --vfd-interrupt: #00ff55;
+            --font-stack: "Courier New", Courier, monospace;
+        }
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: var(--font-stack); font-size: 11px;
+            image-rendering: pixelated;
+            -webkit-font-smoothing: none;
+            -moz-osx-font-smoothing: none;
+            font-smooth: never;
+        }
+
+        body, html {
+            width: 100%; height: 100%; background-color: var(--win-bg);
+            overflow: hidden; display: flex; justify-content: center; align-items: flex-start;
+        }
+
+        #talaria-shell {
+            width: 1024px; height: 728px; max-height: 100vh;
+            background-color: var(--face); border: 2px solid;
+            border-top-color: var(--hilite); border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); border-bottom-color: var(--dark-shadow);
+            padding: 3px; box-shadow: 2px 2px 0px var(--shadow);
+            display: flex; flex-direction: column; position: relative;
+        }
+
+        #talaria-shell:fullscreen {
+            width: 100vw; height: 100vh; max-height: 100vh;
+            padding: 10px; display: flex; flex-direction: column;
+            background-color: var(--win-bg);
+        }
+
+        /* Hardware Multimedia Deck */
+        #kernel-audio-deck {
+            height: 38px; max-height: 38px; background-color: var(--face); border-bottom: 2px solid var(--shadow);
+            display: flex; align-items: center; gap: 8px; padding: 2px 4px 6px 4px; flex-shrink: 0;
+        }
+        .audio-hardware-controls { display: flex; gap: 4px; flex-shrink: 0; align-items: center; }
+        .vfd-display {
+            background-color: var(--vfd-bg); border: 2px solid;
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            height: 26px; max-height: 26px; flex: 1; display: flex; align-items: center; overflow: hidden; position: relative;
+        }
+        .marquee-wrapper { width: 100%; overflow: hidden; white-space: nowrap; }
+        .marquee-text {
+            display: inline-block; color: var(--vfd-glow); font-weight: bold; letter-spacing: 1px;
+            text-shadow: 0 0 3px rgba(255, 176, 0, 0.5); padding-left: 100%;
+            animation: marquee-scroll 16s linear infinite;
+            line-height: 12px;
+        }
+        .marquee-text.sys-interrupt {
+            color: var(--vfd-interrupt);
+            text-shadow: 0 0 4px rgba(0, 255, 85, 0.6);
+        }
+
+        @keyframes marquee-scroll {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        .btn-deck {
+            background-color: var(--face); border: 2px solid;
+            border-top-color: var(--hilite); border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); border-bottom-color: var(--dark-shadow);
+            padding: 2px 6px; font-weight: bold; cursor: pointer; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+            user-select: none;
+        }
+        .btn-deck:active {
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            padding: 3px 5px 1px 7px;
+        }
+        .btn-cd { background-color: #8fa3a3; color: #000; min-width: 38px; }
+        .btn-fs { background-color: #a38fa3; color: #000; font-size: 10px; padding: 2px 4px; }
+        #hidden-cd-picker { display: none; }
+        .audio-transport-cluster { display: flex; gap: 2px; }
+
+        /* Structural Framework Overlays */
+        #sys-boot-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--screen-bg); z-index: 9999; padding: 24px;
+            display: flex; flex-direction: column; justify-content: space-between; color: #00ff00;
+        }
+        .boot-logo-area { text-align: center; margin-top: 20px; }
+        .boot-logo-graphic {
+            width: 300px; height: 300px; margin: 0 auto 10px auto; background-color: #ffffff;
+            -webkit-mask-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 216 233'%3E%3Cpath fill='black' d='M108 0L90 18H0v215h216V18h-90zM22 40h172v172H22zM80 60v10h10V60zM60 80h10v10H60zM100 80v10h10V80zM80 100v10h10V100zM120 100v10h10V100zM140 100v10h10V140zM60 120h10v10H60zM100 120v10h10V120zM140 120h10v10H140zM80 140v10h10V140z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 216 233'%3E%3Cpath fill='black' d='M108 0L90 18H0v215h216V18h-90zM22 40h172v172H22zM80 60v10h10V60zM60 80h10v10H60zM100 80v10h10V80zM80 100v10h10V100zM120 100v10h10V100zM140 100v10h10V140zM60 120h10v10H60zM100 120v10h10V120zM140 120h10v10H140zM80 140v10h10V140z'/%3E%3C/svg%3E");
+            -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;
+        }
+        .boot-logo-text { font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #ffffff; }
+        .boot-bar-track { width: 300px; height: 12px; border: 1px solid #00ff00; margin: 20px auto; padding: 1px; }
+        .boot-bar-fill { width: 0%; height: 100%; background-color: #00ff00; transition: width 0.05s linear; }
+        .boot-terminal-log { height: 140px; overflow-y: hidden; line-height: 14px; color: #88ff88; }
+
+        .title-bar { background: linear-gradient(90deg, var(--bar-blue), #1084d0); color: var(--bar-blue-txt); padding: 4px 6px; font-weight: bold; flex-shrink: 0; }
+
+        /* Master Workspace Geometry Grid */
+        .workspace-grid { flex: 1; display: grid; grid-template-columns: 260px 1fr; gap: 4px; padding-top: 4px; overflow: hidden; }
+        .panel { border: 2px solid; border-top-color: var(--shadow); border-left-color: var(--shadow); border-right-color: var(--hilite); border-bottom-color: var(--hilite); background-color: var(--face); display: flex; flex-direction: column; overflow: hidden; }
+        .panel-header { background-color: #808080; color: #ffffff; padding: 2px 6px; font-weight: bold; text-transform: uppercase; }
+
+        /* Miller Columns */
+        .miller-container { flex: 1; display: flex; background: #ffffff; overflow-x: auto; overflow-y: hidden; }
+        .miller-column { width: 130px; border-right: 1px solid var(--face); overflow-y: auto; flex-shrink: 0; }
+        .miller-item { padding: 4px 6px; cursor: pointer; color: #000000; white-space: nowrap; user-select: none; }
+        .miller-item:hover { background-color: #e0e0e0; }
+        .miller-item.selected { background-color: var(--bar-blue); color: #ffffff; }
+
+        /* Diagnostics Subsystem Container */
+        .tree-title { font-weight: bold; padding: 2px 4px; background: #d8d8d8; border-top: 2px solid var(--shadow); border-bottom: 1px solid var(--shadow); }
+        .tree-container { height: 120px; background: #ffffff; overflow-y: auto; padding: 4px; flex-shrink: 0; }
+        .tree-node { padding-left: 12px; color: #1a1a1a; line-height: 16px; user-select: none; }
+
+        /* Target Core Workspace Screen */
+        .app-workspace-tab-container {
+            flex: 1; background-color: #555555; border: 2px solid;
+            border-top-color: var(--shadow); border-left-color: var(--shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            position: relative; overflow: hidden;
+        }
+        .no-app-loaded-splash { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #aaaaaa; text-align: center; font-weight: bold; z-index: 1; pointer-events: none; }
+        .app-iframe-host { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; background: #ffffff; display: none; z-index: 10; }
+        .app-iframe-host.active { display: block; }
+
+        /* Passthrough Native Web Browser Container */
+        #app-NETNAVIGATOR {
+            display: none; flex-direction: column; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--face); z-index: 15;
+        }
+        #app-NETNAVIGATOR.active { display: flex; }
+        .browser-address-deck {
+            display: flex; gap: 4px; padding: 4px; background-color: var(--face);
+            border-bottom: 2px solid var(--shadow); align-items: center; flex-shrink: 0;
+        }
+        .browser-input-field {
+            flex: 1; height: 24px; background-color: #ffffff;
+            border: 2px solid; border-top-color: var(--shadow); border-left-color: var(--shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            padding: 2px 6px; color: #000000; outline: none;
+        }
+        .browser-viewport-frame {
+            flex: 1; border: none; background-color: #ffffff; width: 100%; height: 100%;
+        }
+
+        /* DYNAMIC WINDOW MODALS */
+        .win-modal-layer {
+            position: absolute; top: 60px; left: 300px; width: 480px; height: 360px;
+            background-color: var(--face); border: 2px solid;
+            border-top-color: var(--hilite); border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); border-bottom-color: var(--dark-shadow);
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.4);
+            display: flex; flex-direction: column; z-index: 2000; display: none;
+        }
+        .modal-titlebar {
+            background: linear-gradient(90deg, #505050, #8a8a8a); color: #ffffff;
+            padding: 3px 6px; font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-titlebar.active-modal {
+            background: linear-gradient(90deg, var(--bar-blue), #1084d0);
+        }
+        .btn-modal-close {
+            width: 14px; height: 14px; background-color: var(--face); border: 1px solid;
+            border-top-color: var(--hilite); border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); border-bottom-color: var(--dark-shadow);
+            font-size: 9px; font-weight: bold; color: #000; text-align: center; line-height: 11px;
+            cursor: pointer; user-select: none;
+        }
+        .btn-modal-close:active {
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+        }
+        .modal-body-container {
+            flex: 1; background-color: #ffffff; margin: 4px; padding: 12px;
+            border: 2px solid; border-top-color: var(--shadow); border-left-color: var(--shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            overflow-y: auto; color: #000000; line-height: 16px;
+        }
+        .modal-body-container h1 { font-size: 14px; font-weight: bold; border-bottom: 1px dashed var(--shadow); margin-bottom: 8px; padding-bottom: 2px; }
+        .modal-body-container h2 { font-size: 12px; font-weight: bold; margin: 8px 0 4px 0; }
+        .modal-body-container p { margin-bottom: 8px; }
+        .modal-body-container ul { margin: 4px 0 8px 12px; }
+        .modal-body-container code { background: #f0f0f0; padding: 0 2px; border: 1px solid #d0d0d0; }
+
+        #audio-settings-modal {
+            width: 320px; height: 110px; left: 350px; top: 180px;
+        }
+        .volume-rack-section { padding-bottom: 4px; }
+        .volume-horizontal-row { display: flex; align-items: center; gap: 10px; }
+        .volume-horizontal-row input[type="range"] {
+            flex: 1; height: 16px; outline: none;
+            background-color: #707070;
+            border: 1px solid;
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+        }
+
+        .status-dock { height: 22px; background-color: var(--face); border-top: 1px solid var(--shadow); margin-top: 4px; display: flex; align-items: center; justify-content: space-between; padding: 0px 6px; flex-shrink: 0; }
+
+        /* NodeNet Security Suite Styles */
+        .miller-item.node-security { color: #004b93; font-weight: bold; }
+        .miller-item.node-security::before { content: ""; font-size: 9px; }
+        .miller-item.node-tag { font-size: 9px; color: #555; padding: 1px 6px 3px 6px; border-bottom: 1px solid #d0d0d0; text-transform: uppercase; letter-spacing: 1px; cursor: default; background: #e8e8e8; }
+        .miller-item.node-tag:hover { background-color: #e8e8e8; }
+    </style>
+</head>
+<body>
+    <div id="talaria-shell">
+        <div id="sys-boot-overlay">
+            <div class="boot-logo-area">
+                <div class="boot-logo-graphic"></div>
+                <div class="boot-logo-text">TALARIA WORKSTATION</div>
+                <div style="font-size:10px; color:#66ff66;">Monolithic Kernel Architecture // Master Window Server Core</div>
+                <div class="boot-bar-track"><div class="boot-bar-fill" id="bootFill"></div></div>
+            </div>
+            <div class="boot-terminal-log" id="bootLog"></div>
+        </div>
+
+        <div id="kernel-audio-deck">
+            <div class="audio-hardware-controls">
+                <input type="file" id="hidden-cd-picker" webkitdirectory directory multiple accept="audio/*">
+                <button class="btn-deck btn-cd" id="kernel-cd-mount" title="Mount Audio Block Path">CD</button>
+                <div class="audio-transport-cluster">
+                    <button class="btn-deck" id="kernel-audio-prev">|◀</button>
+                    <button class="btn-deck" id="kernel-audio-play">▶</button>
+                    <button class="btn-deck" id="kernel-audio-pause">▮▮</button>
+                    <button class="btn-deck" id="kernel-audio-next">▶|</button>
+                    <button class="btn-deck" id="kernel-audio-gear" title="Audio Hardware Volume Configuration">⚙</button>
+                </div>
+                <button class="btn-deck btn-fs" id="sys-fullscreen-toggle" title="Toggle Fullscreen Chassis Mode">FULLSCREEN</button>
+            </div>
+            <div class="vfd-display">
+                <div class="marquee-wrapper">
+                    <div class="marquee-text" id="kernel-marquee">MONOLITHIC MULTIMEDIA STORAGE DRIVER LOADED // READY TO MOUNT DISC...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="title-bar">TALARIA ENGINE COMPILER MANAGER // SYSTEM_WORKSPACE_MAIN</div>
+
+        <div class="workspace-grid">
+            <div class="panel">
+                <div class="panel-header">VFS Object Browser</div>
+                <div class="miller-container" id="millerBrowser">
+                    <div class="miller-column" id="col-root">
+                        <div class="miller-item" data-target="apps">apps</div>
+                        <div class="miller-item" data-target="games">games</div>
+                        <div class="miller-item" data-target="modules">modules</div>
+                        <div class="miller-item" data-target="output">output</div>
+                        <div class="miller-item node-security" data-target="security">security</div>
+                    </div>
+                    <div class="miller-column" id="col-sub" style="display:none;"></div>
+                    <div class="miller-column" id="col-files" style="display:none;"></div>
+                </div>
+                <div class="tree-title">System Directory Diagnostics</div>
+                <div class="tree-container">
+                    <div class="tree-node">➔ talaria://corefs/mounted</div>
+                    <div class="tree-node" style="padding-left:24px; color:#000080;">• VFS Allocation: OK</div>
+                    <div class="tree-node" style="padding-left:24px; color:#006600;" id="diagnosticPulse">• Applet Integrity: Idle</div>
+                    <div class="tree-node" style="padding-left:24px; color:#a67300;" id="kernelAudioNode">• Media Driver: Standby</div>
+                    <div class="tree-node" style="padding-left:24px; color:#004b93;" id="modalSubsystemNode">• Dynamic Modal Runtime: Ready</div>
+                    <div class="tree-node" style="padding-left:24px; color:#555;" id="vfsOutputNode">• Last Write: None</div>
+                    <div class="tree-node" style="padding-left:24px; color:#004b93;" id="nodeNetStatusNode">• NodeNet Security Suite: Standby</div>
+                </div>
+            </div>
+
+            <div class="app-workspace-tab-container" id="appWorkspaceHost">
+                <div class="no-app-loaded-splash" id="splashScreen">
+                    TALARIA WORKSTATION SYSTEM CORE<br><br>SELECT A PRODUCTION APPLET TO INITIALIZE WORKSPACE LAYER.
+                </div>
+
+                <!-- Tools -->
+                <iframe class="app-iframe-host" id="app-BUILD2UDMF" src="apps/BUILD2UDMF/build2udmf.html"></iframe>
+                <iframe class="app-iframe-host" id="app-CRTBROWSE" src="apps/CRTBROWSE/CRTBrowse.html"></iframe>
+                <iframe class="app-iframe-host" id="app-DIGITALWALKMAN" src="apps/DIGITALWALKMAN/dataman5000.html"></iframe>
+                <iframe class="app-iframe-host" id="app-MAPEDITOR" src="apps/MAPEDITOR/ide95.html"></iframe>
+                <iframe class="app-iframe-host" id="app-PALETTEJACK" src="apps/PALETTEJACK/PaletteJack.html"></iframe>
+                <iframe class="app-iframe-host" id="app-SPRITESCISSORS" src="apps/SPRITESCISSORS/SplitterIndexer.html"></iframe>
+                <iframe class="app-iframe-host" id="app-TRACKERREMIXER" src="apps/TRACKERREMIXER/TrackerRemixer.html"></iframe>
+                <iframe class="app-iframe-host" id="app-DOOMTRACKER" src="apps/TRACKERREMIXER/doom_tracker.html"></iframe>
+                <iframe class="app-iframe-host" id="app-PDFVIEWER" src="apps/PDFVIEWER/pdf_viewer.html"></iframe>
+                <iframe class="app-iframe-host" id="app-TEXTEDITOR" src="apps/TEXTEDITOR/text_editor.html"></iframe>
+                <iframe class="app-iframe-host" id="app-MODELCRUNCH" src="apps/MODELCRUNCH/modelCRUNCH.html"></iframe>
+                <iframe class="app-iframe-host" id="app-PISKEL" src="apps/PISKEL/piskel.html"></iframe>
+                <iframe class="app-iframe-host" id="app-DJUKEBOX" src="apps/DJUKEBOX/djukebox.html"></iframe>
+                <iframe class="app-iframe-host" id="app-SCENEREND" src="apps/SCENEREND/sceneREND.html"></iframe>
+                <iframe class="app-iframe-host" id="app-DOOMARCMAN" src="apps/DOOMARCMAN/DOOMarcman.html"></iframe>
+                <iframe class="app-iframe-host" id="app-DASHBOARD" src="apps/project_dashboards/dashboard.html"></iframe>
+
+                <!-- Games -->
+                <iframe class="app-iframe-host" id="game-froyo-demo1" src="games/froyo-enginev0.3.0/index.html"></iframe>
+                <iframe class="app-iframe-host" id="game-froyo-demo2" src="games/crawlspaceENGINE_FROYOgameSTABLE/index.html"></iframe>
+                <iframe class="app-iframe-host" id="game-froyo-demo3" src="games/ONHOLDcrawlspace_froyo/index.html"></iframe>
+                <iframe class="app-iframe-host" id="game-goon-demo1" src="games/STABLEraycrawler_GOON/index.html"></iframe>
+                <iframe class="app-iframe-host" id="game-goon-demo2" src="games/BLEEDINGraycrawler_GOON2/index.html"></iframe>
+
+                <!-- Security -->
+                <iframe class="app-iframe-host" id="node-ARTKEY" src="NodeNet/ArtkeyNode/95GUIv2/index.html"></iframe>
+                <iframe class="app-iframe-host" id="node-DEFENSE" src="NodeNet/DefenseNode/index.html"></iframe>
+                <iframe class="app-iframe-host" id="node-PASS" src="NodeNet/PassNode/index.html"></iframe>
+                <iframe class="app-iframe-host" id="node-VOID" src="NodeNet/VoidNode/index.html"></iframe>
+                <iframe class="app-iframe-host" id="node-NAVI" src="NodeNet/NaviNode/index.html"></iframe>
+                <iframe class="app-iframe-host" id="node-SIREN" src="NodeNet/SirenNode/index.html"></iframe>
+
+                <!-- Addons -->
+                <div id="app-NETNAVIGATOR">
+                    <div class="browser-address-deck">
+                        <button class="btn-deck" id="browser-btn-back" style="min-width:24px;">◀</button>
+                        <button class="btn-deck" id="browser-btn-reload" style="min-width:24px;">⟳</button>
+                        <input type="text" class="browser-input-field" id="browser-url-bar" value="https://news.ycombinator.com" placeholder="Enter target URL...">
+                        <button class="btn-deck" id="browser-btn-go">NAVIGATE</button>
+                    </div>
+                    <iframe class="browser-viewport-frame" id="browser-frame-viewport"></iframe>
+                </div>
+            </div>
+        </div>
+
+        <div class="win-modal-layer" id="sys-kernel-modal">
+            <div class="modal-titlebar active-modal" id="modalTitleBar">
+                <span id="modalTitleText">SYSTEM_MODAL_VIEWER</span>
+                <button class="btn-modal-close" id="modalCloseBtn">X</button>
+            </div>
+            <div class="modal-body-container" id="modalBodyPayload"></div>
+        </div>
+
+        <div class="win-modal-layer" id="audio-settings-modal">
+            <div class="modal-titlebar active-modal">
+                <span>HARDWARE_VOLUME_DECK</span>
+                <button class="btn-modal-close" id="audioSettingsCloseBtn">X</button>
+            </div>
+            <div class="modal-body-container">
+                <div class="volume-rack-section">
+                    <strong>SYSTEM MASTER ATTENUATOR (VOLUME)</strong>
+                    <div class="volume-horizontal-row" style="margin-top:6px;">
+                        <span>0%</span>
+                        <input type="range" id="hw-volume-slider" min="0" max="1" step="0.01" value="0.75">
+                        <span>100%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="status-dock">
+            <span id="statusField">Status: System Initialized. Kernel Idle.</span>
+            <span style="color:#555;">SYS_GRID_CLAMPTOP_1024xV</span>
+        </div>
+    </div>
+
+    <script>
+        // Cache DOM references at startup to avoid repeated lookups
+        const $ = (id) => document.getElementById(id);
+
+        const bootFill = $('bootFill');
+        const bootLog = $('bootLog');
+        const bootOverlay = $('sys-boot-overlay');
+        const kernelMarquee = $('kernel-marquee');
+        const statusField = $('statusField');
+        const splashScreen = $('splashScreen');
+        const diagnosticPulse = $('diagnosticPulse');
+        const kernelAudioNode = $('kernelAudioNode');
+        const modalSubsystemNode = $('modalSubsystemNode');
+        const vfsOutputNode = $('vfsOutputNode');
+        const nodeNetStatusNode = $('nodeNetStatusNode');
+
+        const bootLogsArray = [
+            "INIT: Talaria Microkernel v1.95 (Mach/BSD Subsystem executing)...",
+            "CPU: x86-64 Architecture Ring 0 Security... OK",
+            "DRV: Initializing low-level Multimedia Audio Core Engine...",
+            "SYS: Loading dynamic markdown window modal parsing framework...",
+            "NET: Subsystem routing hooks loaded for passthrough engine...",
+            "PROXY: Dynamic DOM Injection proxy client live...",
+            "VFS: Mounting Corefs Volume talaria://corefs/0... OK",
+            "NODENET: Loading DataMan Battle Node System v1.0-R90...",
+            "NODENET: Registering [ArtkeyNode] [DefenseNode] [PassNode]...",
+            "NODENET: Registering [VoidNode] [NaviNode] [SirenNode]... OK",
+            "SYS: Passing control to Desktop Window Server core..."
+        ];
+
+        function executeBoot() {
+            let progress = 0;
+            let currentLogIndex = 0;
+            const stepsPerLog = 100 / bootLogsArray.length;
+
+            const timer = setInterval(() => {
+                progress += 5;
+                if (progress > 100) progress = 100;
+                bootFill.style.width = progress + '%';
+
+                const targetIndex = Math.floor(progress / stepsPerLog);
+                while (currentLogIndex < bootLogsArray.length && currentLogIndex <= targetIndex) {
+                    const line = document.createElement('div');
+                    line.textContent = bootLogsArray[currentLogIndex];
+                    bootLog.appendChild(line);
+                    bootLog.scrollTop = bootLog.scrollHeight;
+                    currentLogIndex++;
+                }
+
+                if (progress >= 100) {
+                    clearInterval(timer);
+                    setTimeout(() => { bootOverlay.style.display = 'none'; }, 150);
+                }
+            }, 15);
+        }
+
+        // --- HARDWARE CORE KERNEL AUDIO DRIVER ---
+        let audioPlaylist = [];
+        let currentTrackIndex = -1;
+        let audioNodeElement = null;
+        let webAudioCtx = null;
+        let masterGainNode = null;
+
+        function initKernelAudioDriver() {
+            const mountBtn = $('kernel-cd-mount');
+            const hiddenPicker = $('hidden-cd-picker');
+            const playBtn = $('kernel-audio-play');
+            const pauseBtn = $('kernel-audio-pause');
+            const prevBtn = $('kernel-audio-prev');
+            const nextBtn = $('kernel-audio-next');
+            const gearBtn = $('kernel-audio-gear');
+            const settingsModal = $('audio-settings-modal');
+            const settingsClose = $('audioSettingsCloseBtn');
+            const volumeSlider = $('hw-volume-slider');
+
+            audioNodeElement = new Audio();
+
+            mountBtn.addEventListener('click', () => hiddenPicker.click());
+
+            hiddenPicker.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+                if (files.length === 0) return;
+
+                audioPlaylist = files.sort((a, b) => a.name.localeCompare(b.name));
+                currentTrackIndex = 0;
+                kernelAudioNode.textContent = `• Media Driver: ${audioPlaylist.length} Audio Blocks Loaded`;
+                kernelAudioNode.style.color = "#006600";
+                loadTrackAndSignal(currentTrackIndex);
+            });
+
+            function buildWebAudioPipeline() {
+                if (webAudioCtx) return;
+
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                webAudioCtx = new AudioContextClass();
+
+                const source = webAudioCtx.createMediaElementSource(audioNodeElement);
+                masterGainNode = webAudioCtx.createGain();
+                masterGainNode.gain.value = parseFloat(volumeSlider.value);
+
+                source.connect(masterGainNode);
+                masterGainNode.connect(webAudioCtx.destination);
+            }
+
+            function loadTrackAndSignal(index) {
+                if (index < 0 || index >= audioPlaylist.length) return;
+                const track = audioPlaylist[index];
+                audioNodeElement.src = URL.createObjectURL(track);
+
+                kernelMarquee.classList.remove('sys-interrupt');
+                kernelMarquee.textContent = `DISC TRACK [${index + 1}/${audioPlaylist.length}] // PARSING: ${track.name.toUpperCase()} ...`;
+
+                if (webAudioCtx?.state === 'suspended') {
+                    webAudioCtx.resume();
+                }
+                audioNodeElement.play().catch(() => {});
+            }
+
+            playBtn.addEventListener('click', () => {
+                buildWebAudioPipeline();
+                if (webAudioCtx?.state === 'suspended') webAudioCtx.resume();
+                if (audioPlaylist.length > 0) audioNodeElement.play();
+            });
+
+            pauseBtn.addEventListener('click', () => audioNodeElement.pause());
+
+            prevBtn.addEventListener('click', () => {
+                if (audioPlaylist.length === 0) return;
+                currentTrackIndex = (currentTrackIndex - 1 + audioPlaylist.length) % audioPlaylist.length;
+                loadTrackAndSignal(currentTrackIndex);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (audioPlaylist.length === 0) return;
+                currentTrackIndex = (currentTrackIndex + 1) % audioPlaylist.length;
+                loadTrackAndSignal(currentTrackIndex);
+            });
+
+            audioNodeElement.addEventListener('ended', () => {
+                if (audioPlaylist.length === 0) return;
+                currentTrackIndex = (currentTrackIndex + 1) % audioPlaylist.length;
+                loadTrackAndSignal(currentTrackIndex);
+            });
+
+            gearBtn.addEventListener('click', () => {
+                buildWebAudioPipeline();
+                settingsModal.style.display = 'flex';
+                modalSubsystemNode.textContent = `• Modal Open: HARDWARE_VOLUME_DECK`;
+            });
+
+            settingsClose.addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+                modalSubsystemNode.textContent = `• Dynamic Modal Runtime: Ready`;
+            });
+
+            volumeSlider.addEventListener('input', (e) => {
+                if (masterGainNode) masterGainNode.gain.value = parseFloat(e.target.value);
+            });
+        }
+
+        // --- GLOBAL FULLSCREEN VIEWPORT DRIVER ---
+        function initFullscreenDriver() {
+            const fsBtn = $('sys-fullscreen-toggle');
+            const shell = $('talaria-shell');
+
+            const requestFs = shell.requestFullscreen || shell.webkitRequestFullscreen ||
+                              shell.mozRequestFullScreen || shell.msRequestFullscreen;
+            const exitFs = document.exitFullscreen || document.webkitExitFullscreen ||
+                           document.mozCancelFullScreen || document.msExitFullscreen;
+
+            fsBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement && !document.webkitFullscreenElement &&
+                    !document.mozFullScreenElement && !document.msFullscreenElement) {
+                    requestFs?.call(shell);
+                } else {
+                    exitFs?.call(document);
+                }
+            });
+
+            const updateFsLabel = () => {
+                const isFs = document.fullscreenElement || document.webkitFullscreenElement ||
+                             document.mozFullScreenElement || document.msFullscreenElement;
+                fsBtn.textContent = isFs ? "WINDOW MODE" : "FULLSCREEN";
+            };
+
+            ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange']
+                .forEach(evt => document.addEventListener(evt, updateFsLabel));
+        }
+
+        // --- INTEGRATED PROXY NETNAVIGATOR BROWSER DRIVER ---
+        function initNetNavigatorDriver() {
+            const urlBar = $('browser-url-bar');
+            const goBtn = $('browser-btn-go');
+            const reloadBtn = $('browser-btn-reload');
+            const backBtn = $('browser-btn-back');
+            const viewport = $('browser-frame-viewport');
+
+            function triggerNavigation() {
+                let inputTarget = urlBar.value.trim();
+                if (!inputTarget) return;
+
+                if (!/^https?:\/\//i.test(inputTarget)) {
+                    inputTarget = 'https://' + inputTarget;
+                }
+                urlBar.value = inputTarget;
+
+                const isLocal = /localhost|127\.0\.0\.1|::1/i.test(inputTarget);
+
+                if (isLocal) {
+                    statusField.textContent = `NET: Connecting Direct to Local Host -> ${inputTarget}...`;
+                    viewport.src = inputTarget;
+                } else {
+                    statusField.textContent = `NET: Tunneling Proxy Request -> ${inputTarget}`;
+                    fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(inputTarget)}`)
+                        .then(response => response.ok ? response.json() : Promise.reject('Network error'))
+                        .then(data => {
+                            if (!data.contents) throw new Error('Empty payload');
+                            let htmlContent = data.contents;
+                            const baseTag = `<base url="${inputTarget}/" target="_self">`;
+
+                            htmlContent = htmlContent.includes('<head>')
+                                ? htmlContent.replace('<head>', '<head>' + baseTag)
+                                : baseTag + htmlContent;
+
+                            const doc = viewport.contentDocument || viewport.contentWindow.document;
+                            doc.open();
+                            doc.write(htmlContent);
+                            doc.close();
+                            statusField.textContent = `NET: Render Completed Successfully [${inputTarget}]`;
+                        })
+                        .catch(() => {
+                            statusField.textContent = `NET_ERR: Failed to compile proxy payload.`;
+                            const doc = viewport.contentDocument || viewport.contentWindow.document;
+                            doc.open();
+                            doc.write(`<body style="background:#000;color:#ff3333;font-family:monospace;padding:20px;font-size:12px;"><h3>[TALARIA PROXY KERNEL EXCEPTION]</h3><p>CRITICAL: Address cross-origin isolation block or target offline.</p></body>`);
+                            doc.close();
+                        });
+                }
+            }
+
+            goBtn.addEventListener('click', triggerNavigation);
+            urlBar.addEventListener('keydown', (e) => { if (e.key === 'Enter') triggerNavigation(); });
+            reloadBtn.addEventListener('click', triggerNavigation);
+            backBtn.addEventListener('click', () => {
+                try { viewport.contentWindow.history.back(); }
+                catch(e) { statusField.textContent = "NET: Traversal bounds reached."; }
+            });
+        }
+
+        // --- MASTER VFS SYSTEM MODEL & ROUTER CONFIGURATION ---
+        const vfsTreeModel = {
+            "apps": [
+                "BUILD2UDMF", "CRTBROWSE", "DIGITALWALKMAN", "MAPEDITOR",
+                "NETNAVIGATOR", "PDFVIEWER", "PALETTEJACK", "SPRITESCISSORS",
+                "TEXTEDITOR", "TRACKERREMIXER", "DOOMTRACKER","MODELCRUNCH", "PISKEL", "DJUKEBOX", "SCENEREND", "DOOMARCMAN" , "DASHBOARD"
+            ],
+            "games": [
+{ name: "froyo-demo1", path: "games/froyo-enginev0.3.0/index.html" },
+{ name: "froyo-demo2", path: "games/crawlspaceENGINE_FROYOgameSTABLE/index.html" },
+{ name: "froyo-demo3", path: "games/ONHOLDcrawlspace_froyo/index.html" },
+{ name: "goon-demo1", path: "games/STABLEraycrawler_GOON/index.html" },
+{ name: "goon-demo2", path: "games/BLEEDINGraycrawler_GOON2/index.html" }
+            ],
+            "modules": [
+                { name: "README.md", targetPath: "modules/README.md" },
+                { name: "COMPUTERROR.md", targetPath: "modules/COMPUTERROR.md" },
+                { name: "MAINTENANCE.md", targetPath: "modules/MAINTENANCE.md" }
+            ],
+            "output": ["graphics", "maps", "sound", "text"],
+            "security": [
+                { name: "ArtkeyNode",  id: "ARTKEY",  role: "KEYING",      desc: "SHA-256 visual key generator" },
+                { name: "DefenseNode", id: "DEFENSE", role: "DEFENSE",     desc: "Viri-Scanner — threat analysis" },
+                { name: "PassNode",    id: "PASS",    role: "VERIFY",      desc: "AES-GCM encrypt/decrypt comms" },
+                { name: "VoidNode",    id: "VOID",    role: "DESTROY",     desc: "Delete-Chip — secure file wipe" },
+                { name: "NaviNode",    id: "NAVI",    role: "COMPLIANCE",  desc: "Patch-Checker — vuln scanning" },
+                { name: "SirenNode",   id: "SIREN",   role: "INTEL",       desc: "Phishing URL analyzer" }
+            ]
+        };
+
+        function compileMarkdownToHtml(rawMarkdown) {
+            return rawMarkdown
+                .replace(/\r\n/g, '\n')
+                .replace(/^# (.*)$/gm, '<h1>$1</h1>')
+                .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/^\* (.*)$/gm, '<ul><li>$1</li></ul>')
+                .replace(/<\/ul>\n<ul>/g, '')
+                .split('\n\n')
+                .map(p => p.trim().startsWith('<h') || p.trim().startsWith('<ul') ? p : `<p>${p}</p>`)
+                .join('');
+        }
+
+        function initNavigation() {
+            const rootCol = $('col-root');
+            const subCol = $('col-sub');
+            const fileCol = $('col-files');
+            const modalWindow = $('sys-kernel-modal');
+            const modalTitle = $('modalTitleText');
+            const modalBody = $('modalBodyPayload');
+            const modalCloseBtn = $('modalCloseBtn');
+
+            const OUTPUT_ROOT = 'output';
+            const VIEWABLE_EXTS = ['png','jpg','jpeg','gif','webp','svg','html','htm','txt','md','json','wad','pk3'];
+            const IMAGE_EXTS   = ['png','jpg','jpeg','gif','webp','svg'];
+
+            function parseDirectoryListing(html, basePath) {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a[url]'));
+                return links
+                    .map(a => a.getAttribute('url'))
+                    .filter(h => h && !h.startsWith('?') && h !== '../' && h !== '/')
+                    .map(h => ({
+                        name: decodeURIComponent(h.replace(/\/$/, '')),
+                        path: basePath + '/' + h,
+                        isDir: h.endsWith('/')
+                    }));
+            }
+
+            function loadFileColumn(folderPath) {
+                fileCol.innerHTML = '';
+                fileCol.style.display = 'block';
+
+                const loadingDiv = document.createElement('div');
+                loadingDiv.className = 'miller-item';
+                loadingDiv.style.color = '#808080';
+                loadingDiv.textContent = 'Loading...';
+                fileCol.appendChild(loadingDiv);
+
+                fetch(folderPath + '/')
+                    .then(r => r.ok ? r.text() : Promise.reject(r.status))
+                    .then(html => {
+                        fileCol.innerHTML = '';
+                        const entries = parseDirectoryListing(html, folderPath);
+                        if (entries.length === 0) {
+                            const empty = document.createElement('div');
+                            empty.className = 'miller-item';
+                            empty.style.color = '#808080';
+                            empty.textContent = '(empty)';
+                            fileCol.appendChild(empty);
+                            return;
+                        }
+                        entries.forEach(entry => {
+                            const div = document.createElement('div');
+                            div.className = 'miller-item';
+                            div.setAttribute('data-file-path', entry.path);
+                            div.setAttribute('data-is-dir', entry.isDir);
+                            div.textContent = entry.name;
+                            if (entry.isDir) div.style.fontWeight = 'bold';
+                            fileCol.appendChild(div);
+                        });
+                        vfsOutputNode.textContent = `• Last Browse: ${folderPath}`;
+                        vfsOutputNode.style.color = '#004b93';
+                        statusField.textContent = `VFS: Listing ${folderPath}`;
+                    })
+                    .catch(() => {
+                        fileCol.innerHTML = '';
+                        const err = document.createElement('div');
+                        err.className = 'miller-item';
+                        err.style.color = '#cc0000';
+                        err.textContent = 'Cannot read folder';
+                        fileCol.appendChild(err);
+                        statusField.textContent = `VFS_ERR: Could not list ${folderPath} — ensure http-server is running.`;
+                    });
+            }
+
+            fileCol.addEventListener('click', (e) => {
+                const item = e.target.closest('.miller-item');
+                if (!item) return;
+                fileCol.querySelectorAll('.miller-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                const filePath = item.getAttribute('data-file-path');
+                const isDir = item.getAttribute('data-is-dir') === 'true';
+                if (!filePath) return;
+
+                if (isDir) {
+                    loadFileColumn(filePath.replace(/\/$/, ''));
+                    return;
+                }
+
+                const ext = filePath.split('.').pop().toLowerCase();
+                statusField.textContent = `VFS: Opening ${filePath}`;
+
+                if (IMAGE_EXTS.includes(ext)) {
+                    modalTitle.textContent = `VFS_VIEWER // ${filePath}`;
+                    modalBody.innerHTML = `<div style="text-align:center;"><img src="${filePath}" style="max-width:100%;max-height:280px;border:1px solid #ccc;" alt="${filePath}"><p style="margin-top:8px;font-size:11px;">${filePath}</p></div>`;
+                    modalWindow.style.display = 'flex';
+                } else if (ext === 'html' || ext === 'htm') {
+                    document.querySelectorAll('.app-iframe-host').forEach(f => { f.classList.remove('active'); f.style.display = 'none'; });
+                    $('app-NETNAVIGATOR').classList.remove('active');
+                    splashScreen.style.display = 'none';
+                    // Load into NETNAVIGATOR iframe
+                    const nav = $('app-NETNAVIGATOR');
+                    nav.classList.add('active');
+                    $('browser-url-bar').value = filePath;
+                    $('browser-frame-viewport').src = filePath;
+                } else if (VIEWABLE_EXTS.includes(ext)) {
+                    fetch(filePath)
+                        .then(r => r.ok ? r.text() : Promise.reject(r.status))
+                        .then(text => {
+                            modalTitle.textContent = `VFS_VIEWER // ${filePath}`;
+                            const isMarkdown = ext === 'md';
+                            modalBody.innerHTML = isMarkdown
+                                ? compileMarkdownToHtml(text)
+                                : `<pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;">${text.replace(/</g,'&lt;')}</pre>`;
+                            modalWindow.style.display = 'flex';
+                        })
+                        .catch(() => {
+                            modalTitle.textContent = 'VFS_FS_EXCEPTION';
+                            modalBody.innerHTML = `<h1>READ_FAILED</h1><p>Could not read: <code>${filePath}</code></p>`;
+                            modalWindow.style.display = 'flex';
+                        });
+                } else {
+                    // Trigger download for unknown binary types
+                    const a = document.createElement('a');
+                    a.url = filePath;
+                    a.download = filePath.split('/').pop();
+                    a.click();
+                    statusField.textContent = `VFS: Download initiated — ${filePath}`;
+                }
+            });
+
+            rootCol.addEventListener('click', (e) => {
+                const item = e.target.closest('.miller-item');
+                if (!item) return;
+
+                rootCol.querySelectorAll('.miller-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                const key = item.getAttribute('data-target');
+                subCol.innerHTML = '';
+                subCol.style.display = 'block';
+                fileCol.innerHTML = '';
+                fileCol.style.display = 'none';
+
+                if (key === 'apps') {
+                    vfsTreeModel.apps.forEach(name => {
+                        const div = document.createElement('div');
+                        div.className = 'miller-item';
+                        div.setAttribute('data-app', name);
+                        div.textContent = name;
+                        subCol.appendChild(div);
+                    });
+                } else if (key === 'games') {
+                    vfsTreeModel.games.forEach(game => {
+                        const div = document.createElement('div');
+                        div.className = 'miller-item';
+                        div.setAttribute('data-game', game.name);
+                        div.setAttribute('data-game-path', game.path);
+                        div.textContent = game.name;
+                        subCol.appendChild(div);
+                    });
+                } else if (key === 'modules') {
+                    vfsTreeModel.modules.forEach(node => {
+                        const div = document.createElement('div');
+                        div.className = 'miller-item';
+                        div.setAttribute('data-md', 'true');
+                        div.setAttribute('data-path', node.targetPath);
+                        div.textContent = node.name;
+                        subCol.appendChild(div);
+                    });
+                } else if (key === 'output') {
+                    vfsTreeModel.output.forEach(name => {
+                        const div = document.createElement('div');
+                        div.className = 'miller-item';
+                        div.setAttribute('data-output-dir', `${OUTPUT_ROOT}/${name}`);
+                        div.textContent = name;
+                        subCol.appendChild(div);
+                    });
+                } else if (key === 'security') {
+                    // Header tag
+                    const tag = document.createElement('div');
+                    tag.className = 'miller-item node-tag';
+                    tag.textContent = 'NodeNet v1.0';
+                    subCol.appendChild(tag);
+
+                    vfsTreeModel.security.forEach(node => {
+                        const div = document.createElement('div');
+                        div.className = 'miller-item node-security';
+                        div.setAttribute('data-node', node.id);
+                        div.setAttribute('data-node-name', node.name);
+                        div.setAttribute('data-node-role', node.role);
+                        div.setAttribute('data-node-desc', node.desc);
+                        div.textContent = node.name;
+                        subCol.appendChild(div);
+                    });
+                }
+            });
+
+            subCol.addEventListener('click', (e) => {
+                const item = e.target.closest('.miller-item');
+                if (!item) return;
+                if (item.classList.contains('node-tag')) return; // section header, not clickable
+
+                subCol.querySelectorAll('.miller-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+
+                const outputDir = item.getAttribute('data-output-dir');
+                if (outputDir) {
+                    loadFileColumn(outputDir);
+                    statusField.textContent = `VFS: Browsing output/${outputDir.split('/').pop()}`;
+                    return;
+                }
+
+                if (item.getAttribute('data-md') === 'true') {
+                    const targetFileUrl = item.getAttribute('data-path');
+                    modalSubsystemNode.textContent = `• Modal Open: Loading ${item.textContent}...`;
+
+                    fetch(targetFileUrl)
+                        .then(res => res.ok ? res.text() : Promise.reject(`HTTP ${res.status}`))
+                        .then(rawText => {
+                            modalTitle.textContent = `SYSTEM_DOCUMENT_VIEWER // ./${targetFileUrl}`;
+                            modalBody.innerHTML = compileMarkdownToHtml(rawText);
+                            modalWindow.style.display = 'flex';
+                            modalSubsystemNode.textContent = `• Modal Open: ${item.textContent} Rendered`;
+                        })
+                        .catch(() => {
+                            modalTitle.textContent = `SYSTEM_FS_CORE_EXCEPTION`;
+                            modalBody.innerHTML = `<h1>FS_ACCESS_DENIED</h1><p>Could not load asset from path: <code>${targetFileUrl}</code></p>`;
+                            modalWindow.style.display = 'flex';
+                            modalSubsystemNode.textContent = `• Modal Error: Access Failure`;
+                        });
+                } else {
+                    const appCode = item.getAttribute('data-app');
+                    const gameCode = item.getAttribute('data-game');
+                    const nodeCode = item.getAttribute('data-node');
+
+                    document.querySelectorAll('.app-iframe-host').forEach(f => {
+                        f.classList.remove('active');
+                        f.style.display = 'none';
+                    });
+                    $('app-NETNAVIGATOR').classList.remove('active');
+
+                    if (nodeCode) {
+                        const nodeName = item.getAttribute('data-node-name');
+                        const nodeRole = item.getAttribute('data-node-role');
+                        const nodeDesc = item.getAttribute('data-node-desc');
+                        splashScreen.style.display = 'none';
+                        statusField.textContent = `Status: NodeNet [${nodeName}] Active — ${nodeRole} MODULE`;
+
+                        nodeNetStatusNode.textContent = `• NodeNet: ${nodeName} [${nodeRole}] Online`;
+                        nodeNetStatusNode.style.color = '#004b93';
+
+                        kernelMarquee.classList.add('sys-interrupt');
+                        kernelMarquee.textContent = `NODENET SECURITY SUITE // NODE ACTIVATED: [${nodeName.toUpperCase()}] // ROLE: ${nodeRole} // ${nodeDesc.toUpperCase()} // DATAMAN-V1.0-R90`;
+
+                        const target = $(`node-${nodeCode}`);
+                        if (target) {
+                            target.classList.add('active');
+                            target.style.display = 'block';
+                        }
+                    } else if (appCode) {
+                        splashScreen.style.display = 'none';
+                        statusField.textContent = `Status: Subsystem [${appCode}] Active.`;
+
+                        if (appCode === 'NETNAVIGATOR') {
+                            $('app-NETNAVIGATOR').classList.add('active');
+                        } else {
+                            const target = $(`app-${appCode}`);
+                            if (target) {
+                                target.classList.add('active');
+                                target.style.display = 'block';
+                            }
+                        }
+                    } else if (gameCode) {
+                        splashScreen.style.display = 'none';
+                        statusField.textContent = `Status: Game [${gameCode}] Loaded.`;
+                        
+                        const target = $(`game-${gameCode}`);
+                        if (target) {
+                            target.classList.add('active');
+                            target.style.display = 'block';
+                        }
+                    } else {
+                        splashScreen.style.display = 'block';
+                    }
+                }
+            });
+
+            modalCloseBtn.addEventListener('click', () => {
+                modalWindow.style.display = 'none';
+                modalSubsystemNode.textContent = `• Dynamic Modal Runtime: Ready`;
+            });
+        }
+
+        // ============================================================
+        // CROSS-APP DATA BUS — Shared State & Message Router
+        // ============================================================
+
+        // Shared state cache that apps can read/write to
+        const sharedState = {
+            regexTable: null,
+            textContent: null,
+            currentTrack: null,
+            playlist: null,
+            thingTypes: null,
+            lineSpecials: null,
+            activePalette: null,
+            spriteSheets: null,
+            currentPattern: null,
+            sampleBank: null,
+            activeResource: null,
+            mapData: null,
+            sceneData: null,
+            gameState: null,
+            activeIsland: null,
+            lastExport: { app: null, file: null, timestamp: null },
+            // NodeNet Security Suite
+            nodeNetActiveNode: null,
+            nodeNetLastScan: null,
+            nodeNetThreatLevel: null
+        };
+
+        function handleCompiledData(appName, fileName) {
+            if (!appName || !fileName) return;
+            const ext = fileName.split('.').pop().toLowerCase();
+            const dirMap = {
+                'SPRITESCISSORS': 'output/graphics/',
+                'PALETTEJACK': 'output/graphics/',
+                'TRACKERREMIXER': 'output/sound/',
+                'DIGITALWALKMAN': 'output/sound/',
+                'DJUKEBOX': 'output/sound/',
+                'BUILD2UDMF': 'output/maps/',
+                'MAPEDITOR': 'output/maps/',
+                'SCENEEDITOR': 'output/maps/',
+                'TEXTEDITOR': 'output/text/',
+                'SCENEREND': 'output/graphics/'
+            };
+            const targetDir = (ext === 'wad' || ext === 'pk3') ? 'output/' : (dirMap[appName] || 'output/');
+
+            sharedState.lastExport = { app: appName, file: fileName, timestamp: Date.now() };
+            vfsOutputNode.textContent = `• Last Write: ${fileName} -> ${targetDir}`;
+            vfsOutputNode.style.color = "#00bbff";
+            statusField.textContent = `VFS: Compiled ${fileName} to ${targetDir}`;
+
+            kernelMarquee.classList.add('sys-interrupt');
+            kernelMarquee.textContent = `SYS INTERRUPT: [${appName}] COMPILED ENTRY "${fileName.toUpperCase()}" TO DIRECTORY VFS://${targetDir.replace('./','').toUpperCase()} // READY.`;
+        }
+
+        function handleDataExport(appName, payload) {
+            if (!payload || !payload.key || payload.value === undefined) return;
+
+            sharedState[payload.key] = payload.value;
+            diagnosticPulse.textContent = `• Applet Integrity: Data Sync [${appName}] → [${payload.key}]`;
+            diagnosticPulse.style.color = "#006600";
+
+            if (payload.key === 'currentTrack' && payload.value) {
+                const track = payload.value;
+                kernelMarquee.classList.add('sys-interrupt');
+                kernelMarquee.textContent = `NOW PLAYING: ${track.title || 'Unknown'} // ${track.artist || 'Unknown Artist'} // DJUKEBOX ACTIVE TRACK`;
+                kernelAudioNode.textContent = `• Media Driver: ${track.title || 'Track'} by ${track.artist || 'Unknown'}`;
+                kernelAudioNode.style.color = "#ff6600";
+            }
+
+            notifyAppsOfUpdate(payload.key, payload.value, appName);
+        }
+
+        function handleDataRequest(appName, payload, sourceWindow) {
+            if (!payload || !payload.key) return;
+
+            if (sharedState[payload.key] !== undefined && sharedState[payload.key] !== null) {
+                sourceWindow.postMessage({
+                    type: 'DATA_RESPONSE',
+                    key: payload.key,
+                    value: sharedState[payload.key],
+                    from: 'TALARIA_HOST'
+                }, '*');
+                statusField.textContent = `Data Bus: [${appName}] received [${payload.key}] from shared state`;
+            } else {
+                sourceWindow.postMessage({
+                    type: 'DATA_RESPONSE',
+                    key: payload.key,
+                    value: null,
+                    error: `Key "${payload.key}" not available in shared state`,
+                    from: 'TALARIA_HOST'
+                }, '*');
+                statusField.textContent = `Data Bus: [${appName}] requested [${payload.key}] — NOT AVAILABLE`;
+            }
+        }
+
+        function handleBroadcast(appName, payload) {
+            document.querySelectorAll('.app-iframe-host').forEach(iframe => {
+                try {
+                    iframe.contentWindow.postMessage({
+                        type: 'BROADCAST_RECEIVED',
+                        from: appName,
+                        payload: payload
+                    }, '*');
+                } catch(e) {}
+            });
+
+            const netNav = $('app-NETNAVIGATOR');
+            if (netNav && netNav.classList.contains('active')) {
+                try {
+                    const vp = $('browser-frame-viewport');
+                    if (vp && vp.contentWindow) {
+                        vp.contentWindow.postMessage({
+                            type: 'BROADCAST_RECEIVED',
+                            from: appName,
+                            payload: payload
+                        }, '*');
+                    }
+                } catch(e) {}
+            }
+        }
+
+        function notifyAppsOfUpdate(key, value, sourceApp) {
+            document.querySelectorAll('.app-iframe-host').forEach(iframe => {
+                const iframeApp = iframe.id.replace('app-', '');
+                if (iframeApp === sourceApp) return;
+
+                try {
+                    iframe.contentWindow.postMessage({
+                        type: 'DATA_AVAILABLE',
+                        key: key,
+                        value: value,
+                        from: sourceApp
+                    }, '*');
+                } catch(e) {}
+            });
+        }
+
+        function initVfsManagement() {
+            document.querySelectorAll('.app-iframe-host').forEach(iframe => {
+                iframe.addEventListener('load', () => {
+                    try {
+                        const doc = iframe.contentDocument || iframe.contentWindow.document;
+                        if (doc?.body?.innerHTML.trim()) {
+                            diagnosticPulse.textContent = `• Applet Integrity: Verified [${iframe.id.replace('app-','')}]`;
+                            diagnosticPulse.style.color = "#006600";
+                        } else {
+                            applyFallback(iframe);
+                        }
+                    } catch (e) {
+                        if (iframe.id === 'app-TEXTEDITOR') {
+                            diagnosticPulse.textContent = `• Applet Integrity: Active [${iframe.id.replace('app-','')}]`;
+                            diagnosticPulse.style.color = "#006600";
+                        } else {
+                            applyFallback(iframe);
+                        }
+                    }
+                });
+            });
+
+            // Unified message router
+            window.addEventListener('message', (event) => {
+                const { type, appName, fileName, payload } = event.data || {};
+                if (!type) return;
+
+                switch (type) {
+                    case 'POST_COMPILED_DATA':
+                        handleCompiledData(appName, fileName);
+                        break;
+                    case 'EXPORT_DATA':
+                        handleDataExport(appName, payload);
+                        break;
+                    case 'REQUEST_DATA':
+                        handleDataRequest(appName, payload, event.source);
+                        break;
+                    case 'BROADCAST':
+                        handleBroadcast(appName, payload);
+                        break;
+                    case 'NODENET_REPORT':
+                        handleNodeNetReport(appName, payload);
+                        break;
+                }
+            });
+        }
+
+        function applyFallback(frame) {
+            const name = frame.id.replace('app-', '');
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%"><rect width="100%" height="100%" fill="#000"/><text x="50%" y="50%" fill="#fff" font-family="monospace" font-size="14" text-anchor="middle">${name} [FALLBACK]</text></svg>`;
+            frame.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
+        function handleNodeNetReport(nodeName, payload) {
+            if (!payload) return;
+            const level = payload.threatLevel || 'INFO';
+            const summary = payload.summary || 'Scan complete';
+            sharedState.nodeNetLastScan = { node: nodeName, level, summary, timestamp: Date.now() };
+            sharedState.nodeNetThreatLevel = level;
+
+            const color = level === 'CRITICAL' ? '#cc0000' : level === 'WARNING' ? '#cc7700' : '#004b93';
+            nodeNetStatusNode.textContent = `• NodeNet [${nodeName}]: ${level} — ${summary}`;
+            nodeNetStatusNode.style.color = color;
+
+            kernelMarquee.classList.add('sys-interrupt');
+            kernelMarquee.textContent = `NODENET REPORT // [${nodeName?.toUpperCase()}] // THREAT LEVEL: ${level} // ${summary.toUpperCase()}`;
+            statusField.textContent = `NodeNet: [${nodeName}] scan result — ${level}: ${summary}`;
+        }
+
+        // Expose API for apps that prefer polling over messages
+        window.TALARIA_BUS = {
+            getState: (key) => sharedState[key] || null,
+            setState: (key, value) => { sharedState[key] = value; },
+            getAllState: () => ({ ...sharedState }),
+            writeMarquee: (message, interrupt) => {
+                if (interrupt) kernelMarquee.classList.add('sys-interrupt');
+                else kernelMarquee.classList.remove('sys-interrupt');
+                kernelMarquee.textContent = message;
+            },
+            setStatus: (msg) => { statusField.textContent = msg; },
+            nodeNetReport: (nodeName, threatLevel, summary) => handleNodeNetReport(nodeName, { threatLevel, summary })
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            executeBoot();
+            initKernelAudioDriver();
+            initFullscreenDriver();
+            initNetNavigatorDriver();
+            initNavigation();
+            initVfsManagement();
+        });
+    </script>
+</body>
+</html>

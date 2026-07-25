@@ -1,0 +1,3319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Render Pipeline</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;600&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0820; --win-bg: #160d26; --win-border: #0a0516; --win-inset: #6a5a8a;
+  --titlebar-grad: linear-gradient(#3d2d72 0%, #1c1040 100%);
+  --btn-bg: #2e2050; --btn-border-lt: #8a7aaa; --btn-border-rb: #080312; --btn-close-bg: #4a1030;
+  --section-bg: #0f0820; --section-hdr: linear-gradient(90deg, #2a1e50 0%, #1a1038 100%);
+  --section-border-lt: #080312; --section-border-rb: #5a4a7a;
+  --text-main: #fff; --text-dim: #6a5a7a; --text-label: #6a5a8a; --text-accent: #a08ace; --text-body: #d0c0e8;
+  --input-bg: #080616; --input-border: #3a2a5a;
+  --font: 'Share Tech Mono', 'Tahoma', monospace; --font-ui: 'Oswald', sans-serif;
+}
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); font-size: 11px; color: var(--text-main); }
+body { display: flex; flex-direction: column; gap: 4px; padding: 6px; }
+.winbox { display: flex; flex-direction: column; background: var(--win-bg); border: 1px solid var(--win-border); box-shadow: inset 1px 1px 0 var(--win-inset), 2px 2px 10px rgba(0,0,0,.8); overflow: hidden; min-height: 0; }
+.titlebar { display: flex; align-items: center; gap: 4px; padding: 3px 4px 3px 6px; background: var(--titlebar-grad); border-bottom: 1px solid var(--win-border); flex-shrink: 0; user-select: none; }
+.titlebar-icon { font-size: 9px; opacity: .7; margin-right: 2px; }
+.titlebar-title { flex: 1; font-size: 11px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.win-btns { display: flex; gap: 2px; }
+.win-btn { width: 16px; height: 14px; background: var(--btn-bg); border-top: 1px solid var(--btn-border-lt); border-left: 1px solid var(--btn-border-lt); border-right: 1px solid var(--btn-border-rb); border-bottom: 1px solid var(--btn-border-rb); color: #ccc; font-size: 8px; display: flex; align-items: center; justify-content: center; cursor: default; font-family: var(--font); }
+.win-btn.close { background: var(--btn-close-bg); color: #ff8888; }
+.win-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.row { display: flex; gap: 4px; min-height: 0; }
+#stage-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+#three-canvas { width: 100% !important; flex: 1; min-height: 0; display: block; }
+#stage-controls-bar { flex-shrink: 0; background: #0c0818; border-top: 1px solid #1a1030; padding: 3px 8px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: var(--text-accent); min-height: 22px; }
+#stage-controls-bar .kb { color: #c0a0ff; font-weight: bold; margin-right: 2px; }
+#stage-controls-bar .sep { color: var(--text-dim); margin: 0 4px; }
+#stage-controls-bar #status-text { margin-left: auto; color: var(--text-dim); font-size: 9px; }
+#drop-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--text-dim); font-size: 12px; pointer-events: none; text-align: center; opacity: .6; }
+#drop-hint.hidden { display: none; }
+#scene-controls { overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
+#scene-controls::-webkit-scrollbar { width: 6px; background: #0c0818; }
+#scene-controls::-webkit-scrollbar-thumb { background: #3a2a5a; }
+.section { border: 1px solid; border-color: var(--section-border-lt) var(--section-border-rb) var(--section-border-rb) var(--section-border-lt); background: var(--section-bg); }
+.section-hdr { background: var(--section-hdr); border-bottom: 1px solid var(--section-border-lt); padding: 2px 6px; font-size: 9px; font-weight: bold; color: #7a6a9a; letter-spacing: .12em; text-transform: uppercase; font-family: var(--font-ui); display: flex; align-items: center; gap: 5px; }
+.section-hdr .model-badge { font-size: 8px; color: #a090d0; font-style: italic; font-family: var(--font); text-transform: none; letter-spacing: 0; margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+.section-body { padding: 5px 6px; display: flex; flex-direction: column; gap: 5px; }
+.field-row { display: flex; align-items: center; gap: 5px; }
+.field-label { color: var(--text-label); width: 72px; flex-shrink: 0; font-size: 10px; }
+.field-val { flex: 1; }
+.model-item { display: flex; align-items: center; gap: 5px; background: #1a0e30; border: 1px solid #2a1a40; padding: 3px 5px; cursor: default; }
+.model-item.selected { border-color: #7060a0; background: #1e1240; }
+.glb-badge { background: #2a5a8a; color: #80c8ff; font-size: 8px; padding: 1px 4px; font-weight: bold; font-family: var(--font-ui); flex-shrink: 0; border: 1px solid #3a6a9a; }
+.glb-badge.prim { background: #2a5a3a; color: #80e8a0; border-color: #3a8a5a; }
+.model-name { flex: 1; color: var(--text-body); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-remove { color: #884455; font-size: 10px; cursor: pointer; padding: 0 3px; }
+.model-remove:hover { color: #ff8899; }
+.model-vis { color: #a090d0; font-size: 11px; cursor: pointer; padding: 0 3px; flex-shrink: 0; width: 14px; text-align: center; }
+.model-vis:hover { color: #d8c8ff; }
+.model-vis.off { color: #4a3a5a; }
+.model-item.hidden-obj .model-name { color: #5a4a70; text-decoration: line-through; text-decoration-color: #3a2a50; }
+.anim-badge { background: #5a3a8a; color: #d0b0ff; font-size: 8px; padding: 1px 4px; font-weight: bold; font-family: var(--font-ui); flex-shrink: 0; border: 1px solid #6a4a9a; }
+/* Timeline */
+#timeline-section .section-body { gap: 4px; }
+#timeline-transport { display: flex; align-items: center; gap: 4px; }
+#timeline-play { width: auto; padding: 3px 10px; margin: 0; }
+#timeline-scrub { flex: 1; }
+#timeline-time { color: var(--text-dim); font-size: 9px; width: 68px; text-align: right; flex-shrink: 0; }
+#timeline-track-list { display: flex; flex-direction: column; gap: 3px; max-height: 110px; overflow-y: auto; }
+.timeline-track-row { display: flex; align-items: center; gap: 4px; background: #150c28; border: 1px solid #241638; padding: 3px 5px; }
+.timeline-track-name { flex: 1; color: var(--text-body); font-size: 9px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.timeline-track-name.disabled { color: var(--text-dim); }
+.timeline-clip-select { max-width: 78px; font-size: 9px; padding: 1px 2px; }
+#timeline-empty-hint { color: var(--text-dim); font-size: 9px; line-height: 1.5; }
+#anim-section .section-body { gap: 5px; }
+/* Keyframes */
+.keyframe-row { display: flex; align-items: center; gap: 4px; background: #150c28; border: 1px solid #241638; padding: 3px 5px; }
+.keyframe-row.current { border-color: #7060a0; background: #1e1240; }
+.keyframe-time { color: var(--text-body); font-size: 9px; width: 40px; flex-shrink: 0; cursor: pointer; }
+.keyframe-time:hover { color: #d8c8ff; }
+.keyframe-ease-select { flex: 1; font-size: 9px; padding: 1px 2px; }
+.keyframe-remove { color: #884455; font-size: 10px; cursor: pointer; padding: 0 3px; flex-shrink: 0; }
+.keyframe-remove:hover { color: #ff8899; }
+/* Light sources */
+.light-item { display: flex; align-items: center; gap: 5px; background: #150c28; border: 1px solid #241638; padding: 3px 5px; cursor: pointer; }
+.light-item.selected { border-color: #7060a0; background: #1e1240; }
+.light-swatch { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid #000; }
+.light-name { flex: 1; font-size: 9px; color: var(--text-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.light-remove { color: #884455; font-size: 10px; cursor: pointer; padding: 0 3px; flex-shrink: 0; }
+.light-remove:hover { color: #ff8899; }
+/* no-selection state for shading panel */
+#shading-section.no-sel .section-body { opacity: 0.38; pointer-events: none; }
+#shading-section.no-sel .section-hdr .model-badge { color: var(--text-dim); }
+select.wb-select { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-body); font-family: var(--font); font-size: 10px; padding: 2px 4px; width: 100%; outline: none; }
+select.wb-select:focus { border-color: #6a5a9a; }
+input[type=text].wb-input { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-body); font-family: var(--font); font-size: 10px; padding: 2px 4px; width: 100%; outline: none; }
+input[type=text].wb-input:focus { border-color: #6a5a9a; }
+input[type=range].wb-range { width: 100%; accent-color: #7060b0; height: 14px; }
+input[type=color].wb-color { width: 28px; height: 20px; border: 1px solid var(--input-border); background: #000; cursor: pointer; padding: 0; }
+.toggle-wrap { display: flex; align-items: center; gap: 5px; }
+.toggle-btn { display: flex; background: var(--input-bg); border: 1px solid var(--input-border); cursor: pointer; overflow: hidden; }
+.toggle-opt { padding: 2px 7px; font-size: 10px; color: var(--text-dim); transition: background .1s; }
+.toggle-opt.active { background: #5040a0; color: #fff; }
+.wb-btn { display: block; width: 100%; padding: 3px 6px; background: var(--btn-bg); border-top: 1px solid var(--btn-border-lt); border-left: 1px solid var(--btn-border-lt); border-right: 1px solid var(--btn-border-rb); border-bottom: 1px solid var(--btn-border-rb); color: var(--text-body); font-family: var(--font); font-size: 10px; cursor: pointer; text-align: center; margin-bottom: 2px; }
+.wb-btn:active { border-color: var(--btn-border-rb) var(--btn-border-lt) var(--btn-border-lt) var(--btn-border-rb); }
+.wb-btn.active { background: #5040a0; border-color: #9080c0; color: #fff; }
+.wb-btn-sm { padding: 2px 6px; font-size: 10px; }
+#output-row { display: flex; flex: 1; padding: 6px; gap: 8px; min-height: 0; overflow: hidden; }
+#render-wrap { flex: 1; min-width: 0; min-height: 0; position: relative; border: 1px solid #000; box-shadow: inset 1px 1px 0 #3a2a5a; background: #fff; overflow: hidden; }
+#render-canvas { image-rendering: pixelated; display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+#title-overlay { position: absolute; pointer-events: all; cursor: move; user-select: none; font-family: 'Oswald', 'Arial Black', sans-serif; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,.8), -1px -1px 0 rgba(0,0,0,.5); letter-spacing: .06em; }
+#output-controls { width: 148px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
+.output-section-hdr { font-size: 9px; font-weight: bold; color: #7a6a9a; letter-spacing: .12em; text-transform: uppercase; border-bottom: 1px solid #2a1a40; padding-bottom: 2px; margin-bottom: 3px; font-family: var(--font-ui); }
+.hint-text { color: var(--text-dim); font-size: 9px; line-height: 1.5; margin-top: 4px; }
+#drag-overlay { position: fixed; inset: 0; background: rgba(80,40,160,.25); border: 3px dashed #8060d0; z-index: 1000; display: none; pointer-events: none; align-items: center; justify-content: center; }
+#drag-overlay.active { display: flex; }
+#drag-overlay span { color: #c0a0ff; font-size: 18px; font-family: var(--font-ui); text-shadow: 0 0 20px rgba(160,100,255,.8); }
+
+/* Missing models popup */
+#missing-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 2000; display: none; align-items: center; justify-content: center; }
+#missing-modal-backdrop.open { display: flex; }
+#missing-modal {
+  background: var(--win-bg);
+  border: 1px solid var(--win-border);
+  box-shadow: inset 1px 1px 0 var(--win-inset), 0 8px 40px rgba(0,0,0,.9);
+  width: 340px; max-width: 94vw;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#missing-modal .modal-titlebar {
+  background: var(--titlebar-grad);
+  border-bottom: 1px solid var(--win-border);
+  padding: 3px 6px; display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: bold; color: #fff;
+  text-shadow: 1px 1px 0 rgba(0,0,0,.6);
+}
+#missing-modal .modal-body { padding: 10px 10px 6px; display: flex; flex-direction: column; gap: 6px; }
+#missing-modal .modal-desc { color: var(--text-body); font-size: 10px; line-height: 1.6; }
+#missing-modal .missing-list { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; }
+#missing-modal .missing-row {
+  display: flex; align-items: center; gap: 6px;
+  background: #1a0e30; border: 1px solid #2a1a40; padding: 4px 6px;
+}
+#missing-modal .missing-row.resolved { border-color: #2a5a3a; background: #0e1e14; }
+#missing-modal .missing-name { flex: 1; color: var(--text-body); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#missing-modal .missing-status { font-size: 9px; color: var(--text-dim); flex-shrink: 0; }
+#missing-modal .missing-status.ok { color: #60c878; }
+#missing-modal .missing-load-btn { font-size: 9px; padding: 2px 7px; flex-shrink: 0; }
+#missing-modal .modal-footer { padding: 6px 10px 8px; display: flex; justify-content: flex-end; gap: 5px; border-top: 1px solid #1a1030; }
+</style>
+</head>
+<body>
+
+<div id="drag-overlay"><span>Drop GLB / OBJ file to load</span></div>
+
+<!-- Missing models modal -->
+<div id="missing-modal-backdrop">
+  <div id="missing-modal">
+    <div class="modal-titlebar">⚠ Missing Models</div>
+    <div class="modal-body">
+      <div class="modal-desc">
+        This scene references models that aren't loaded yet.<br>
+        Locate each file below to restore the full scene.
+      </div>
+      <div class="missing-list" id="missing-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="wb-btn wb-btn-sm" id="missing-skip-btn">Skip remaining</button>
+      <button class="wb-btn wb-btn-sm" id="missing-done-btn" style="background:#2a4a2a;border-color:#3a6a3a;color:#80e8a0;">Apply Scene</button>
+    </div>
+  </div>
+</div>
+
+<div class="row" style="flex: 0 0 38%; min-height: 0;">
+  <!-- 3D Stage -->
+  <div class="winbox" style="flex:1; min-width:0;">
+    <div class="titlebar">
+      <span class="titlebar-icon">⬛</span>
+      <span class="titlebar-title">3D Stage</span>
+      <div class="win-btns"><div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn close">✕</div></div>
+    </div>
+    <div class="win-content">
+      <div id="stage-wrap">
+        <canvas id="three-canvas"></canvas>
+        <div id="drop-hint">Drop a .glb or .obj file here<br>or use Scene Controls to add objects</div>
+      </div>
+      <div id="stage-controls-bar">
+        <span><span class="kb">W</span>Translate</span>
+        <span><span class="kb">E</span>Rotate</span>
+        <span><span class="kb">R</span>Scale</span>
+        <span class="sep">|</span>
+        <span><span class="kb">Esc</span>Deselect</span>
+        <span class="sep">|</span>
+        <span><span class="kb">H</span>Hide/Show</span>
+        <span><span class="kb">Space</span>Play/Pause</span>
+        <span class="sep">|</span>
+        <span style="color:var(--text-dim)">Click to select object</span>
+        <span id="status-text">No model loaded</span>
+        <span id="gp-status" style="display:none; margin-left:6px; padding:1px 6px; background:#1a3020; border:1px solid #2a5030; color:#60c878; font-size:9px; letter-spacing:.08em;">🎮 <span id="gp-name">gamepad</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene Controls -->
+  <div class="winbox" style="width:256px; flex-shrink:0;">
+    <div class="titlebar">
+      <span class="titlebar-icon">⚙</span>
+      <span class="titlebar-title">Scene Controls</span>
+      <div class="win-btns"><div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn close">✕</div></div>
+    </div>
+    <div class="win-content">
+      <div id="scene-controls">
+
+        <!-- MODEL list -->
+        <div class="section">
+          <div class="section-hdr">Model</div>
+          <div class="section-body">
+            <div id="model-list" style="display:flex;flex-direction:column;gap:3px;"></div>
+            <label class="wb-btn wb-btn-sm" style="cursor:pointer;margin-top:3px;text-align:center;">
+              + Load GLB / OBJ
+              <input type="file" id="file-input" accept=".glb,.obj,.gltf" style="display:none">
+            </label>
+            <div style="display:flex;gap:3px;margin-top:3px;">
+              <select class="wb-select" id="primitive-select" style="flex:1;">
+                <option value="Box">Box</option>
+                <option value="Sphere">Sphere</option>
+                <option value="Plane">Plane</option>
+                <option value="Cylinder">Cylinder</option>
+                <option value="Cone">Cone</option>
+                <option value="Torus">Torus</option>
+                <option value="TorusKnot">Torus Knot</option>
+                <option value="Sprite">Sprite (image)</option>
+              </select>
+              <button class="wb-btn wb-btn-sm" id="btn-add-primitive" style="width:auto;padding:2px 8px;white-space:nowrap;">+ Add</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SHADING — per selected model -->
+        <div class="section no-sel" id="shading-section">
+          <div class="section-hdr">
+            Shading
+            <span class="model-badge" id="shading-model-badge">— no selection —</span>
+          </div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Mode</span>
+              <select class="wb-select field-val" id="shade-mode">
+                <option value="base">Vertex / Base</option>
+                <option value="flat">Flat Shaded</option>
+                <option value="gouraud">Gouraud</option>
+                <option value="gradient">Gradient</option>
+                <option value="texture">PNG Texture</option>
+                <option value="wireframe">Wireframe</option>
+                <option value="normals">Normals</option>
+                <option value="depth">Depth</option>
+              </select>
+            </div>
+            <div class="field-row" id="base-color-row">
+              <span class="field-label">Base color</span>
+              <input type="color" class="wb-color" id="base-color" value="#888888">
+            </div>
+            <div id="gradient-color-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Grad A</span>
+                <input type="color" class="wb-color" id="grad-color-a" value="#ff4488">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:5px;">→ B</span>
+                <input type="color" class="wb-color" id="grad-color-b" value="#44aaff" style="margin-left:4px;">
+              </div>
+              <div class="field-row">
+                <span class="field-label">Direction</span>
+                <div class="toggle-btn" id="grad-dir-toggle">
+                  <span class="toggle-opt active" data-val="y">↕ Y</span>
+                  <span class="toggle-opt" data-val="x">↔ X</span>
+                  <span class="toggle-opt" data-val="z">↗ Z</span>
+                </div>
+              </div>
+            </div>
+            <!-- Gouraud controls -->
+            <div id="gouraud-color-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Diffuse</span>
+                <input type="color" class="wb-color" id="gouraud-diffuse" value="#88aaff">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:5px;">object color</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Specular</span>
+                <input type="color" class="wb-color" id="gouraud-specular" value="#ffffff">
+                <input type="range" class="wb-range" id="gouraud-shininess" min="1" max="200" value="40" style="flex:1;margin-left:4px;">
+                <span id="gouraud-shine-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">40</span>
+              </div>
+            </div>
+            <!-- Texture controls -->
+            <div id="texture-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">PNG File</span>
+                <label class="wb-btn wb-btn-sm" style="cursor:pointer;flex:1;text-align:center;margin:0;">
+                  Load PNG…
+                  <input type="file" id="tex-file-input" accept="image/png,image/*" style="display:none;">
+                </label>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Tiling</span>
+                <input type="range" class="wb-range field-val" id="tex-repeat" min="1" max="32" value="1">
+                <span id="tex-repeat-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">1×</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Auto rotate</span>
+              <div class="toggle-wrap">
+                <div class="toggle-btn" id="autorotate-toggle">
+                  <span class="toggle-opt" data-val="on">On</span>
+                  <span class="toggle-opt active" data-val="off">Off</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ANIMATION — per selected model (GLB clips / GIF sprites) -->
+        <div class="section no-sel" id="anim-section" style="display:none;">
+          <div class="section-hdr">
+            Animation
+            <span class="model-badge" id="anim-model-badge">— no selection —</span>
+          </div>
+          <div class="section-body">
+            <div class="field-row" id="anim-clip-row" style="display:none;">
+              <span class="field-label">Clip</span>
+              <select class="wb-select field-val" id="anim-clip-select"></select>
+            </div>
+            <div class="field-row">
+              <span class="field-label">In timeline</span>
+              <div class="toggle-wrap">
+                <div class="toggle-btn" id="anim-enabled-toggle">
+                  <span class="toggle-opt active" data-val="on">On</span>
+                  <span class="toggle-opt" data-val="off">Off</span>
+                </div>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Duration</span>
+              <span id="anim-duration-val" style="color:var(--text-dim);font-size:10px;">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- KEYFRAMES — per selected model, transform keyframing on the timeline -->
+        <div class="section no-sel" id="keyframe-section">
+          <div class="section-hdr">
+            Keyframes
+            <span class="model-badge" id="keyframe-model-badge">— no selection —</span>
+          </div>
+          <div class="section-body">
+            <div class="field-row">
+              <button class="wb-btn wb-btn-sm" id="btn-add-keyframe" style="flex:1;margin:0;">◆ Set Keyframe @ <span id="keyframe-add-time">0.0s</span></button>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Transition</span>
+              <select class="wb-select field-val" id="keyframe-default-ease">
+                <option value="linear">Linear</option>
+                <option value="easeIn">Ease In</option>
+                <option value="easeOut">Ease Out</option>
+                <option value="easeInOut" selected>Ease In/Out</option>
+              </select>
+            </div>
+            <div id="keyframe-list" style="display:flex;flex-direction:column;gap:3px;"></div>
+            <div id="keyframe-empty-hint" class="hint-text" style="margin:0;">No keyframes yet — move the timeline and set one.</div>
+          </div>
+        </div>
+
+        <!-- TIMELINE -->
+        <div class="section" id="timeline-section">
+          <div class="section-hdr">Timeline</div>
+          <div class="section-body">
+            <div id="timeline-empty-hint">No animated GLB clips, GIF sprites, or keyframes yet.</div>
+            <div id="timeline-active" style="display:none;flex-direction:column;gap:4px;">
+              <div id="timeline-transport">
+                <button class="wb-btn wb-btn-sm" id="timeline-play" style="margin:0;">▶</button>
+                <input type="range" class="wb-range" id="timeline-scrub" min="0" max="1000" value="0">
+                <span id="timeline-time">0.0s / 0.0s</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Loop</span>
+                <div class="toggle-wrap">
+                  <div class="toggle-btn" id="timeline-loop-toggle">
+                    <span class="toggle-opt active" data-val="on">On</span>
+                    <span class="toggle-opt" data-val="off">Off</span>
+                  </div>
+                </div>
+                <span class="field-label" style="width:auto;margin-left:8px;">Speed</span>
+                <div class="toggle-btn" id="timeline-speed-toggle">
+                  <span class="toggle-opt" data-val="0.5">0.5×</span>
+                  <span class="toggle-opt active" data-val="1">1×</span>
+                  <span class="toggle-opt" data-val="2">2×</span>
+                </div>
+              </div>
+              <div id="timeline-track-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TITLE -->
+        <div class="section">
+          <div class="section-hdr">Title</div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Text</span>
+              <input type="text" class="wb-input field-val" id="title-text" placeholder="(none)" value="">
+            </div>
+            <div class="field-row">
+              <span class="field-label">Color</span>
+              <div class="toggle-btn" id="color-mode-toggle" style="flex-shrink:0;">
+                <span class="toggle-opt active" data-val="flat">Flat</span>
+                <span class="toggle-opt" data-val="gradient">Gradient</span>
+              </div>
+              <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">drag to reposition</span>
+            </div>
+            <!-- Flat color row -->
+            <div class="field-row" id="color-flat-row">
+              <span class="field-label"></span>
+              <input type="color" class="wb-color" id="title-color" value="#ffffff">
+            </div>
+            <!-- Gradient rows (hidden by default) -->
+            <div class="field-row" id="color-grad-row" style="display:none;">
+              <span class="field-label"></span>
+              <input type="color" class="wb-color" id="title-grad-a" value="#ff4488">
+              <span style="color:var(--text-dim);font-size:9px;margin:0 4px;">→</span>
+              <input type="color" class="wb-color" id="title-grad-b" value="#44aaff">
+              <select class="wb-select" id="title-grad-dir" style="margin-left:4px;width:auto;font-size:9px;padding:1px 2px;">
+                <option value="90deg">→ H</option>
+                <option value="135deg">↘ D</option>
+                <option value="180deg">↓ V</option>
+                <option value="45deg">↗ D</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Size</span>
+              <input type="range" class="wb-range field-val" id="title-size" min="12" max="96" value="40">
+              <span id="title-size-val" style="color:var(--text-dim);width:28px;text-align:right;">40px</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Depth (Z)</span>
+              <input type="range" class="wb-range field-val" id="title-depth" min="-10" max="10" step="0.1" value="2">
+              <span id="title-depth-val" style="color:var(--text-dim);width:28px;text-align:right;">2</span>
+            </div>
+            <div class="field-row" style="align-items:flex-start;">
+              <span class="field-label" style="padding-top:3px;">Font Style</span>
+              <div class="field-val" style="display:flex;flex-direction:column;gap:3px;">
+                <input type="text" class="wb-input" id="title-font" placeholder="Paste @import or font-family…" style="font-size:9px;">
+                <span id="title-font-status" style="color:var(--text-dim);font-size:9px;line-height:1.4;">Paste a Google Fonts <code style="color:var(--text-accent);">@import</code> URL or a CSS <code style="color:var(--text-accent);">font-family</code> value, then press <code style="color:var(--text-accent);">Enter</code>.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIGHTING -->
+        <div class="section">
+          <div class="section-hdr">Lighting</div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Ambient</span>
+              <input type="range" class="wb-range field-val" id="light-ambient" min="0" max="200" value="60">
+              <span id="ambient-val" style="color:var(--text-dim);width:28px;text-align:right;">60%</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Ambient color</span>
+              <input type="color" class="wb-color" id="ambient-color" value="#ffffff">
+            </div>
+            <div class="field-row">
+              <span class="field-label">Sun</span>
+              <input type="range" class="wb-range field-val" id="light-sun" min="0" max="300" value="120">
+              <span id="sun-val" style="color:var(--text-dim);width:28px;text-align:right;">120%</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Sun color</span>
+              <input type="color" class="wb-color" id="sun-color" value="#ffffff">
+            </div>
+            <div class="field-row">
+              <span class="field-label">Azimuth</span>
+              <input type="range" class="wb-range field-val" id="sun-azimuth" min="0" max="360" value="45">
+              <span id="sun-azimuth-val" style="color:var(--text-dim);width:28px;text-align:right;">45°</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Elevation</span>
+              <input type="range" class="wb-range field-val" id="sun-elevation" min="5" max="90" value="55">
+              <span id="sun-elevation-val" style="color:var(--text-dim);width:28px;text-align:right;">55°</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">BG Type</span>
+              <div class="toggle-btn" id="bg-type-toggle">
+                <span class="toggle-opt active" data-val="solid">Solid</span>
+                <span class="toggle-opt" data-val="gradient">Gradient</span>
+                <span class="toggle-opt" data-val="image">Image</span>
+              </div>
+            </div>
+            <!-- Solid BG -->
+            <div class="field-row" id="bg-solid-row">
+              <span class="field-label">BG Color</span>
+              <input type="color" class="wb-color" id="bg-color" value="#ffffff">
+              <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">output bg</span>
+            </div>
+            <!-- Gradient BG -->
+            <div id="bg-gradient-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Color A</span>
+                <input type="color" class="wb-color" id="bg-grad-a" value="#1a0040">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">→</span>
+                <input type="color" class="wb-color" id="bg-grad-b" value="#004080" style="margin-left:4px;">
+              </div>
+              <div class="field-row">
+                <span class="field-label">Direction</span>
+                <select class="wb-select field-val" id="bg-grad-dir">
+                  <option value="to bottom">↓ Top→Bot</option>
+                  <option value="to right">→ L→R</option>
+                  <option value="135deg">↘ Diagonal</option>
+                  <option value="to top right">↗ D2</option>
+                </select>
+              </div>
+            </div>
+            <!-- Image BG -->
+            <div id="bg-image-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">BG Image</span>
+                <label class="wb-btn wb-btn-sm" style="cursor:pointer;flex:1;text-align:center;margin:0;">
+                  Load Image…
+                  <input type="file" id="bg-img-input" accept="image/*" style="display:none;">
+                </label>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Fit</span>
+                <div class="toggle-btn" id="bg-img-fit-toggle">
+                  <span class="toggle-opt active" data-val="cover">Cover</span>
+                  <span class="toggle-opt" data-val="contain">Contain</span>
+                  <span class="toggle-opt" data-val="stretch">Stretch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIGHT SOURCES — add/remove point & spot lights -->
+        <div class="section">
+          <div class="section-hdr">Light Sources</div>
+          <div class="section-body">
+            <div class="field-row">
+              <select class="wb-select field-val" id="light-type-select" style="flex:1;">
+                <option value="point">Point Light</option>
+                <option value="spot">Spot Light</option>
+              </select>
+              <button class="wb-btn wb-btn-sm" id="btn-add-light" style="margin:0;width:auto;padding:3px 10px;">+ Add</button>
+            </div>
+            <div id="light-list" style="display:flex;flex-direction:column;gap:3px;"></div>
+            <div id="light-list-empty-hint" class="hint-text" style="margin:0;">No extra lights yet — the Sun and Ambient light above are always on.</div>
+            <div id="light-props" style="display:none;flex-direction:column;gap:5px;border-top:1px solid #241638;padding-top:6px;margin-top:2px;">
+              <div class="field-row">
+                <span class="field-label">Color</span>
+                <input type="color" class="wb-color" id="light-color">
+                <input type="range" class="wb-range" id="light-intensity" min="0" max="500" value="100" style="flex:1;margin-left:6px;">
+                <span id="light-intensity-val" style="color:var(--text-dim);width:30px;text-align:right;font-size:9px;">100%</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Position</span>
+                <input type="number" class="wb-select" id="light-pos-x" step="0.1" style="width:44px;padding:2px;">
+                <input type="number" class="wb-select" id="light-pos-y" step="0.1" style="width:44px;padding:2px;margin-left:3px;">
+                <input type="number" class="wb-select" id="light-pos-z" step="0.1" style="width:44px;padding:2px;margin-left:3px;">
+              </div>
+              <div class="field-row" id="light-distance-row">
+                <span class="field-label">Range</span>
+                <input type="range" class="wb-range" id="light-distance" min="0" max="50" value="0" style="flex:1;">
+                <span id="light-distance-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">∞</span>
+              </div>
+              <div class="field-row" id="light-angle-row" style="display:none;">
+                <span class="field-label">Cone</span>
+                <input type="range" class="wb-range" id="light-angle" min="5" max="90" value="30" style="flex:1;">
+                <span id="light-angle-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">30°</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GAMEPAD -->
+        <div class="section" id="gamepad-section">
+          <div class="section-hdr">Gamepad</div>
+          <div class="section-body" style="gap:3px;">
+            <div id="gp-disconnected" style="color:var(--text-dim);font-size:9px;line-height:1.6;">No controller detected.<br>Connect a gamepad and press any button.</div>
+            <div id="gp-connected-info" style="display:none;font-size:9px;color:var(--text-body);line-height:1.7;">
+              <div style="color:#60c878;margin-bottom:3px;" id="gp-full-name">—</div>
+              <div style="color:var(--text-dim);border-top:1px solid #1a1030;padding-top:3px;margin-top:2px;">
+                <b style="color:var(--text-label);">L Stick</b> — Orbit camera<br>
+                <b style="color:var(--text-label);">R Stick</b> — Zoom / truck<br>
+                <b style="color:var(--text-label);">D-Pad ▲▼</b> — Zoom in/out<br>
+                <b style="color:var(--text-label);">LB / RB</b> — Prev / next model<br>
+                <b style="color:var(--text-label);">A</b> — Toggle auto-rotate<br>
+                <b style="color:var(--text-label);">Y</b> — Reset camera<br>
+                <b style="color:var(--text-label);">B</b> — Deselect<br>
+                <b style="color:var(--text-label);">Start</b> — Save PNG
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Engine Output -->
+<div class="row" style="flex:1; min-height:0;">
+  <div class="winbox" style="flex:1; min-width:0;">
+    <div class="titlebar">
+      <span class="titlebar-icon">🎬</span>
+      <span class="titlebar-title" id="output-title">Engine Output · 320×200</span>
+      <span id="dirty-dot" style="display:none;width:7px;height:7px;border-radius:50%;background:#e0a030;margin-right:4px;flex-shrink:0;" title="Unsaved changes"></span>
+      <div class="win-btns"><div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn close">✕</div></div>
+    </div>
+    <div class="win-content">
+      <div id="output-row">
+        <div id="render-wrap">
+          <canvas id="render-canvas" width="320" height="200"></canvas>
+          <div id="title-drag-handle" style="position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;"></div>
+        </div>
+        <div id="output-controls">
+          <div class="output-section-hdr">Resolution</div>
+          <button class="wb-btn active" id="res-320" onclick="setRes(320,200)">320 × 200</button>
+          <button class="wb-btn" id="res-640" onclick="setRes(640,400)">640 × 400</button>
+          <button class="wb-btn" id="res-960" onclick="setRes(960,600)">960 × 600</button>
+          <div class="output-section-hdr" style="margin-top:8px;">Cel Shading</div>
+          <div class="toggle-btn" id="cel-global-toggle" style="width:100%;">
+            <span class="toggle-opt active" data-val="off" style="flex:1;text-align:center;">Off</span>
+            <span class="toggle-opt" data-val="on" style="flex:1;text-align:center;">On</span>
+          </div>
+          <div id="cel-global-rows" style="display:none;flex-direction:column;gap:4px;">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span style="font-size:9px;color:var(--text-dim);width:34px;flex-shrink:0;">Bands</span>
+              <input type="range" class="wb-range" id="cel-bands-global" min="2" max="8" value="4" style="flex:1;">
+              <span id="cel-bands-global-val" style="font-size:9px;color:var(--text-dim);width:10px;">4</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span style="font-size:9px;color:var(--text-dim);width:34px;flex-shrink:0;">Outline</span>
+              <div class="toggle-btn" id="cel-outline-global-toggle" style="flex:1;">
+                <span class="toggle-opt active" data-val="on" style="flex:1;text-align:center;">On</span>
+                <span class="toggle-opt" data-val="off" style="flex:1;text-align:center;">Off</span>
+              </div>
+            </div>
+            <div id="cel-outline-global-color-row" style="display:flex;align-items:center;gap:4px;">
+              <input type="color" class="wb-color" id="cel-outline-color-global" value="#0a0a14" style="flex-shrink:0;">
+              <input type="range" class="wb-range" id="cel-outline-width-global" min="1" max="15" value="3" style="flex:1;">
+              <span id="cel-outline-width-global-val" style="font-size:9px;color:var(--text-dim);width:22px;text-align:right;">0.03</span>
+            </div>
+            <div class="hint-text" style="margin:0;">Posterizes the final image + adds shell outlines, after per-object shading is applied.</div>
+          </div>
+          <div class="output-section-hdr" style="margin-top:8px;">Export</div>
+          <button class="wb-btn" onclick="savePNG()">💾 Save PNG</button>
+          <button class="wb-btn" onclick="copyFrame()">📋 Copy Frame</button>
+          <div class="output-section-hdr" style="margin-top:8px;">Scene</div>
+          <div style="display:flex;gap:3px;margin-bottom:2px;">
+            <button class="wb-btn wb-btn-sm" id="undo-btn" disabled style="flex:1;">↩ Undo</button>
+            <button class="wb-btn wb-btn-sm" id="redo-btn" disabled style="flex:1;">↪ Redo</button>
+          </div>
+          <button class="wb-btn" onclick="saveScene()">📄 Save Scene JSON</button>
+          <label class="wb-btn" style="cursor:pointer;margin-bottom:2px;">📂 Load Scene JSON<input type="file" id="scene-load-input" accept=".json" style="display:none;" onchange="loadScene(this)"></label>
+          <div class="hint-text">320×200 upscaled 2× for display.<br>640×400 renders 4× more pixels.</div>
+          <div id="autosave-status" style="color:var(--text-dim);font-size:9px;margin-top:4px;text-align:center;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+
+// ─── RENDERERS ────────────────────────────────────────────────────
+const stageCanvas = document.getElementById('three-canvas');
+const stageRenderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+stageRenderer.setPixelRatio(window.devicePixelRatio);
+stageRenderer.shadowMap.enabled = true;
+stageRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const offRenderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+offRenderer.shadowMap.enabled = true;
+
+// ─── SCENE ────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+const gridHelper = new THREE.GridHelper(20, 20, 0x3a2a6a, 0x221540);
+scene.add(gridHelper);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+let sunAzimuth = 45;   // degrees, around Y axis
+let sunElevation = 55; // degrees above horizon
+const SUN_RADIUS = 12;
+function updateSunPosition() {
+  const az = THREE.MathUtils.degToRad(sunAzimuth);
+  const el = THREE.MathUtils.degToRad(sunElevation);
+  sunLight.position.set(
+    SUN_RADIUS * Math.cos(el) * Math.sin(az),
+    SUN_RADIUS * Math.sin(el),
+    SUN_RADIUS * Math.cos(el) * Math.cos(az),
+  );
+}
+updateSunPosition();
+sunLight.castShadow = true;
+scene.add(sunLight);
+const fillLight = new THREE.DirectionalLight(0x8080ff, 0.3);
+fillLight.position.set(-5, 2, -5);
+scene.add(fillLight);
+
+// ─── DYNAMIC LIGHT SOURCES (user-added point/spot lights) ─────────
+let lights = [];
+let selectedLightId = null;
+let _lightIdCounter = 1;
+let _syncingLightPanel = false;
+
+// ─── CAMERAS ──────────────────────────────────────────────────────
+const stageCamera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+stageCamera.position.set(0, 2, 5);
+const offCamera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+
+// ─── CONTROLS ─────────────────────────────────────────────────────
+const orbitControls = new OrbitControls(stageCamera, stageCanvas);
+orbitControls.enableDamping = true;
+orbitControls.dampingFactor = 0.08;
+
+const transformControls = new TransformControls(stageCamera, stageCanvas);
+transformControls.addEventListener('dragging-changed', e => {
+  orbitControls.enabled = !e.value;
+  if (e.value) pushUndo(); // capture state before drag begins
+});
+scene.add(transformControls);
+
+// ─── GLOBAL STATE ─────────────────────────────────────────────────
+let renderW = 320, renderH = 200;
+let outputBgColor = '#ffffff';
+let outputBgType = 'solid'; // 'solid' | 'gradient' | 'image'
+let outputBgGradA = '#1a0040', outputBgGradB = '#004080', outputBgGradDir = 'to bottom';
+let outputBgImage = null; // HTMLImageElement or null
+let outputBgImageFit = 'cover';
+let titleText = '', titleColor = '#ffffff', titleSize = 40, titleFont = '', titleFontRaw = '', titleDepth = 2;
+let titleColorMode = 'flat'; // 'flat' | 'gradient'
+let titleGradA = '#ff4488', titleGradB = '#44aaff', titleGradDir = '90deg';
+let titlePos = { x: 0, y: 0 }; // world-space X/Y offset for sprite
+
+// objects array — each entry carries its own shading state:
+// { mesh, name, triCount, type, shadeMode, baseColor, autoRotate, visible,
+//   mixer, animations, activeClipName, animAction, animEnabled, gifPlayer }
+let objects = [];
+let selectedObject = null; // reference to the mesh/group
+
+// ─── TIMELINE STATE ────────────────────────────────────────────────
+let timelineTime = 0;
+let timelineDuration = 0;
+let timelinePlaying = false;
+let timelineLoop = true;
+let timelineSpeed = 1;
+
+// ─── CEL SHADING (global post-process, applied after per-object shading,
+// before the frame is composited to the output canvas) ────────────────
+let celShadingEnabled = false;
+let celBandsGlobal = 4;
+let celOutlineEnabled = true;
+let celOutlineColorGlobal = '#0a0a14';
+let celOutlineWidthGlobal = 0.03;
+
+// ─── DIRTY TRACKING (stubs — full impl in auto-save section) ──────
+let _dirty = false;
+let _autosaveTimer = null;
+function markDirty() {
+  _dirty = true;
+  const dot = document.getElementById('dirty-dot');
+  if (dot) dot.style.display = '';
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(() => {
+    if (typeof commitAutosave === 'function') commitAutosave();
+  }, 2000);
+}
+function markClean() {
+  _dirty = false;
+  const dot = document.getElementById('dirty-dot');
+  if (dot) dot.style.display = 'none';
+}
+
+// ─── UNDO / REDO ──────────────────────────────────────────────────
+// A snapshot captures: per-object transform + shading state.
+// Geometry is not cloned — only transforms and material parameters.
+let _undoStack = [];
+let _redoStack = [];
+
+function snapshotScene() {
+  return objects.map(o => ({
+    uuid: o.mesh.uuid,
+    position: o.mesh.position.toArray(),
+    rotation: o.mesh.rotation.toArray().slice(0, 3),
+    scale: o.mesh.scale.toArray(),
+    shadeMode:  o.shadeMode,
+    baseColor:  o.baseColor,
+    gradColorA: o.gradColorA,
+    gradColorB: o.gradColorB,
+    gradAxis:   o.gradAxis,
+    autoRotate: o.autoRotate,
+    visible:    o.mesh.visible,
+    keyframes: JSON.parse(JSON.stringify(o.keyframes || [])),
+  }));
+}
+
+function applySnapshot(snap) {
+  snap.forEach(s => {
+    const entry = objects.find(o => o.mesh.uuid === s.uuid);
+    if (!entry) return;
+    entry.mesh.position.fromArray(s.position);
+    entry.mesh.rotation.set(...s.rotation);
+    entry.mesh.scale.fromArray(s.scale);
+    entry.shadeMode  = s.shadeMode;
+    entry.baseColor  = s.baseColor;
+    entry.gradColorA = s.gradColorA;
+    entry.gradColorB = s.gradColorB;
+    entry.gradAxis   = s.gradAxis;
+    entry.autoRotate = s.autoRotate;
+    if (s.visible !== undefined) entry.mesh.visible = s.visible;
+    if (s.keyframes !== undefined) entry.keyframes = JSON.parse(JSON.stringify(s.keyframes));
+    applyShading(entry);
+  });
+  syncShadingPanel();
+  syncKeyframeSection();
+  recomputeTimelineDuration();
+  updateModelList();
+  markDirty();
+}
+
+function _syncUndoButtons() {
+  document.getElementById('undo-btn').disabled = _undoStack.length === 0;
+  document.getElementById('redo-btn').disabled = _redoStack.length === 0;
+}
+
+function pushUndo() {
+  _undoStack.push(snapshotScene());
+  if (_undoStack.length > 64) _undoStack.shift(); // cap at 64 steps
+  _redoStack.length = 0;
+  _syncUndoButtons();
+}
+
+function undoStep() {
+  if (!_undoStack.length) return;
+  _redoStack.push(snapshotScene());
+  applySnapshot(_undoStack.pop());
+  _syncUndoButtons();
+}
+
+function redoStep() {
+  if (!_redoStack.length) return;
+  _undoStack.push(snapshotScene());
+  applySnapshot(_redoStack.pop());
+  _syncUndoButtons();
+}
+
+document.getElementById('undo-btn').addEventListener('click', undoStep);
+document.getElementById('redo-btn').addEventListener('click', redoStep);
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.ctrlKey && !e.shiftKey && e.key === 'z') { e.preventDefault(); undoStep(); }
+  if ((e.ctrlKey && e.shiftKey && e.key === 'z') || (e.ctrlKey && e.key === 'y')) { e.preventDefault(); redoStep(); }
+});
+
+// ─── IFRAME-FRIENDLY CANVAS RESIZING ─────────────────────────────
+function resizeStage() {
+  const canvas = document.getElementById('three-canvas');
+  if (!canvas) return;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w === 0 || h === 0) return;
+  stageRenderer.setSize(w, h);
+  stageCamera.aspect = w / h;
+  stageCamera.updateProjectionMatrix();
+}
+
+// Force canvas size detection (works inside iframes where ResizeObserver might be delayed)
+function forceCanvasResize() {
+  const canvas = document.getElementById('three-canvas');
+  if (!canvas) return;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w > 0 && h > 0) {
+    stageRenderer.setSize(w, h);
+    stageCamera.aspect = w / h;
+    stageCamera.updateProjectionMatrix();
+  } else {
+    // Retry after a short delay (iframe may not be ready)
+    setTimeout(forceCanvasResize, 100);
+  }
+}
+
+// Set up ResizeObserver with a fallback
+const resizeObserver = new ResizeObserver(() => resizeStage());
+const stageWrap = document.getElementById('stage-wrap');
+if (stageWrap) resizeObserver.observe(stageWrap);
+
+// Also listen to window resize (important for iframe resizing)
+window.addEventListener('resize', () => forceCanvasResize());
+
+// Initial forced resize when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', forceCanvasResize);
+} else {
+  forceCanvasResize();
+}
+// End of iframe fixes
+
+// ─── RESOLUTION ───────────────────────────────────────────────────
+window.setRes = function(w, h) {
+  renderW = w; renderH = h;
+  offRenderer.setSize(w, h);
+  const rc = document.getElementById('render-canvas');
+  rc.width = w; rc.height = h;
+  document.getElementById('output-title').textContent = `Engine Output · ${w}×${h}`;
+  ['res-320','res-640','res-960'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById(w===320?'res-320':w===640?'res-640':'res-960').classList.add('active');
+};
+setRes(320, 200);
+
+// ─── CEL SHADING (global) UI WIRING ────────────────────────────────
+document.getElementById('cel-global-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  celShadingEnabled = opt.dataset.val === 'on';
+  document.querySelectorAll('#cel-global-toggle .toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
+  document.getElementById('cel-global-rows').style.display = celShadingEnabled ? 'flex' : 'none';
+  refreshAllCelOutlines();
+  markDirty();
+});
+document.getElementById('cel-bands-global').addEventListener('input', e => {
+  celBandsGlobal = parseInt(e.target.value);
+  document.getElementById('cel-bands-global-val').textContent = celBandsGlobal;
+  markDirty();
+});
+document.getElementById('cel-outline-global-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  celOutlineEnabled = opt.dataset.val === 'on';
+  document.querySelectorAll('#cel-outline-global-toggle .toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
+  document.getElementById('cel-outline-global-color-row').style.display = celOutlineEnabled ? 'flex' : 'none';
+  refreshAllCelOutlines();
+  markDirty();
+});
+document.getElementById('cel-outline-color-global').addEventListener('input', e => {
+  celOutlineColorGlobal = e.target.value;
+  refreshAllCelOutlines();
+  markDirty();
+});
+document.getElementById('cel-outline-width-global').addEventListener('input', e => {
+  celOutlineWidthGlobal = parseInt(e.target.value) / 100;
+  document.getElementById('cel-outline-width-global-val').textContent = celOutlineWidthGlobal.toFixed(2);
+  refreshAllCelOutlines();
+  markDirty();
+});
+
+// ─── SHADING ──────────────────────────────────────────────────────
+function hexToVec3(hex) {
+  const r = parseInt(hex.slice(1,3),16)/255;
+  const g = parseInt(hex.slice(3,5),16)/255;
+  const b = parseInt(hex.slice(5,7),16)/255;
+  return new THREE.Vector3(r,g,b);
+}
+
+// ─── GOURAUD SHADING ──────────────────────────────────────────────
+// Classic per-vertex Phong/Gouraud: compute lighting in vertex shader,
+// interpolate result across the triangle, giving smooth color bands.
+function buildGouraudMaterial(diffuseHex, specularHex, shininess) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      diffuseColor:  { value: hexToVec3(diffuseHex) },
+      specularColor: { value: hexToVec3(specularHex) },
+      shininess:     { value: shininess },
+      lightDir:      { value: new THREE.Vector3(0.6, 0.8, 0.5).normalize() },
+      lightColor:    { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+      ambientColor:  { value: new THREE.Vector3(0.18, 0.18, 0.22) },
+    },
+    vertexShader: `
+      uniform vec3 diffuseColor;
+      uniform vec3 specularColor;
+      uniform float shininess;
+      uniform vec3 lightDir;
+      uniform vec3 lightColor;
+      uniform vec3 ambientColor;
+      varying vec3 vColor;
+      void main() {
+        // Transform normal to world space
+        vec3 N = normalize(normalMatrix * normal);
+        vec3 L = normalize(lightDir);
+        vec3 pos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+        vec3 V = normalize(-pos);
+        vec3 R = reflect(-L, N);
+
+        // Gouraud: compute full Phong lighting per vertex
+        float diff = max(dot(N, L), 0.0);
+        float spec = pow(max(dot(R, V), 0.0), shininess);
+
+        vColor = ambientColor * diffuseColor
+               + diff * lightColor * diffuseColor
+               + spec * lightColor * specularColor;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+      }
+    `,
+    side: THREE.FrontSide,
+  });
+}
+
+// ─── SHELL-METHOD OUTLINE ───────────────────────────────────────────
+// Classic "inverted hull" toon outline: a duplicate of the mesh, its
+// vertices pushed outward along their normals and back faces shown,
+// so a thin rim of solid color peeks out from behind the real surface.
+function buildOutlineMaterial(colorHex, width) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      outlineColor: { value: hexToVec3(colorHex) },
+      outlineWidth: { value: width !== undefined ? width : 0.03 },
+    },
+    vertexShader: `
+      uniform float outlineWidth;
+      void main() {
+        vec3 displaced = position + normal * outlineWidth;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(displaced, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 outlineColor;
+      void main() { gl_FragColor = vec4(outlineColor, 1.0); }
+    `,
+    side: THREE.BackSide,
+  });
+}
+
+// Rebuilds the shell-method outline meshes for one object, based on the
+// current global Cel Shading toggle/settings. Called whenever that
+// object's shading is (re)applied, so the outline always matches whatever
+// per-object material was just chosen.
+function refreshCelOutlinesForEntry(obj) {
+  const oldShells = [];
+  obj.mesh.traverse(child => { if (child._isCelShell) oldShells.push(child); });
+  oldShells.forEach(c => { if (c.parent) c.parent.remove(c); });
+  if (!celShadingEnabled || !celOutlineEnabled) return;
+  obj.mesh.traverse(child => {
+    if (!child.isMesh || child._isCelShell) return;
+    const shell = new THREE.Mesh(child.geometry, buildOutlineMaterial(celOutlineColorGlobal, celOutlineWidthGlobal));
+    shell._isCelShell = true;
+    shell.castShadow = false;
+    shell.receiveShadow = false;
+    child.add(shell);
+  });
+}
+
+// Rebuilds outlines across every object — used when the global toggle or
+// outline color/width changes, rather than an individual object's shading.
+function refreshAllCelOutlines() {
+  objects.forEach(o => refreshCelOutlinesForEntry(o));
+}
+
+// ─── CEL SHADING POST-PROCESS (posterize) ──────────────────────────
+// Runs after the 3D scene is rendered but before it's composited onto
+// the output canvas — i.e. after each object's own shading method has
+// already been computed, and before the final image is finished.
+const celProcessCanvas = document.createElement('canvas');
+const celProcessCtx = celProcessCanvas.getContext('2d', { willReadFrequently: true });
+function applyCelPostProcess(sourceCanvas, w, h) {
+  celProcessCanvas.width = w; celProcessCanvas.height = h;
+  celProcessCtx.clearRect(0, 0, w, h);
+  celProcessCtx.drawImage(sourceCanvas, 0, 0, w, h);
+  const imgData = celProcessCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+  const bands = Math.max(2, celBandsGlobal);
+  const step = bands > 1 ? 255 / (bands - 1) : 255;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] === 0) continue; // leave fully-transparent (background) pixels untouched
+    data[i]     = Math.min(255, Math.round(Math.round(data[i]     / step) * step));
+    data[i + 1] = Math.min(255, Math.round(Math.round(data[i + 1] / step) * step));
+    data[i + 2] = Math.min(255, Math.round(Math.round(data[i + 2] / step) * step));
+  }
+  celProcessCtx.putImageData(imgData, 0, 0);
+  return celProcessCanvas;
+}
+
+function buildGradientMaterial(colorA, colorB, axis) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      colorA:  { value: hexToVec3(colorA) },
+      colorB:  { value: hexToVec3(colorB) },
+      bboxMin: { value: new THREE.Vector3() },
+      bboxMax: { value: new THREE.Vector3() },
+      axis:    { value: axis === 'x' ? 0 : axis === 'z' ? 2 : 1 }, // 0=X,1=Y,2=Z
+    },
+    vertexShader: `
+      uniform vec3 bboxMin;
+      uniform vec3 bboxMax;
+      uniform int axis;
+      varying float vT;
+      void main() {
+        vec3 world = (modelMatrix * vec4(position, 1.0)).xyz;
+        float lo, hi, val;
+        if (axis == 0)      { lo = bboxMin.x; hi = bboxMax.x; val = world.x; }
+        else if (axis == 2) { lo = bboxMin.z; hi = bboxMax.z; val = world.z; }
+        else                { lo = bboxMin.y; hi = bboxMax.y; val = world.y; }
+        vT = clamp((val - lo) / max(hi - lo, 0.001), 0.0, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 colorA;
+      uniform vec3 colorB;
+      varying float vT;
+      void main() {
+        gl_FragColor = vec4(mix(colorA, colorB, vT), 1.0);
+      }
+    `,
+    side: THREE.FrontSide,
+  });
+}
+
+function buildMaterial(shadeMode, baseColor, gradA, gradB, gradAxis, gouraudDiffuse, gouraudSpecular, gouraudShininess, textureTex, textureRepeat) {
+  switch(shadeMode) {
+    case 'flat':      return new THREE.MeshLambertMaterial({ color: new THREE.Color(baseColor), flatShading: true });
+    case 'wireframe': return new THREE.MeshBasicMaterial({ color: 0x88ffaa, wireframe: true });
+    case 'normals':   return new THREE.MeshNormalMaterial();
+    case 'depth':     return new THREE.MeshDepthMaterial();
+    case 'gradient':  return buildGradientMaterial(gradA || '#ff4488', gradB || '#44aaff', gradAxis || 'y');
+    case 'gouraud':   return buildGouraudMaterial(gouraudDiffuse || '#88aaff', gouraudSpecular || '#ffffff', gouraudShininess !== undefined ? gouraudShininess : 40);
+    case 'texture': {
+      if (!textureTex) return new THREE.MeshStandardMaterial({ color: 0x888888 });
+      const mat = new THREE.MeshStandardMaterial({ map: textureTex });
+      return mat;
+    }
+    default:          return null;
+  }
+}
+
+function applyShading(obj) {
+  const mat = buildMaterial(
+    obj.shadeMode, obj.baseColor,
+    obj.gradColorA, obj.gradColorB, obj.gradAxis,
+    obj.gouraudDiffuse, obj.gouraudSpecular, obj.gouraudShininess,
+    obj.textureTex, obj.textureRepeat
+  );
+  let bbox = null;
+  if (obj.shadeMode === 'gradient') {
+    bbox = new THREE.Box3().setFromObject(obj.mesh);
+  }
+  // For texture, apply repeating tiling
+  if (obj.shadeMode === 'texture' && obj.textureTex && obj.textureRepeat) {
+    obj.textureTex.wrapS = obj.textureTex.wrapT = THREE.RepeatWrapping;
+    obj.textureTex.repeat.set(obj.textureRepeat, obj.textureRepeat);
+    obj.textureTex.needsUpdate = true;
+  }
+  obj.mesh.traverse(child => {
+    if (!child.isMesh || child._isCelShell) return;
+    if (!child._origMat) child._origMat = child.material;
+    if (mat) {
+      child.material = mat.clone ? mat.clone() : mat;
+      if (obj.shadeMode === 'gradient' && bbox && child.material.uniforms) {
+        child.material.uniforms.bboxMin.value.copy(bbox.min);
+        child.material.uniforms.bboxMax.value.copy(bbox.max);
+      }
+      // Re-apply shared texture reference (cloning loses the map)
+      if (obj.shadeMode === 'texture' && obj.textureTex) {
+        child.material.map = obj.textureTex;
+        child.material.needsUpdate = true;
+      }
+    } else {
+      child.material = child._origMat || new THREE.MeshStandardMaterial({ color: new THREE.Color(obj.baseColor) });
+    }
+  });
+  // Cel Shading (global pipeline stage) may add shell-outline meshes on
+  // top of whatever shading mode was just applied above — see refreshCelOutlines().
+  refreshCelOutlinesForEntry(obj);
+}
+
+// ─── SELECTED OBJECT ACCESSORS ────────────────────────────────────
+function getSelectedEntry() {
+  return objects.find(o => o.mesh === selectedObject) || null;
+}
+
+// ─── SHADING PANEL SYNC ───────────────────────────────────────────
+// Reads from the selected object and pushes values into the UI controls
+function syncShadingPanel() {
+  const entry = getSelectedEntry();
+  const section = document.getElementById('shading-section');
+  const badge = document.getElementById('shading-model-badge');
+
+  if (!entry) {
+    section.classList.add('no-sel');
+    badge.textContent = '— no selection —';
+    return;
+  }
+
+  section.classList.remove('no-sel');
+  badge.textContent = entry.name;
+
+  // Suppress event firing while we update the inputs
+  _syncingPanel = true;
+  document.getElementById('shade-mode').value = entry.shadeMode;
+  document.getElementById('base-color').value = entry.baseColor;
+  document.getElementById('grad-color-a').value = entry.gradColorA || '#ff4488';
+  document.getElementById('grad-color-b').value = entry.gradColorB || '#44aaff';
+  const gradAxis = entry.gradAxis || 'y';
+  document.querySelectorAll('#grad-dir-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === gradAxis));
+  // Gouraud
+  document.getElementById('gouraud-diffuse').value = entry.gouraudDiffuse || '#88aaff';
+  document.getElementById('gouraud-specular').value = entry.gouraudSpecular || '#ffffff';
+  const shine = entry.gouraudShininess !== undefined ? entry.gouraudShininess : 40;
+  document.getElementById('gouraud-shininess').value = shine;
+  document.getElementById('gouraud-shine-val').textContent = shine;
+  // Texture repeat
+  const rep = entry.textureRepeat || 1;
+  document.getElementById('tex-repeat').value = rep;
+  document.getElementById('tex-repeat-val').textContent = rep + '×';
+
+  const isGrad    = entry.shadeMode === 'gradient';
+  const isGouraud = entry.shadeMode === 'gouraud';
+  const isTex     = entry.shadeMode === 'texture';
+  const showBase  = !isGrad && !isGouraud && !isTex;
+  document.getElementById('base-color-row').style.display      = showBase    ? '' : 'none';
+  document.getElementById('gradient-color-rows').style.display = isGrad      ? '' : 'none';
+  document.getElementById('gouraud-color-rows').style.display  = isGouraud   ? '' : 'none';
+  document.getElementById('texture-rows').style.display        = isTex       ? '' : 'none';
+  const arToggle = document.getElementById('autorotate-toggle');
+  arToggle.querySelectorAll('.toggle-opt').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.val === (entry.autoRotate ? 'on' : 'off'));
+  });
+  _syncingPanel = false;
+}
+let _syncingPanel = false;
+
+// ─── CONTROLS WIRING — write to selected object ───────────────────
+document.getElementById('shade-mode').addEventListener('change', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.shadeMode = e.target.value;
+  const isGrad    = entry.shadeMode === 'gradient';
+  const isGouraud = entry.shadeMode === 'gouraud';
+  const isTex     = entry.shadeMode === 'texture';
+  const showBase  = !isGrad && !isGouraud && !isTex;
+  document.getElementById('base-color-row').style.display      = showBase  ? '' : 'none';
+  document.getElementById('gradient-color-rows').style.display = isGrad    ? '' : 'none';
+  document.getElementById('gouraud-color-rows').style.display  = isGouraud ? '' : 'none';
+  document.getElementById('texture-rows').style.display        = isTex     ? '' : 'none';
+  applyShading(entry);
+});
+
+document.getElementById('grad-color-a').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+document.getElementById('grad-color-b').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+document.getElementById('base-color').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+
+document.getElementById('grad-color-a').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.gradColorA = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('grad-color-b').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.gradColorB = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('grad-dir-toggle').addEventListener('click', e => {
+  if (_syncingPanel) return;
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.gradAxis = opt.dataset.val;
+  document.querySelectorAll('#grad-dir-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === opt.dataset.val));
+  applyShading(entry);
+});
+
+document.getElementById('base-color').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.baseColor = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('autorotate-toggle').addEventListener('click', e => {
+  if (_syncingPanel) return;
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.autoRotate = opt.dataset.val === 'on';
+  document.querySelectorAll('#autorotate-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === entry.autoRotate ? 'on' : 'off'));
+});
+
+// ─── GOURAUD CONTROLS ─────────────────────────────────────────────
+document.getElementById('gouraud-diffuse').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudDiffuse = e.target.value; applyShading(entry);
+});
+document.getElementById('gouraud-diffuse').addEventListener('change', e => {
+  if (!_syncingPanel && getSelectedEntry()) pushUndo();
+});
+document.getElementById('gouraud-specular').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudSpecular = e.target.value; applyShading(entry);
+});
+document.getElementById('gouraud-shininess').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudShininess = parseInt(e.target.value);
+  document.getElementById('gouraud-shine-val').textContent = e.target.value;
+  applyShading(entry);
+});
+
+// ─── TEXTURE (PNG TILING) CONTROLS ────────────────────────────────
+const texLoader = new THREE.TextureLoader();
+document.getElementById('tex-file-input').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  const isGif = /\.gif$/i.test(file.name) || file.type === 'image/gif';
+  entry.gifPlayer = null;
+  let tex;
+  if (isGif) {
+    try {
+      const gp = await loadGifPlayer(file);
+      entry.gifPlayer = gp;
+      tex = gp.texture;
+    } catch (err) {
+      console.warn('GIF decode failed, loading as static image instead:', err);
+    }
+  }
+  if (!tex) {
+    const url = URL.createObjectURL(file);
+    tex = new THREE.TextureLoader().load(url, () => { URL.revokeObjectURL(url); });
+  }
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  const rep = entry.textureRepeat || 1;
+  tex.repeat.set(rep, rep);
+  entry.textureTex = tex;
+  applyShading(entry);
+  recomputeTimelineDuration();
+  syncAnimSection();
+});
+document.getElementById('tex-repeat').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.textureRepeat = parseInt(e.target.value);
+  document.getElementById('tex-repeat-val').textContent = e.target.value + '×';
+  if (entry.textureTex) {
+    entry.textureTex.repeat.set(entry.textureRepeat, entry.textureRepeat);
+    entry.textureTex.needsUpdate = true;
+  }
+});
+
+// ─── BACKGROUND TYPE CONTROLS ─────────────────────────────────────
+document.getElementById('bg-type-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  outputBgType = opt.dataset.val;
+  document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === outputBgType));
+  document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+  document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+  document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+});
+document.getElementById('bg-grad-a').addEventListener('input', e => { outputBgGradA = e.target.value; });
+document.getElementById('bg-grad-b').addEventListener('input', e => { outputBgGradB = e.target.value; });
+document.getElementById('bg-grad-dir').addEventListener('change', e => { outputBgGradDir = e.target.value; });
+document.getElementById('bg-img-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => { outputBgImage = img; };
+  img.src = url;
+});
+document.getElementById('bg-img-fit-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  outputBgImageFit = opt.dataset.val;
+  document.querySelectorAll('#bg-img-fit-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === outputBgImageFit));
+});
+
+// Title controls
+document.getElementById('title-text').addEventListener('input', e => { titleText = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-color').addEventListener('input', e => { titleColor = e.target.value; updateTitleOverlay(); });
+
+// Color mode toggle
+document.getElementById('color-mode-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  titleColorMode = opt.dataset.val;
+  document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === titleColorMode));
+  document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+  document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+  updateTitleOverlay();
+});
+
+// Gradient pickers + direction
+document.getElementById('title-grad-a').addEventListener('input', e => { titleGradA = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-grad-b').addEventListener('input', e => { titleGradB = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-grad-dir').addEventListener('change', e => { titleGradDir = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-size').addEventListener('input', e => {
+  titleSize = parseInt(e.target.value);
+  document.getElementById('title-size-val').textContent = titleSize + 'px';
+  updateTitleOverlay();
+});
+
+document.getElementById('title-depth').addEventListener('input', e => {
+  titleDepth = parseFloat(e.target.value);
+  document.getElementById('title-depth-val').textContent = titleDepth;
+  if (titleSprite.visible) titleSprite.position.setZ(titleDepth);
+});
+
+// Font style input — accepts @import URL or bare font-family value
+// Show a hint while typing; commit only on Enter or blur.
+document.getElementById('title-font').addEventListener('input', e => {
+  const raw = e.target.value.trim();
+  const statusEl = document.getElementById('title-font-status');
+  if (!raw) {
+    titleFont = '';
+    statusEl.textContent = 'Paste a Google Fonts @import URL or a CSS font-family value.';
+    statusEl.style.color = 'var(--text-dim)';
+    updateTitleOverlay();
+  } else {
+    statusEl.textContent = 'Press Enter or click away to apply…';
+    statusEl.style.color = 'var(--text-dim)';
+  }
+});
+
+// Load a Google Fonts stylesheet via CSS, then use FontFace API to pull the
+// actual font binary into document.fonts so it's available to offscreen canvas.
+// (Canvas ignores CSS @import / <link> unless the font is in the FontFaceSet.)
+async function loadGoogleFont(family, cssHref) {
+  // 1. Fetch the CSS from Google Fonts — it contains @font-face rules with woff2 URLs
+  let css;
+  try {
+    const res = await fetch(cssHref);
+    css = await res.text();
+  } catch (e) {
+    return false;
+  }
+
+  // 2. Extract all src: url(...) woff2 entries and load each via FontFace
+  const urlRe = /src:\s*[^;]*url\((['"]?)([^'")\s]+\.woff2)\1\)[^;]*;/gi;
+  // Also grab the font-weight for each @font-face block so we load correct variants
+  const blockRe = /@font-face\s*\{([^}]+)\}/gi;
+  const promises = [];
+  let block;
+  while ((block = blockRe.exec(css)) !== null) {
+    const body = block[1];
+    const srcMatch = /url\((['"]?)([^'")\s]+\.woff2)\1\)/.exec(body);
+    const weightMatch = /font-weight:\s*(\d+)/.exec(body);
+    const styleMatch = /font-style:\s*(\w+)/.exec(body);
+    if (!srcMatch) continue;
+    const src = srcMatch[2];
+    const weight = weightMatch ? weightMatch[1] : '400';
+    const style = styleMatch ? styleMatch[1] : 'normal';
+    const ff = new FontFace(family, `url(${src})`, { weight, style });
+    promises.push(ff.load().then(loaded => { document.fonts.add(loaded); }));
+  }
+
+  if (!promises.length) return false;
+  try { await Promise.all(promises); return true; }
+  catch (e) { return false; }
+}
+
+async function applyTitleFont(raw) {
+  titleFontRaw = raw;
+  const statusEl = document.getElementById('title-font-status');
+
+  if (!raw) {
+    titleFont = '';
+    statusEl.textContent = 'Paste a Google Fonts @import URL or a CSS font-family value.';
+    statusEl.style.color = 'var(--text-dim)';
+    updateTitleOverlay();
+    return;
+  }
+
+  // Extract a CSS href — accept either @import url("...") or a bare https:// URL
+  const importMatch = raw.match(/@import\s+url\(['"]?([^'")\s]+)['"]?\)/i)
+                   || raw.match(/@import\s+['"]([^'"]+)['"]/i);
+  const href = importMatch ? importMatch[1] : (raw.match(/^https?:\/\//i) ? raw : null);
+
+  if (href) {
+    const familyParam = href.match(/[?&]family=([^&]+)/i);
+    const family = familyParam
+      ? decodeURIComponent(familyParam[1]).split(':')[0].replace(/\+/g, ' ').trim()
+      : null;
+
+    titleFont = family ? `'${family}', sans-serif` : 'sans-serif';
+    statusEl.textContent = family ? `⏳ Loading "${family}"…` : '⏳ Loading font…';
+    statusEl.style.color = 'var(--text-accent)';
+
+    const ok = await loadGoogleFont(family || 'CustomFont', href);
+    statusEl.textContent = ok
+      ? `✓ "${family || 'font'}" ready`
+      : `⚠ Could not load font (check URL)`;
+    statusEl.style.color = ok ? '#80e8a0' : '#e08080';
+    updateTitleOverlay();
+    return;
+  }
+
+  // Plain font-family string — font must already be available (system font, etc.)
+  titleFont = raw;
+  statusEl.textContent = '✓ font-family applied';
+  statusEl.style.color = '#80e8a0';
+  updateTitleOverlay();
+}
+
+document.getElementById('title-font').addEventListener('change', e => applyTitleFont(e.target.value.trim()));
+document.getElementById('title-font').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyTitleFont(e.target.value.trim()); }
+});
+
+// Lighting
+document.getElementById('light-ambient').addEventListener('input', e => {
+  ambientLight.intensity = parseInt(e.target.value) / 100;
+  document.getElementById('ambient-val').textContent = e.target.value + '%';
+});
+document.getElementById('light-sun').addEventListener('input', e => {
+  sunLight.intensity = parseInt(e.target.value) / 100;
+  document.getElementById('sun-val').textContent = e.target.value + '%';
+});
+document.getElementById('ambient-color').addEventListener('input', e => {
+  ambientLight.color.set(e.target.value);
+});
+document.getElementById('sun-color').addEventListener('input', e => {
+  sunLight.color.set(e.target.value);
+});
+document.getElementById('sun-azimuth').addEventListener('input', e => {
+  sunAzimuth = parseInt(e.target.value);
+  document.getElementById('sun-azimuth-val').textContent = sunAzimuth + '°';
+  updateSunPosition();
+});
+document.getElementById('sun-elevation').addEventListener('input', e => {
+  sunElevation = parseInt(e.target.value);
+  document.getElementById('sun-elevation-val').textContent = sunElevation + '°';
+  updateSunPosition();
+});
+document.getElementById('bg-color').addEventListener('input', e => { outputBgColor = e.target.value; });
+
+// ─── DYNAMIC LIGHT SOURCES — add/remove/edit point & spot lights ──
+function addLight(type) {
+  const light = type === 'spot'
+    ? new THREE.SpotLight(0xffffff, 3, 0, THREE.MathUtils.degToRad(30), 0.3)
+    : new THREE.PointLight(0xffffff, 3, 0);
+  light.position.set(0, 2, 0);
+  scene.add(light);
+  const helper = type === 'spot' ? new THREE.SpotLightHelper(light) : new THREE.PointLightHelper(light, 0.15);
+  scene.add(helper);
+  const entry = {
+    id: _lightIdCounter++, type,
+    name: `${type === 'spot' ? 'Spot' : 'Point'} ${lights.length + 1}`,
+    light, helper,
+    color: '#ffffff', intensity: 100, distance: 0, angle: 30, penumbra: 0.3,
+  };
+  lights.push(entry);
+  updateLightList();
+  selectLight(entry.id);
+  markDirty();
+}
+
+function removeLight(id) {
+  const entry = lights.find(l => l.id === id);
+  if (!entry) return;
+  scene.remove(entry.light);
+  scene.remove(entry.helper);
+  lights = lights.filter(l => l.id !== id);
+  if (selectedLightId === id) selectedLightId = null;
+  updateLightList();
+  syncLightProps();
+  markDirty();
+}
+
+function selectLight(id) {
+  selectedLightId = id;
+  updateLightList();
+  syncLightProps();
+}
+
+function getSelectedLight() { return lights.find(l => l.id === selectedLightId) || null; }
+
+function updateLightList() {
+  const list = document.getElementById('light-list');
+  const hint = document.getElementById('light-list-empty-hint');
+  list.innerHTML = '';
+  hint.style.display = lights.length ? 'none' : '';
+  lights.forEach(l => {
+    const row = document.createElement('div');
+    row.className = 'light-item' + (l.id === selectedLightId ? ' selected' : '');
+    row.innerHTML = `<span class="light-swatch" style="background:${l.color}"></span><span class="light-name">${l.name}</span><span class="light-remove" title="Remove">✕</span>`;
+    row.querySelector('.light-remove').addEventListener('click', ev => { ev.stopPropagation(); removeLight(l.id); });
+    row.addEventListener('click', () => selectLight(l.id));
+    list.appendChild(row);
+  });
+}
+
+function syncLightProps() {
+  const entry = getSelectedLight();
+  const panel = document.getElementById('light-props');
+  if (!entry) { panel.style.display = 'none'; return; }
+  panel.style.display = 'flex';
+  _syncingLightPanel = true;
+  document.getElementById('light-color').value = entry.color;
+  document.getElementById('light-intensity').value = entry.intensity;
+  document.getElementById('light-intensity-val').textContent = entry.intensity + '%';
+  document.getElementById('light-pos-x').value = entry.light.position.x.toFixed(2);
+  document.getElementById('light-pos-y').value = entry.light.position.y.toFixed(2);
+  document.getElementById('light-pos-z').value = entry.light.position.z.toFixed(2);
+  document.getElementById('light-distance').value = entry.distance;
+  document.getElementById('light-distance-val').textContent = entry.distance > 0 ? entry.distance : '∞';
+  document.getElementById('light-angle-row').style.display = entry.type === 'spot' ? '' : 'none';
+  document.getElementById('light-angle').value = entry.angle;
+  document.getElementById('light-angle-val').textContent = entry.angle + '°';
+  _syncingLightPanel = false;
+}
+
+document.getElementById('btn-add-light').addEventListener('click', () =>
+  addLight(document.getElementById('light-type-select').value));
+
+document.getElementById('light-color').addEventListener('input', e => {
+  if (_syncingLightPanel) return;
+  const entry = getSelectedLight(); if (!entry) return;
+  entry.color = e.target.value;
+  entry.light.color.set(entry.color);
+  updateLightList();
+  markDirty();
+});
+document.getElementById('light-intensity').addEventListener('input', e => {
+  if (_syncingLightPanel) return;
+  const entry = getSelectedLight(); if (!entry) return;
+  entry.intensity = parseInt(e.target.value);
+  entry.light.intensity = (entry.intensity / 100) * 3;
+  document.getElementById('light-intensity-val').textContent = entry.intensity + '%';
+  markDirty();
+});
+['x', 'y', 'z'].forEach(axis => {
+  document.getElementById(`light-pos-${axis}`).addEventListener('input', e => {
+    if (_syncingLightPanel) return;
+    const entry = getSelectedLight(); if (!entry) return;
+    entry.light.position[axis] = parseFloat(e.target.value) || 0;
+    if (entry.helper && entry.helper.update) entry.helper.update();
+    markDirty();
+  });
+});
+document.getElementById('light-distance').addEventListener('input', e => {
+  if (_syncingLightPanel) return;
+  const entry = getSelectedLight(); if (!entry) return;
+  entry.distance = parseInt(e.target.value);
+  entry.light.distance = entry.distance;
+  document.getElementById('light-distance-val').textContent = entry.distance > 0 ? entry.distance : '∞';
+  markDirty();
+});
+document.getElementById('light-angle').addEventListener('input', e => {
+  if (_syncingLightPanel) return;
+  const entry = getSelectedLight(); if (!entry) return;
+  entry.angle = parseInt(e.target.value);
+  entry.light.angle = THREE.MathUtils.degToRad(entry.angle);
+  if (entry.helper && entry.helper.update) entry.helper.update();
+  document.getElementById('light-angle-val').textContent = entry.angle + '°';
+  markDirty();
+});
+
+// ─── MODEL LOADING ────────────────────────────────────────────────
+const gltfLoader = new GLTFLoader();
+const objLoader  = new OBJLoader();
+
+function countTris(obj) {
+  let t = 0;
+  obj.traverse(c => {
+    if (c.isMesh && c.geometry) {
+      const idx = c.geometry.index;
+      t += idx ? idx.count / 3 : c.geometry.attributes.position.count / 3;
+    }
+  });
+  return Math.round(t);
+}
+
+function addModelToScene(mesh, name, type, opts) {
+  opts = opts || {};
+  // Normalize
+  const box = new THREE.Box3().setFromObject(mesh);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const scale = 2 / Math.max(size.x, size.y, size.z, 0.0001);
+  mesh.position.sub(center.multiplyScalar(scale));
+  mesh.scale.setScalar(scale);
+  mesh.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+
+  const animations = opts.animations || [];
+  const entry = {
+    mesh, name,
+    type: type || 'GLB',
+    triCount: countTris(mesh),
+    shadeMode: 'base',
+    baseColor: '#888888',
+    gradColorA: '#ff4488',
+    gradColorB: '#44aaff',
+    gradAxis: 'y',
+    gouraudDiffuse: '#88aaff',
+    gouraudSpecular: '#ffffff',
+    gouraudShininess: 40,
+    textureTex: null,
+    textureRepeat: 1,
+    autoRotate: false,
+    keyframes: [],
+    // Animation / timeline
+    animations,
+    mixer: null,
+    animAction: null,
+    activeClipName: animations.length ? animations[0].name : null,
+    animEnabled: true,
+    gifPlayer: opts.gifPlayer || null,
+  };
+  if (animations.length) setupMixerForEntry(entry, entry.activeClipName);
+  objects.push(entry);
+  scene.add(mesh);
+  applyShading(entry);
+  updateModelList();
+  selectObject(mesh);
+  document.getElementById('drop-hint').classList.add('hidden');
+  const animNote = animations.length ? ` · ${animations.length} anim clip(s)` : (entry.gifPlayer ? ' · animated GIF' : '');
+  document.getElementById('status-text').textContent = `${name} loaded (${entry.triCount.toLocaleString()} tris)${animNote}`;
+  _undoStack.length = 0; _redoStack.length = 0; _syncUndoButtons();
+  recomputeTimelineDuration();
+  markDirty();
+}
+
+// Sets up (or re-targets) an AnimationMixer + Action for a GLB clip name
+function setupMixerForEntry(entry, clipName) {
+  if (!entry.animations || !entry.animations.length) return;
+  const clip = entry.animations.find(c => c.name === clipName) || entry.animations[0];
+  if (!entry.mixer) entry.mixer = new THREE.AnimationMixer(entry.mesh);
+  if (entry.animAction) entry.animAction.stop();
+  entry.activeClipName = clip.name;
+  entry.animAction = entry.mixer.clipAction(clip);
+  entry.animAction.play();
+  entry.animAction.paused = true; // timeline drives time explicitly
+}
+
+function loadFile(file) {
+  const url = URL.createObjectURL(file);
+  const name = file.name.replace(/\.[^.]+$/, '');
+  const ext  = file.name.split('.').pop().toLowerCase();
+  if (ext === 'glb' || ext === 'gltf') {
+    gltfLoader.load(url, gltf => { addModelToScene(gltf.scene, name, 'GLB', { animations: gltf.animations || [] }); URL.revokeObjectURL(url); });
+  } else if (ext === 'obj') {
+    objLoader.load(url, obj => { addModelToScene(obj, name, 'OBJ'); URL.revokeObjectURL(url); });
+  }
+}
+
+document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+// Drag & drop
+const dragOverlay = document.getElementById('drag-overlay');
+document.addEventListener('dragover', e => { e.preventDefault(); dragOverlay.classList.add('active'); });
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) dragOverlay.classList.remove('active'); });
+document.addEventListener('drop', e => { e.preventDefault(); dragOverlay.classList.remove('active'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+// ─── ANIMATED GIF PLAYBACK ────────────────────────────────────────
+// Decodes a GIF into frames (via gifuct-js, loaded on demand) and drives
+// a THREE.CanvasTexture from the shared global timeline.
+class GifPlayer {
+  constructor(frames, width, height) {
+    this.frames = frames;
+    this.width = width; this.height = height;
+    this.canvas = document.createElement('canvas');
+    this.canvas.width = width; this.canvas.height = height;
+    this.ctx = this.canvas.getContext('2d');
+    this.patchCanvas = document.createElement('canvas');
+    this.patchCtx = this.patchCanvas.getContext('2d');
+    this.texture = new THREE.CanvasTexture(this.canvas);
+    // gifuct-js returns frame.delay already converted to milliseconds
+    this.delays = frames.map(f => Math.max(f.delay || 100, 20) / 1000);
+    this.totalDuration = this.delays.reduce((a, b) => a + b, 0) || 1;
+    this._lastIndex = -1;
+  }
+  frameIndexAt(t) {
+    let time = ((t % this.totalDuration) + this.totalDuration) % this.totalDuration;
+    let acc = 0;
+    for (let i = 0; i < this.delays.length; i++) {
+      acc += this.delays[i];
+      if (time < acc) return i;
+    }
+    return this.delays.length - 1;
+  }
+  _drawFrame(i) {
+    const frame = this.frames[i];
+    if (frame.disposalType === 2) this.ctx.clearRect(0, 0, this.width, this.height);
+    this.patchCanvas.width = frame.dims.width;
+    this.patchCanvas.height = frame.dims.height;
+    this.patchCtx.clearRect(0, 0, frame.dims.width, frame.dims.height);
+    this.patchCtx.putImageData(new ImageData(frame.patch, frame.dims.width, frame.dims.height), 0, 0);
+    this.ctx.drawImage(this.patchCanvas, frame.dims.left, frame.dims.top);
+  }
+  update(t) {
+    const idx = this.frameIndexAt(t);
+    if (idx === this._lastIndex) return;
+    if (this._lastIndex < 0 || idx < this._lastIndex) {
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      for (let i = 0; i <= idx; i++) this._drawFrame(i);
+    } else {
+      for (let i = this._lastIndex + 1; i <= idx; i++) this._drawFrame(i);
+    }
+    this._lastIndex = idx;
+    this.texture.needsUpdate = true;
+  }
+}
+
+let _gifuctPromise = null;
+function loadGifuct() {
+  if (!_gifuctPromise) _gifuctPromise = import('https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm');
+  return _gifuctPromise;
+}
+
+async function loadGifPlayer(file) {
+  const buf = await file.arrayBuffer();
+  const { parseGIF, decompressFrames } = await loadGifuct();
+  const gif = parseGIF(buf);
+  const frames = decompressFrames(gif, true);
+  return new GifPlayer(frames, gif.lsd.width, gif.lsd.height);
+}
+
+// ─── PRIMITIVES ───────────────────────────────────────────────────
+document.getElementById('btn-add-primitive').addEventListener('click', () => {
+  const choice = document.getElementById('primitive-select').value;
+
+  if (choice === 'Sprite') {
+    // Open an image file picker for sprite texture (static image or animated GIF)
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = async () => {
+      const file = inp.files[0];
+      if (!file) return;
+      const isGif = /\.gif$/i.test(file.name) || file.type === 'image/gif';
+      let tex, gifPlayer = null;
+      if (isGif) {
+        try {
+          gifPlayer = await loadGifPlayer(file);
+          tex = gifPlayer.texture;
+        } catch (err) {
+          console.warn('GIF decode failed, loading as static image instead:', err);
+        }
+      }
+      if (!tex) {
+        const url = URL.createObjectURL(file);
+        tex = new THREE.TextureLoader().load(url, () => URL.revokeObjectURL(url));
+      }
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(2, 2, 1);
+      // Sprites aren't meshes so wrap in group for transform controls
+      const group = new THREE.Group();
+      group.add(sprite);
+      group._isSprite = true;
+      addModelToScene(group, file.name.replace(/\.[^.]+$/, ''), 'SPR', { gifPlayer });
+    };
+    inp.click();
+    return;
+  }
+
+  let geo;
+  if      (choice === 'Box')       geo = new THREE.BoxGeometry(1,1,1);
+  else if (choice === 'Sphere')    geo = new THREE.SphereGeometry(0.7,24,16);
+  else if (choice === 'Plane')     geo = new THREE.PlaneGeometry(1.5,1.5);
+  else if (choice === 'Cylinder')  geo = new THREE.CylinderGeometry(0.5,0.5,1.5,24);
+  else if (choice === 'Cone')      geo = new THREE.ConeGeometry(0.7,1.5,24);
+  else if (choice === 'Torus')     geo = new THREE.TorusGeometry(0.6,0.25,16,48);
+  else                             geo = new THREE.TorusKnotGeometry(0.5,0.18,100,16);
+
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.DoubleSide }));
+  mesh.castShadow = true;
+  const group = new THREE.Group();
+  group.add(mesh);
+  addModelToScene(group, choice, 'PRIM');
+});
+
+// ─── SELECTION ────────────────────────────────────────────────────
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+stageCanvas.addEventListener('click', e => {
+  // Don't deselect when clicking transform gizmo
+  if (transformControls.dragging) return;
+  const rect = stageCanvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, stageCamera);
+  const meshes = [];
+  objects.forEach(o => { if (o.mesh.visible) o.mesh.traverse(c => { if (c.isMesh) meshes.push(c); }); });
+  const hits = raycaster.intersectObjects(meshes);
+  if (hits.length > 0) {
+    const hit = hits[0].object;
+    const found = objects.find(o => { let f=false; o.mesh.traverse(c => { if(c===hit) f=true; }); return f; });
+    if (found) selectObject(found.mesh);
+  } else {
+    deselectObject();
+  }
+});
+
+function selectObject(mesh) {
+  selectedObject = mesh;
+  transformControls.attach(mesh);
+  updateModelList();
+  syncShadingPanel();
+  syncAnimSection();
+  syncKeyframeSection();
+}
+
+function deselectObject() {
+  selectedObject = null;
+  transformControls.detach();
+  updateModelList();
+  syncShadingPanel();
+  syncAnimSection();
+  syncKeyframeSection();
+}
+
+// ─── TRANSFORM HOTKEYS ────────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'w' || e.key === 'W') transformControls.setMode('translate');
+  if (e.key === 'e' || e.key === 'E') transformControls.setMode('rotate');
+  if (e.key === 'r' || e.key === 'R') transformControls.setMode('scale');
+  if (e.key === 'Escape') deselectObject();
+  if (e.key === 'Delete' && selectedObject) removeSelected();
+  if ((e.key === 'h' || e.key === 'H') && selectedObject) toggleVisibilitySelected();
+});
+
+function removeSelected() {
+  if (!selectedObject) return;
+  transformControls.detach();
+  scene.remove(selectedObject);
+  objects = objects.filter(o => o.mesh !== selectedObject);
+  selectedObject = null;
+  updateModelList();
+  syncShadingPanel();
+  syncAnimSection();
+  syncKeyframeSection();
+  recomputeTimelineDuration();
+  if (objects.length === 0) {
+    document.getElementById('drop-hint').classList.remove('hidden');
+    document.getElementById('status-text').textContent = 'No model loaded';
+  }
+  markDirty();
+}
+
+// ─── MODEL LIST UI ────────────────────────────────────────────────
+function updateModelList() {
+  const list = document.getElementById('model-list');
+  list.innerHTML = '';
+  objects.forEach((o, i) => {
+    const item = document.createElement('div');
+    const isVisible = o.mesh.visible;
+    item.className = 'model-item' + (o.mesh === selectedObject ? ' selected' : '') + (isVisible ? '' : ' hidden-obj');
+    const badgeClass = o.type === 'PRIM' ? 'glb-badge prim' : 'glb-badge';
+    const hasAnim = (o.animations && o.animations.length) || o.gifPlayer;
+    const animBadge = hasAnim ? `<span class="anim-badge" title="Has animation">▶</span>` : '';
+    item.innerHTML = `<span class="model-vis${isVisible ? '' : ' off'}" title="${isVisible ? 'Hide' : 'Show'} (H)">${isVisible ? '👁' : '🚫'}</span><span class="${badgeClass}">${o.type}</span>${animBadge}<span class="model-name">${o.name}</span><span class="model-remove" title="Remove (Del)">✕</span>`;
+    item.querySelector('.model-vis').addEventListener('click', ev => { ev.stopPropagation(); toggleVisibilityByIndex(i); });
+    item.querySelector('.model-remove').addEventListener('click', ev => { ev.stopPropagation(); removeByIndex(i); });
+    item.addEventListener('click', () => selectObject(o.mesh));
+    list.appendChild(item);
+  });
+}
+
+function toggleVisibilityByIndex(i) {
+  const o = objects[i];
+  if (!o) return;
+  o.mesh.visible = !o.mesh.visible;
+  updateModelList();
+  markDirty();
+}
+
+function toggleVisibilitySelected() {
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.mesh.visible = !entry.mesh.visible;
+  updateModelList();
+  markDirty();
+}
+
+function removeByIndex(i) {
+  const o = objects[i];
+  if (o.mesh === selectedObject) { transformControls.detach(); selectedObject = null; }
+  scene.remove(o.mesh);
+  objects.splice(i, 1);
+  updateModelList();
+  syncShadingPanel();
+  syncAnimSection();
+  syncKeyframeSection();
+  recomputeTimelineDuration();
+  if (objects.length === 0) {
+    document.getElementById('drop-hint').classList.remove('hidden');
+    document.getElementById('status-text').textContent = 'No model loaded';
+  }
+  markDirty();
+}
+
+// ─── ANIMATION PANEL (per-object GLB clip / GIF info) ─────────────
+function syncAnimSection() {
+  const entry = getSelectedEntry();
+  const section = document.getElementById('anim-section');
+  const badge = document.getElementById('anim-model-badge');
+  const clipRow = document.getElementById('anim-clip-row');
+  const clipSelect = document.getElementById('anim-clip-select');
+  const durEl = document.getElementById('anim-duration-val');
+
+  const hasAnim = entry && ((entry.animations && entry.animations.length) || entry.gifPlayer);
+  if (!hasAnim) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  badge.textContent = entry.name;
+
+  _syncingPanel = true;
+  if (entry.animations && entry.animations.length) {
+    clipRow.style.display = '';
+    clipSelect.innerHTML = entry.animations.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+    clipSelect.value = entry.activeClipName;
+    const clip = entry.animations.find(c => c.name === entry.activeClipName) || entry.animations[0];
+    durEl.textContent = clip ? clip.duration.toFixed(2) + 's' : '—';
+  } else {
+    clipRow.style.display = 'none';
+    durEl.textContent = entry.gifPlayer ? entry.gifPlayer.totalDuration.toFixed(2) + 's (GIF)' : '—';
+  }
+  document.querySelectorAll('#anim-enabled-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === (entry.animEnabled ? 'on' : 'off')));
+  _syncingPanel = false;
+}
+
+document.getElementById('anim-clip-select').addEventListener('change', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  setupMixerForEntry(entry, e.target.value);
+  recomputeTimelineDuration();
+  syncAnimSection();
+  markDirty();
+});
+
+document.getElementById('anim-enabled-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.animEnabled = opt.dataset.val === 'on';
+  document.querySelectorAll('#anim-enabled-toggle .toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
+  recomputeTimelineDuration();
+  updateTimelineTrackList();
+  markDirty();
+});
+
+// ─── KEYFRAMES ──────────────────────────────────────────────────────
+// Per-object transform (position/rotation/scale) keyframing driven by
+// the same shared timeline clock used for GLB clips and GIFs.
+const EASING = {
+  linear:    t => t,
+  easeIn:    t => t * t,
+  easeOut:   t => 1 - (1 - t) * (1 - t),
+  easeInOut: t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2,
+};
+
+function keyframeMaxTime() {
+  return objects.reduce((max, o) => {
+    if (!o.keyframes || !o.keyframes.length) return max;
+    return Math.max(max, o.keyframes[o.keyframes.length - 1].time);
+  }, 0);
+}
+
+function syncKeyframeSection() {
+  const entry = getSelectedEntry();
+  const section = document.getElementById('keyframe-section');
+  const badge = document.getElementById('keyframe-model-badge');
+
+  if (!entry) {
+    section.classList.add('no-sel');
+    badge.textContent = '— no selection —';
+    document.getElementById('keyframe-list').innerHTML = '';
+    document.getElementById('keyframe-empty-hint').style.display = '';
+    return;
+  }
+  section.classList.remove('no-sel');
+  badge.textContent = entry.name;
+  document.getElementById('keyframe-add-time').textContent = timelineTime.toFixed(1) + 's';
+
+  const list = document.getElementById('keyframe-list');
+  const hint = document.getElementById('keyframe-empty-hint');
+  const kfs = entry.keyframes || [];
+  hint.style.display = kfs.length ? 'none' : '';
+  list.innerHTML = '';
+  kfs.forEach((kf, i) => {
+    const row = document.createElement('div');
+    const isCurrent = Math.abs(kf.time - timelineTime) < 0.05;
+    row.className = 'keyframe-row' + (isCurrent ? ' current' : '');
+    row.innerHTML = `<span class="keyframe-time" title="Jump to this time">◆ ${kf.time.toFixed(1)}s</span>
+      <select class="wb-select keyframe-ease-select">
+        <option value="linear">Linear</option>
+        <option value="easeIn">Ease In</option>
+        <option value="easeOut">Ease Out</option>
+        <option value="easeInOut">Ease In/Out</option>
+      </select>
+      <span class="keyframe-remove" title="Delete">✕</span>`;
+    row.querySelector('.keyframe-ease-select').value = kf.easing || 'easeInOut';
+    row.querySelector('.keyframe-time').addEventListener('click', () => { timelinePlaying = false; setTimelineTime(kf.time); syncKeyframeSection(); });
+    row.querySelector('.keyframe-ease-select').addEventListener('change', e => {
+      pushUndo();
+      kf.easing = e.target.value;
+      markDirty();
+    });
+    row.querySelector('.keyframe-remove').addEventListener('click', () => {
+      pushUndo();
+      entry.keyframes.splice(i, 1);
+      recomputeTimelineDuration();
+      syncKeyframeSection();
+      markDirty();
+    });
+    list.appendChild(row);
+  });
+}
+
+function addKeyframeAtCurrentTime() {
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  if (!entry.keyframes) entry.keyframes = [];
+  const t = Math.round(timelineTime * 100) / 100;
+  const newKf = {
+    time: t,
+    position: entry.mesh.position.toArray(),
+    rotation: entry.mesh.rotation.toArray().slice(0, 3),
+    scale: entry.mesh.scale.toArray(),
+    easing: document.getElementById('keyframe-default-ease').value,
+  };
+  const existingIdx = entry.keyframes.findIndex(k => Math.abs(k.time - t) < 0.01);
+  if (existingIdx >= 0) entry.keyframes[existingIdx] = newKf;
+  else entry.keyframes.push(newKf);
+  entry.keyframes.sort((a, b) => a.time - b.time);
+  recomputeTimelineDuration();
+  syncKeyframeSection();
+  markDirty();
+}
+
+document.getElementById('btn-add-keyframe').addEventListener('click', addKeyframeAtCurrentTime);
+
+// Applies keyframe-driven transforms for every object with 2+ keyframes,
+// skipping whichever object is currently being dragged with the gizmo.
+function applyKeyframeTransforms() {
+  objects.forEach(o => {
+    if (!o.keyframes || o.keyframes.length < 2) return;
+    if (o.mesh === selectedObject && transformControls.dragging) return;
+    const kfs = o.keyframes;
+    let k0 = kfs[0], k1 = kfs[kfs.length - 1];
+    if (timelineTime <= kfs[0].time) { applyKeyframeToMesh(o.mesh, kfs[0]); return; }
+    if (timelineTime >= kfs[kfs.length - 1].time) { applyKeyframeToMesh(o.mesh, kfs[kfs.length - 1]); return; }
+    for (let i = 0; i < kfs.length - 1; i++) {
+      if (timelineTime >= kfs[i].time && timelineTime <= kfs[i + 1].time) { k0 = kfs[i]; k1 = kfs[i + 1]; break; }
+    }
+    const span = k1.time - k0.time;
+    let f = span > 0 ? (timelineTime - k0.time) / span : 1;
+    f = (EASING[k1.easing] || EASING.easeInOut)(f);
+
+    o.mesh.position.set(
+      k0.position[0] + (k1.position[0] - k0.position[0]) * f,
+      k0.position[1] + (k1.position[1] - k0.position[1]) * f,
+      k0.position[2] + (k1.position[2] - k0.position[2]) * f,
+    );
+    o.mesh.scale.set(
+      k0.scale[0] + (k1.scale[0] - k0.scale[0]) * f,
+      k0.scale[1] + (k1.scale[1] - k0.scale[1]) * f,
+      k0.scale[2] + (k1.scale[2] - k0.scale[2]) * f,
+    );
+    const q0 = new THREE.Quaternion().setFromEuler(new THREE.Euler(...k0.rotation));
+    const q1 = new THREE.Quaternion().setFromEuler(new THREE.Euler(...k1.rotation));
+    o.mesh.quaternion.slerpQuaternions(q0, q1, f);
+  });
+}
+
+function applyKeyframeToMesh(mesh, kf) {
+  mesh.position.fromArray(kf.position);
+  mesh.rotation.set(...kf.rotation);
+  mesh.scale.fromArray(kf.scale);
+}
+
+// ─── TIMELINE ───────────────────────────────────────────────────────
+// Drives every enabled GLB AnimationMixer and animated-GIF texture from
+// one shared clock so playback stays in sync across the whole scene.
+function animatableEntries() {
+  return objects.filter(o => o.animEnabled && ((o.animations && o.animations.length) || o.gifPlayer));
+}
+
+function entryDuration(o) {
+  if (o.animations && o.animations.length) {
+    const clip = o.animations.find(c => c.name === o.activeClipName) || o.animations[0];
+    return clip ? clip.duration : 0;
+  }
+  if (o.gifPlayer) return o.gifPlayer.totalDuration;
+  return 0;
+}
+
+function recomputeTimelineDuration() {
+  const entries = animatableEntries();
+  timelineDuration = Math.max(entries.reduce((max, o) => Math.max(max, entryDuration(o)), 0), keyframeMaxTime());
+  if (timelineTime > timelineDuration) timelineTime = 0;
+  updateTimelineTrackList();
+  updateTimelineUI();
+}
+
+function updateTimelineTrackList() {
+  const wrap = document.getElementById('timeline-active');
+  const hint = document.getElementById('timeline-empty-hint');
+  const list = document.getElementById('timeline-track-list');
+  const hasAny = objects.some(o => (o.animations && o.animations.length) || o.gifPlayer || (o.keyframes && o.keyframes.length >= 2));
+
+  if (!hasAny) {
+    wrap.style.display = 'none';
+    hint.style.display = '';
+    return;
+  }
+  wrap.style.display = 'flex';
+  hint.style.display = 'none';
+
+  list.innerHTML = '';
+  objects.forEach(o => {
+    const hasKf = o.keyframes && o.keyframes.length >= 2;
+    const isAnimatable = (o.animations && o.animations.length) || o.gifPlayer || hasKf;
+    if (!isAnimatable) return;
+    const row = document.createElement('div');
+    row.className = 'timeline-track-row';
+    const kind = o.gifPlayer ? 'GIF' : (o.animations && o.animations.length ? (o.activeClipName || 'clip') : `${o.keyframes.length} keyframes`);
+    const enabledForClass = hasKf ? true : o.animEnabled; // keyframes always "on"
+    row.innerHTML = `<span class="timeline-track-name${enabledForClass ? '' : ' disabled'}" title="${o.name}">${o.name} <span style="color:var(--text-dim)">· ${kind}</span></span>`;
+    row.addEventListener('click', () => selectObject(o.mesh));
+    list.appendChild(row);
+  });
+}
+
+function updateTimelineUI() {
+  const scrub = document.getElementById('timeline-scrub');
+  const timeEl = document.getElementById('timeline-time');
+  const playBtn = document.getElementById('timeline-play');
+  const pct = timelineDuration > 0 ? Math.round((timelineTime / timelineDuration) * 1000) : 0;
+  scrub.value = pct;
+  timeEl.textContent = `${timelineTime.toFixed(1)}s / ${timelineDuration.toFixed(1)}s`;
+  playBtn.textContent = timelinePlaying ? '⏸' : '▶';
+  const addTimeEl = document.getElementById('keyframe-add-time');
+  if (addTimeEl) addTimeEl.textContent = timelineTime.toFixed(1) + 's';
+}
+
+function setTimelineTime(t) {
+  timelineTime = Math.max(0, Math.min(timelineDuration, t));
+  applyTimelineTime();
+  updateTimelineUI();
+}
+
+// Pushes the current timelineTime into every enabled mixer / GIF player.
+function applyTimelineTime() {
+  animatableEntries().forEach(o => {
+    if (o.mixer && o.animAction) {
+      const clip = o.animations.find(c => c.name === o.activeClipName) || o.animations[0];
+      const dur = clip ? clip.duration : timelineDuration;
+      o.animAction.time = dur > 0 ? (timelineTime % dur) : 0;
+      o.mixer.update(0);
+    }
+    if (o.gifPlayer) o.gifPlayer.update(timelineTime);
+  });
+  applyKeyframeTransforms();
+}
+
+document.getElementById('timeline-play').addEventListener('click', () => {
+  timelinePlaying = !timelinePlaying;
+  updateTimelineUI();
+});
+
+document.getElementById('timeline-scrub').addEventListener('input', e => {
+  e.stopPropagation();
+  timelinePlaying = false;
+  const pct = parseInt(e.target.value) / 1000;
+  setTimelineTime(pct * timelineDuration);
+});
+document.getElementById('timeline-scrub').addEventListener('change', e => {
+  e.stopPropagation();
+  syncKeyframeSection();
+});
+
+document.getElementById('timeline-loop-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  timelineLoop = opt.dataset.val === 'on';
+  document.querySelectorAll('#timeline-loop-toggle .toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
+});
+
+document.getElementById('timeline-speed-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  timelineSpeed = parseFloat(opt.dataset.val);
+  document.querySelectorAll('#timeline-speed-toggle .toggle-opt').forEach(o => o.classList.toggle('active', o === opt));
+});
+
+// Space bar toggles timeline playback (when not typing in a field)
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.code === 'Space' && timelineDuration > 0) {
+    e.preventDefault();
+    timelinePlaying = !timelinePlaying;
+    updateTimelineUI();
+  }
+});
+
+// ─── TITLE SPRITE (3D projected text) ────────────────────────────
+const titleCanvas = document.createElement('canvas');
+titleCanvas.width = 1024; titleCanvas.height = 256;
+const titleCtx = titleCanvas.getContext('2d');
+const titleTex = new THREE.CanvasTexture(titleCanvas);
+const titleSpriteMat = new THREE.SpriteMaterial({ map: titleTex, transparent: true, depthTest: false });
+const titleSprite = new THREE.Sprite(titleSpriteMat);
+titleSprite.renderOrder = 999;
+scene.add(titleSprite);
+titleSprite.visible = false;
+
+function buildTitleFont() {
+  // Strip @import wrapper — extract just the font-family name for canvas use
+  if (!titleFont) return "'Oswald', 'Arial Black', sans-serif";
+  // If it looks like a CSS font-family value (contains quotes or commas) use as-is
+  if (titleFont.includes(',') || titleFont.startsWith("'") || titleFont.startsWith('"')) return titleFont;
+  return `'${titleFont}', sans-serif`;
+}
+
+function updateTitleOverlay() {
+  if (!titleText) { titleSprite.visible = false; return; }
+
+  const cw = titleCanvas.width, ch = titleCanvas.height;
+  titleCtx.clearRect(0, 0, cw, ch);
+
+  const fontPx = Math.round(titleSize * 3); // scale up for texture res
+  const fontStr = `bold ${fontPx}px ${buildTitleFont()}`;
+  titleCtx.font = fontStr;
+  titleCtx.textAlign = 'center';
+  titleCtx.textBaseline = 'middle';
+
+  // Shadow
+  titleCtx.shadowColor = 'rgba(0,0,0,0.85)';
+  titleCtx.shadowBlur = fontPx * 0.12;
+  titleCtx.shadowOffsetX = fontPx * 0.04;
+  titleCtx.shadowOffsetY = fontPx * 0.04;
+
+  if (titleColorMode === 'gradient') {
+    // Map CSS gradient direction to canvas gradient
+    const dirMap = { '90deg': [0,0,cw,0], '180deg': [0,0,0,ch], '135deg': [0,0,cw,ch], '45deg': [cw,0,0,ch] };
+    const pts = dirMap[titleGradDir] || dirMap['90deg'];
+    const grad = titleCtx.createLinearGradient(...pts);
+    grad.addColorStop(0, titleGradA);
+    grad.addColorStop(1, titleGradB);
+    titleCtx.fillStyle = grad;
+  } else {
+    titleCtx.fillStyle = titleColor;
+  }
+
+  titleCtx.fillText(titleText, cw / 2, ch / 2);
+  titleTex.needsUpdate = true;
+
+  // Scale sprite to maintain aspect ratio of the text canvas
+  const aspect = cw / ch;
+  const worldH = titleSize / 40; // normalize to a reasonable world size
+  titleSprite.scale.set(worldH * aspect * 2, worldH * 2, 1);
+  titleSprite.position.set(titlePos.x, titlePos.y, titleDepth);
+  titleSprite.visible = true;
+}
+
+// Drag title sprite in the output canvas (render-wrap)
+(function() {
+  const wrap = document.getElementById('render-wrap');
+  let dragging = false, startMx, startMy, startPx, startPy;
+
+  wrap.addEventListener('mousedown', e => {
+    // Project sprite to screen to check proximity
+    const rect = wrap.getBoundingClientRect();
+    const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    if (!titleSprite.visible) return;
+    // Project sprite world pos to NDC
+    const proj = titleSprite.position.clone().project(offCamera);
+    const dist = Math.hypot(proj.x - ndcX, proj.y - ndcY);
+    if (dist > 0.25) return; // miss
+    dragging = true;
+    startMx = e.clientX; startMy = e.clientY;
+    startPx = titlePos.x; startPy = titlePos.y;
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const rect = wrap.getBoundingClientRect();
+    // Convert pixel delta to world units via camera fov
+    const fovRad = offCamera.fov * Math.PI / 180;
+    const dist = Math.abs(offCamera.position.z - titleDepth) || 5;
+    const worldH = 2 * dist * Math.tan(fovRad / 2);
+    const worldW = worldH * (rect.width / rect.height);
+    titlePos.x = startPx + (e.clientX - startMx) / rect.width * worldW;
+    titlePos.y = startPy - (e.clientY - startMy) / rect.height * worldH;
+    titleSprite.position.set(titlePos.x, titlePos.y, titleDepth);
+  });
+
+  window.addEventListener('mouseup', () => { dragging = false; });
+})();
+
+// ─── RENDER LOOP ──────────────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function drawBackground(ctx, w, h) {
+  if (outputBgType === 'image' && outputBgImage) {
+    ctx.save();
+    if (outputBgImageFit === 'cover') {
+      const scale = Math.max(w / outputBgImage.width, h / outputBgImage.height);
+      const sw = outputBgImage.width * scale, sh = outputBgImage.height * scale;
+      ctx.drawImage(outputBgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else if (outputBgImageFit === 'contain') {
+      const scale = Math.min(w / outputBgImage.width, h / outputBgImage.height);
+      const sw = outputBgImage.width * scale, sh = outputBgImage.height * scale;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(outputBgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else {
+      ctx.drawImage(outputBgImage, 0, 0, w, h);
+    }
+    ctx.restore();
+  } else if (outputBgType === 'gradient') {
+    let grad;
+    const d = outputBgGradDir;
+    if (d === 'to bottom')      grad = ctx.createLinearGradient(0,0,0,h);
+    else if (d === 'to right')  grad = ctx.createLinearGradient(0,0,w,0);
+    else if (d === '135deg')    grad = ctx.createLinearGradient(0,0,w,h);
+    else                        grad = ctx.createLinearGradient(w,0,0,h);
+    grad.addColorStop(0, outputBgGradA);
+    grad.addColorStop(1, outputBgGradB);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = outputBgColor;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  orbitControls.update();
+
+  // Per-object auto-rotate
+  objects.forEach(o => { if (o.autoRotate) o.mesh.rotation.y += dt * 0.6; });
+
+  // Keep light-helper gizmos in sync with any live edits
+  lights.forEach(l => { if (l.helper && l.helper.update) l.helper.update(); });
+
+  // Timeline playback — advances the shared clock and drives every
+  // enabled GLB animation mixer and animated GIF texture in lockstep.
+  if (timelineDuration > 0) {
+    if (timelinePlaying) {
+      timelineTime += dt * timelineSpeed;
+      if (timelineTime >= timelineDuration) {
+        if (timelineLoop) timelineTime = timelineTime % timelineDuration;
+        else { timelineTime = timelineDuration; timelinePlaying = false; }
+      }
+      updateTimelineUI();
+    }
+    applyTimelineTime();
+  }
+
+  // Stage render
+  scene.background = new THREE.Color(0x0e0820);
+  stageRenderer.render(scene, stageCamera);
+
+  // Off-screen clean render — transparent so BG can be composited below
+  gridHelper.visible = false;
+  transformControls.visible = false;
+  lights.forEach(l => { if (l.helper) l.helper.visible = false; });
+  scene.background = null;
+  offRenderer.setClearColor(0x000000, 0);
+  offCamera.copy(stageCamera);
+  offCamera.aspect = renderW / renderH;
+  offCamera.updateProjectionMatrix();
+  offRenderer.render(scene, offCamera);
+
+  const rc = document.getElementById('render-canvas');
+  const ctx = rc.getContext('2d');
+  // Draw background first, then composite the 3D render on top
+  drawBackground(ctx, renderW, renderH);
+  if (celShadingEnabled) {
+    ctx.drawImage(applyCelPostProcess(offRenderer.domElement, renderW, renderH), 0, 0);
+  } else {
+    ctx.drawImage(offRenderer.domElement, 0, 0);
+  }
+
+  gridHelper.visible = true;
+  transformControls.visible = true;
+  lights.forEach(l => { if (l.helper) l.helper.visible = true; });
+  scene.background = new THREE.Color(0x0e0820);
+}
+animate();
+
+// ─── EXPORT ───────────────────────────────────────────────────────
+window.savePNG = function() {
+  const rc = document.getElementById('render-canvas');
+  const out = document.createElement('canvas');
+  out.width = rc.width; out.height = rc.height;
+  out.getContext('2d').drawImage(rc, 0, 0);
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png');
+  a.download = `render_${renderW}x${renderH}.png`;
+  a.click();
+};
+
+window.copyFrame = function() {
+  document.getElementById('render-canvas').toBlob(blob =>
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})]));
+};
+
+// ─── SCENE JSON ───────────────────────────────────────────────────
+window.saveScene = function() {
+  const sceneData = getSceneData();
+
+  const blob = new Blob([JSON.stringify(sceneData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `scene_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+window.loadScene = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data._version) throw new Error('Not a valid sceneREND JSON');
+
+      // Render settings
+      if (data.render) {
+        window.setRes(data.render.width || 320, data.render.height || 200);
+        outputBgColor = data.render.bgColor || '#ffffff';
+        document.getElementById('bg-color').value = outputBgColor;
+        // Restore bg type
+        if (data.render.bgType) {
+          outputBgType = data.render.bgType;
+          outputBgGradA = data.render.bgGradA || '#1a0040';
+          outputBgGradB = data.render.bgGradB || '#004080';
+          outputBgGradDir = data.render.bgGradDir || 'to bottom';
+          outputBgImageFit = data.render.bgImageFit || 'cover';
+          document.getElementById('bg-grad-a').value = outputBgGradA;
+          document.getElementById('bg-grad-b').value = outputBgGradB;
+          document.getElementById('bg-grad-dir').value = outputBgGradDir;
+          document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+            o.classList.toggle('active', o.dataset.val === outputBgType));
+          document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+          document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+          document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+        }
+      }
+
+      // Lighting, Cel Shading pipeline, and dynamic light sources
+      applyLightingAndPipelineData(data);
+
+      // Camera
+      if (data.camera) {
+        stageCamera.position.fromArray(data.camera.position);
+        orbitControls.target.fromArray(data.camera.target);
+        orbitControls.update();
+      }
+
+      // Title
+      if (data.title) {
+        const t = data.title;
+        titleText = t.text || '';
+        titleColorMode = t.colorMode || 'flat';
+        titleColor = t.color || '#ffffff';
+        titleGradA = t.gradA || '#ff4488';
+        titleGradB = t.gradB || '#44aaff';
+        titleGradDir = t.gradDir || '90deg';
+        titleSize = t.size || 40;
+        titleDepth = t.depth !== undefined ? t.depth : 2;
+        titleFont = t.font || '';
+        titleFontRaw = t.fontRaw || t.font || '';
+        titlePos = t.pos || { x: 0, y: 0 };
+
+        document.getElementById('title-text').value = titleText;
+        document.getElementById('title-color').value = titleColor;
+        document.getElementById('title-grad-a').value = titleGradA;
+        document.getElementById('title-grad-b').value = titleGradB;
+        document.getElementById('title-grad-dir').value = titleGradDir;
+        document.getElementById('title-size').value = titleSize;
+        document.getElementById('title-size-val').textContent = titleSize + 'px';
+        document.getElementById('title-depth').value = titleDepth;
+        document.getElementById('title-depth-val').textContent = titleDepth;
+        document.getElementById('title-font').value = titleFontRaw;
+
+        // Re-apply font (re-fetches if it was a Google Fonts URL)
+        if (titleFontRaw) applyTitleFont(titleFontRaw);
+
+        // Sync color mode toggle
+        document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+          o.classList.toggle('active', o.dataset.val === titleColorMode));
+        document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+        document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+        updateTitleOverlay();
+      }
+
+      // Objects — apply to already-loaded models, prompt for missing ones
+      if (data.objects && data.objects.length > 0) {
+        applySceneObjects(data.objects);
+      } else {
+        document.getElementById('status-text').textContent = 'Scene loaded (no models)';
+      }
+    } catch (err) {
+      alert('Failed to load scene: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+};
+
+// ─── AUTO-SAVE / NON-DESTRUCTIVE WORKFLOW ────────────────────────
+const AUTOSAVE_KEY = 'sceneREND_autosave';
+
+function getSceneData() {
+  return {
+    _version: 1,
+    meta: { savedAt: new Date().toISOString(), renderer: 'sceneREND' },
+    render: { width: renderW, height: renderH, bgColor: outputBgColor,
+              bgType: outputBgType, bgGradA: outputBgGradA, bgGradB: outputBgGradB, bgGradDir: outputBgGradDir,
+              bgImageFit: outputBgImageFit },
+    lighting: {
+      ambient: parseFloat(document.getElementById('light-ambient').value),
+      sun: parseFloat(document.getElementById('light-sun').value),
+      ambientColor: '#' + ambientLight.color.getHexString(),
+      sunColor: '#' + sunLight.color.getHexString(),
+      sunAzimuth, sunElevation,
+    },
+    celShading: {
+      enabled: celShadingEnabled,
+      bands: celBandsGlobal,
+      outline: celOutlineEnabled,
+      outlineColor: celOutlineColorGlobal,
+      outlineWidth: celOutlineWidthGlobal,
+    },
+    lights: lights.map(l => ({
+      type: l.type, name: l.name, color: l.color, intensity: l.intensity,
+      distance: l.distance, angle: l.angle, penumbra: l.penumbra,
+      position: l.light.position.toArray(),
+    })),
+    camera: {
+      position: stageCamera.position.toArray(),
+      target: orbitControls.target.toArray(),
+    },
+    title: {
+      text: titleText, colorMode: titleColorMode,
+      color: titleColor, gradA: titleGradA, gradB: titleGradB, gradDir: titleGradDir,
+      size: titleSize, depth: titleDepth, font: titleFont, fontRaw: titleFontRaw,
+      pos: { x: titlePos.x, y: titlePos.y },
+    },
+    objects: objects.map(o => ({
+      name: o.name, type: o.type, triCount: o.triCount,
+      shadeMode: o.shadeMode, baseColor: o.baseColor,
+      gradColorA: o.gradColorA, gradColorB: o.gradColorB, gradAxis: o.gradAxis,
+      gouraudDiffuse: o.gouraudDiffuse, gouraudSpecular: o.gouraudSpecular, gouraudShininess: o.gouraudShininess,
+      textureRepeat: o.textureRepeat,
+      autoRotate: o.autoRotate,
+      visible: o.mesh.visible,
+      animEnabled: o.animEnabled,
+      activeClipName: o.activeClipName,
+      keyframes: o.keyframes,
+      transform: {
+        position: o.mesh.position.toArray(),
+        rotation: o.mesh.rotation.toArray().slice(0, 3),
+        scale: o.mesh.scale.toArray(),
+      },
+    })),
+  };
+}
+
+// Restores ambient/sun/cel-shading globals and rebuilds dynamic lights from
+// saved scene data. Shared by both the JSON loader and the autosave restore.
+function applyLightingAndPipelineData(data) {
+  if (data.lighting) {
+    const ld = data.lighting;
+    document.getElementById('light-ambient').value = ld.ambient;
+    document.getElementById('light-sun').value = ld.sun;
+    ambientLight.intensity = ld.ambient / 100;
+    sunLight.intensity = ld.sun / 100;
+    document.getElementById('ambient-val').textContent = ld.ambient + '%';
+    document.getElementById('sun-val').textContent = ld.sun + '%';
+    if (ld.ambientColor) { ambientLight.color.set(ld.ambientColor); document.getElementById('ambient-color').value = ld.ambientColor; }
+    if (ld.sunColor) { sunLight.color.set(ld.sunColor); document.getElementById('sun-color').value = ld.sunColor; }
+    if (ld.sunAzimuth !== undefined) {
+      sunAzimuth = ld.sunAzimuth;
+      document.getElementById('sun-azimuth').value = sunAzimuth;
+      document.getElementById('sun-azimuth-val').textContent = sunAzimuth + '°';
+    }
+    if (ld.sunElevation !== undefined) {
+      sunElevation = ld.sunElevation;
+      document.getElementById('sun-elevation').value = sunElevation;
+      document.getElementById('sun-elevation-val').textContent = sunElevation + '°';
+    }
+    updateSunPosition();
+  }
+  if (data.celShading) {
+    const cd = data.celShading;
+    celShadingEnabled = !!cd.enabled;
+    celBandsGlobal = cd.bands || 4;
+    celOutlineEnabled = cd.outline !== false;
+    celOutlineColorGlobal = cd.outlineColor || '#0a0a14';
+    celOutlineWidthGlobal = cd.outlineWidth !== undefined ? cd.outlineWidth : 0.03;
+    document.querySelectorAll('#cel-global-toggle .toggle-opt').forEach(o =>
+      o.classList.toggle('active', o.dataset.val === (celShadingEnabled ? 'on' : 'off')));
+    document.getElementById('cel-global-rows').style.display = celShadingEnabled ? 'flex' : 'none';
+    document.getElementById('cel-bands-global').value = celBandsGlobal;
+    document.getElementById('cel-bands-global-val').textContent = celBandsGlobal;
+    document.querySelectorAll('#cel-outline-global-toggle .toggle-opt').forEach(o =>
+      o.classList.toggle('active', o.dataset.val === (celOutlineEnabled ? 'on' : 'off')));
+    document.getElementById('cel-outline-global-color-row').style.display = celOutlineEnabled ? 'flex' : 'none';
+    document.getElementById('cel-outline-color-global').value = celOutlineColorGlobal;
+    document.getElementById('cel-outline-width-global').value = Math.round(celOutlineWidthGlobal * 100);
+    document.getElementById('cel-outline-width-global-val').textContent = celOutlineWidthGlobal.toFixed(2);
+    refreshAllCelOutlines();
+  }
+  if (data.lights && data.lights.length) {
+    lights.forEach(l => { scene.remove(l.light); scene.remove(l.helper); });
+    lights = [];
+    selectedLightId = null;
+    data.lights.forEach(ld => {
+      const type = ld.type === 'spot' ? 'spot' : 'point';
+      const light = type === 'spot'
+        ? new THREE.SpotLight(0xffffff, 3, ld.distance || 0, THREE.MathUtils.degToRad(ld.angle || 30), ld.penumbra || 0.3)
+        : new THREE.PointLight(0xffffff, 3, ld.distance || 0);
+      light.position.fromArray(ld.position || [0, 2, 0]);
+      light.color.set(ld.color || '#ffffff');
+      light.intensity = ((ld.intensity !== undefined ? ld.intensity : 100) / 100) * 3;
+      scene.add(light);
+      const helper = type === 'spot' ? new THREE.SpotLightHelper(light) : new THREE.PointLightHelper(light, 0.15);
+      scene.add(helper);
+      lights.push({
+        id: _lightIdCounter++, type, name: ld.name || (type === 'spot' ? 'Spot' : 'Point'),
+        light, helper,
+        color: ld.color || '#ffffff', intensity: ld.intensity !== undefined ? ld.intensity : 100,
+        distance: ld.distance || 0, angle: ld.angle || 30, penumbra: ld.penumbra !== undefined ? ld.penumbra : 0.3,
+      });
+    });
+    updateLightList();
+    syncLightProps();
+  }
+}
+
+function commitAutosave() {
+  try {
+    const data = getSceneData();
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+    const statusEl = document.getElementById('autosave-status');
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    statusEl.textContent = `Auto-saved ${time}`;
+    markClean();
+  } catch (e) {
+    // localStorage full or unavailable — silent fail
+  }
+}
+
+// Patch saveScene to also mark clean and update autosave status
+const _origSaveScene = window.saveScene;
+window.saveScene = function() {
+  _origSaveScene();
+  commitAutosave();
+  document.getElementById('autosave-status').textContent = `Saved ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  markClean();
+};
+
+// Hook markDirty into all state-changing events via a MutationObserver on inputs
+// and by wrapping the key mutating functions.
+// Mark dirty on any input/change inside the scene controls or output controls
+document.getElementById('scene-controls').addEventListener('input', markDirty);
+document.getElementById('scene-controls').addEventListener('change', markDirty);
+document.getElementById('output-controls').addEventListener('input', markDirty);
+document.getElementById('output-controls').addEventListener('change', markDirty);
+
+// Mark dirty on transform control changes
+transformControls.addEventListener('objectChange', markDirty);
+
+// ─── RESTORE AUTOSAVE ON LOAD ─────────────────────────────────────
+(function restoreAutosave() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (_) {}
+  if (!saved) return;
+
+  const statusEl = document.getElementById('autosave-status');
+  const age = saved.meta?.savedAt
+    ? Math.round((Date.now() - new Date(saved.meta.savedAt)) / 60000)
+    : null;
+  const ageStr = age !== null ? (age < 1 ? 'just now' : `${age}m ago`) : '';
+
+  // Show a non-blocking restore banner in the autosave status area
+  statusEl.innerHTML = `<span style="color:var(--text-accent);">↩ Session restored ${ageStr}</span>`;
+
+  // Apply non-mesh state immediately (mesh state needs models to be loaded first)
+  try {
+    if (saved.render) {
+      window.setRes(saved.render.width || 320, saved.render.height || 200);
+      outputBgColor = saved.render.bgColor || '#ffffff';
+      document.getElementById('bg-color').value = outputBgColor;
+      if (saved.render.bgType) {
+        outputBgType = saved.render.bgType;
+        outputBgGradA = saved.render.bgGradA || '#1a0040';
+        outputBgGradB = saved.render.bgGradB || '#004080';
+        outputBgGradDir = saved.render.bgGradDir || 'to bottom';
+        outputBgImageFit = saved.render.bgImageFit || 'cover';
+        document.getElementById('bg-grad-a').value = outputBgGradA;
+        document.getElementById('bg-grad-b').value = outputBgGradB;
+        document.getElementById('bg-grad-dir').value = outputBgGradDir;
+        document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+          o.classList.toggle('active', o.dataset.val === outputBgType));
+        document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+        document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+        document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+      }
+    }
+    applyLightingAndPipelineData(saved);
+    if (saved.camera) {
+      stageCamera.position.fromArray(saved.camera.position);
+      orbitControls.target.fromArray(saved.camera.target);
+      orbitControls.update();
+    }
+    if (saved.title) {
+      const t = saved.title;
+      titleText = t.text || '';
+      titleColorMode = t.colorMode || 'flat';
+      titleColor = t.color || '#ffffff';
+      titleGradA = t.gradA || '#ff4488';
+      titleGradB = t.gradB || '#44aaff';
+      titleGradDir = t.gradDir || '90deg';
+      titleSize = t.size || 40;
+      titleDepth = t.depth !== undefined ? t.depth : 2;
+      titleFont = t.font || '';
+      titleFontRaw = t.fontRaw || t.font || '';
+      titlePos = t.pos || { x: 0, y: 0 };
+      document.getElementById('title-text').value = titleText;
+      document.getElementById('title-color').value = titleColor;
+      document.getElementById('title-grad-a').value = titleGradA;
+      document.getElementById('title-grad-b').value = titleGradB;
+      document.getElementById('title-grad-dir').value = titleGradDir;
+      document.getElementById('title-size').value = titleSize;
+      document.getElementById('title-size-val').textContent = titleSize + 'px';
+      document.getElementById('title-depth').value = titleDepth;
+      document.getElementById('title-depth-val').textContent = titleDepth;
+      document.getElementById('title-font').value = titleFontRaw;
+      document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+        o.classList.toggle('active', o.dataset.val === titleColorMode));
+      document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+      document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+      if (titleFontRaw) applyTitleFont(titleFontRaw);
+      else updateTitleOverlay();
+    }
+    // Primitive objects can be recreated directly; GLB/OBJ require the user to reload files
+    if (saved.objects && saved.objects.length > 0) {
+      const primitiveTypes = ['PRIM'];
+      const prims = saved.objects.filter(o => primitiveTypes.includes(o.type));
+      if (prims.length > 0) {
+        // Re-create primitives silently
+        prims.forEach(saved => {
+          const name = saved.name;
+          let geo;
+          if      (name === 'Box')       geo = new THREE.BoxGeometry(1,1,1);
+          else if (name === 'Sphere')    geo = new THREE.SphereGeometry(0.7,24,16);
+          else if (name === 'Plane')     geo = new THREE.PlaneGeometry(1.5,1.5);
+          else if (name === 'Cylinder')  geo = new THREE.CylinderGeometry(0.5,0.5,1.5,24);
+          else if (name === 'Cone')      geo = new THREE.ConeGeometry(0.7,1.5,24);
+          else if (name === 'Torus')     geo = new THREE.TorusGeometry(0.6,0.25,16,48);
+          else if (name === 'TorusKnot') geo = new THREE.TorusKnotGeometry(0.5,0.18,100,16);
+          if (!geo) return;
+          const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.DoubleSide }));
+          mesh.castShadow = true;
+          const group = new THREE.Group();
+          group.add(mesh);
+          const entry = {
+            mesh: group, name, type: 'PRIM',
+            triCount: 0,
+            shadeMode: saved.shadeMode || 'base', baseColor: saved.baseColor || '#888888',
+            gradColorA: saved.gradColorA || '#ff4488', gradColorB: saved.gradColorB || '#44aaff',
+            gradAxis: saved.gradAxis || 'y',
+            gouraudDiffuse: saved.gouraudDiffuse || '#88aaff',
+            gouraudSpecular: saved.gouraudSpecular || '#ffffff',
+            gouraudShininess: saved.gouraudShininess !== undefined ? saved.gouraudShininess : 40,
+            textureTex: null, textureRepeat: saved.textureRepeat || 1,
+            autoRotate: saved.autoRotate || false,
+            keyframes: saved.keyframes || [],
+            animations: [], mixer: null, animAction: null, activeClipName: null,
+            animEnabled: true, gifPlayer: null,
+          };
+          objects.push(entry);
+          scene.add(group);
+          group.visible = saved.visible !== false;
+          if (saved.transform) {
+            group.position.fromArray(saved.transform.position);
+            group.rotation.set(...saved.transform.rotation);
+            group.scale.fromArray(saved.transform.scale);
+          }
+          applyShading(entry);
+        });
+        updateModelList();
+        recomputeTimelineDuration();
+        document.getElementById('drop-hint').classList.add('hidden');
+        document.getElementById('status-text').textContent = `${prims.length} primitive(s) restored`;
+      }
+      // For GLB/OBJ: show the missing-models popup
+      const external = saved.objects.filter(o => !primitiveTypes.includes(o.type));
+      if (external.length > 0) {
+        applySceneObjects(saved.objects);
+      }
+    }
+  } catch (e) {
+    console.warn('Auto-restore failed:', e);
+  }
+  markClean();
+})();
+
+let _pendingSceneObjects = []; // saved object entries waiting to be applied
+
+function applySceneObjects(savedObjects) {
+  // Apply settings to already-present models
+  savedObjects.forEach(saved => {
+    const entry = objects.find(o => o.name === saved.name);
+    if (!entry) return;
+    applyEntrySettings(entry, saved);
+  });
+
+  const missing = savedObjects.filter(s =>
+    s.type !== 'PRIM' && !objects.some(o => o.name === s.name));
+
+  if (missing.length === 0) {
+    finaliseSceneLoad(savedObjects);
+    return;
+  }
+
+  // Show popup for missing non-primitive models
+  _pendingSceneObjects = savedObjects;
+  const list = document.getElementById('missing-list');
+  list.innerHTML = '';
+
+  missing.forEach(saved => {
+    const row = document.createElement('div');
+    row.className = 'missing-row';
+    row.dataset.name = saved.name;
+    row.innerHTML = `
+      <span class="glb-badge">${saved.type || 'GLB'}</span>
+      <span class="missing-name" title="${saved.name}">${saved.name}</span>
+      <span class="missing-status" id="mstatus-${CSS.escape(saved.name)}">missing</span>
+      <label class="wb-btn wb-btn-sm missing-load-btn" style="cursor:pointer;">
+        Locate…
+        <input type="file" accept=".glb,.gltf,.obj" style="display:none;"
+          data-target="${saved.name}"
+          onchange="handleMissingFile(this, '${saved.name.replace(/'/g,"\\'")}')">
+      </label>`;
+    list.appendChild(row);
+  });
+
+  document.getElementById('missing-modal-backdrop').classList.add('open');
+}
+
+window.handleMissingFile = function(input, targetName) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const ext = file.name.split('.').pop().toLowerCase();
+  const statusEl = document.getElementById('mstatus-' + CSS.escape(targetName));
+
+  function onLoaded(mesh, animations) {
+    URL.revokeObjectURL(url);
+    // Add to scene without auto-normalizing transform — we'll overwrite from saved data
+    const saved = _pendingSceneObjects.find(s => s.name === targetName);
+    animations = animations || [];
+    const entry = {
+      mesh, name: targetName,
+      type: saved?.type || 'GLB',
+      triCount: countTris(mesh),
+      shadeMode: 'base', baseColor: '#888888',
+      gradColorA: '#ff4488', gradColorB: '#44aaff', gradAxis: 'y',
+      autoRotate: false,
+      keyframes: [],
+      animations, mixer: null, animAction: null,
+      activeClipName: animations.length ? animations[0].name : null,
+      animEnabled: true, gifPlayer: null,
+    };
+    if (animations.length) setupMixerForEntry(entry, entry.activeClipName);
+    objects.push(entry);
+    scene.add(mesh);
+    if (saved) applyEntrySettings(entry, saved);
+    updateModelList();
+    recomputeTimelineDuration();
+
+    // Mark row resolved
+    const row = input.closest('.missing-row');
+    if (row) row.classList.add('resolved');
+    if (statusEl) { statusEl.textContent = '✓ loaded'; statusEl.className = 'missing-status ok'; }
+    input.closest('label').remove();
+
+    // If all resolved, auto-finalise
+    const allDone = !document.querySelector('.missing-row:not(.resolved)');
+    if (allDone) finaliseSceneLoad(_pendingSceneObjects);
+  }
+
+  if (ext === 'glb' || ext === 'gltf') {
+    gltfLoader.load(url, gltf => onLoaded(gltf.scene, gltf.animations));
+  } else if (ext === 'obj') {
+    objLoader.load(url, obj => onLoaded(obj));
+  }
+  if (statusEl) { statusEl.textContent = 'loading…'; statusEl.className = 'missing-status'; }
+};
+
+function applyEntrySettings(entry, saved) {
+  entry.shadeMode       = saved.shadeMode       || 'base';
+  entry.baseColor       = saved.baseColor       || '#888888';
+  entry.gradColorA      = saved.gradColorA      || '#ff4488';
+  entry.gradColorB      = saved.gradColorB      || '#44aaff';
+  entry.gradAxis        = saved.gradAxis        || 'y';
+  entry.gouraudDiffuse  = saved.gouraudDiffuse  || '#88aaff';
+  entry.gouraudSpecular = saved.gouraudSpecular || '#ffffff';
+  entry.gouraudShininess= saved.gouraudShininess !== undefined ? saved.gouraudShininess : 40;
+  entry.textureRepeat   = saved.textureRepeat   || 1;
+  entry.autoRotate      = saved.autoRotate !== false;
+  entry.mesh.visible    = saved.visible !== false;
+  entry.keyframes        = saved.keyframes || [];
+  if (saved.animEnabled !== undefined) entry.animEnabled = saved.animEnabled;
+  if (saved.activeClipName && entry.animations && entry.animations.some(c => c.name === saved.activeClipName)) {
+    setupMixerForEntry(entry, saved.activeClipName);
+  }
+  if (saved.transform) {
+    entry.mesh.position.fromArray(saved.transform.position);
+    entry.mesh.rotation.set(...saved.transform.rotation);
+    entry.mesh.scale.fromArray(saved.transform.scale);
+  }
+  applyShading(entry);
+  recomputeTimelineDuration();
+}
+
+function finaliseSceneLoad(savedObjects) {
+  document.getElementById('missing-modal-backdrop').classList.remove('open');
+  syncShadingPanel();
+  syncAnimSection();
+  updateModelList();
+  recomputeTimelineDuration();
+  const matched = savedObjects.filter(s => objects.some(o => o.name === s.name)).length;
+  document.getElementById('status-text').textContent =
+    `Scene loaded · ${matched}/${savedObjects.length} models`;
+  _pendingSceneObjects = [];
+}
+
+document.getElementById('missing-done-btn').addEventListener('click', () =>
+  finaliseSceneLoad(_pendingSceneObjects));
+document.getElementById('missing-skip-btn').addEventListener('click', () =>
+  finaliseSceneLoad(_pendingSceneObjects));
+
+// ─── GAMEPAD LIBRARY (gamepad.js inline) ──────────────────────────
+class GamepadManager {
+  constructor({ deadzone = 0.1 } = {}) {
+    this._deadzone = deadzone;
+    this._handlers = { connected: [], disconnected: [], update: [], chord: [] };
+    this._rafId = null; this._running = false;
+    this._prevButtons = {}; this._currButtons = {}; this._buttonMaps = {};
+    this._chords = new Map(); this._chordFiredThisFrame = new Map(); this._chordHandlers = new Map();
+    this._onConnected = this._onConnected.bind(this);
+    this._onDisconnected = this._onDisconnected.bind(this);
+    this._poll = this._poll.bind(this);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gamepadconnected', this._onConnected);
+      window.addEventListener('gamepaddisconnected', this._onDisconnected);
+    }
+  }
+  on(event, fn) { if (this._handlers[event]) this._handlers[event].push(fn); return this; }
+  off(event, fn) { if (this._handlers[event]) this._handlers[event] = this._handlers[event].filter(h => h !== fn); return this; }
+  start() {
+    if (this._running) return this;
+    this._running = true;
+    this.safeGetGamepads().forEach(pad => { if (pad) this._emit('connected', pad); });
+    this._rafId = requestAnimationFrame(this._poll);
+    return this;
+  }
+  stop() { this._running = false; if (this._rafId !== null) { cancelAnimationFrame(this._rafId); this._rafId = null; } return this; }
+  destroy() { this.stop(); if (typeof window !== 'undefined') { window.removeEventListener('gamepadconnected', this._onConnected); window.removeEventListener('gamepaddisconnected', this._onDisconnected); } return this; }
+  setButtonMap(i, map) { this._buttonMaps[i] = { ...map }; return this; }
+  clearButtonMap(i) { delete this._buttonMaps[i]; return this; }
+  getButtonMap(i) { return this._buttonMaps[i] ? { ...this._buttonMaps[i] } : {}; }
+  defineChord(name, buttons, { exclusive = true } = {}) {
+    if (!Array.isArray(buttons) || buttons.length < 1) return this;
+    this._chords.set(name, { buttons: [...buttons], exclusive });
+    if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []);
+    return this;
+  }
+  removeChord(name) { this._chords.delete(name); this._chordHandlers.delete(name); this._chordFiredThisFrame.delete(name); return this; }
+  onChord(name, fn) { if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []); this._chordHandlers.get(name).push(fn); return this; }
+  offChord(name, fn) { if (this._chordHandlers.has(name)) this._chordHandlers.set(name, this._chordHandlers.get(name).filter(h => h !== fn)); return this; }
+  isChordActive(padIndex, name) { const c = this._chords.get(name); return c ? this._chordHeld(padIndex, c) : false; }
+  chordJustFired(padIndex, name) { return this._chordFiredThisFrame.get(name)?.has(padIndex) ?? false; }
+  get chordNames() { return [...this._chords.keys()]; }
+  isPressed(i, b) { return !!this._currButtons[i]?.[this._resolve(i, b)]; }
+  justPressed(i, b) { const p = this._resolve(i, b); return !!this._currButtons[i]?.[p] && !this._prevButtons[i]?.[p]; }
+  justReleased(i, b) { const p = this._resolve(i, b); return !this._currButtons[i]?.[p] && !!this._prevButtons[i]?.[p]; }
+  axisValue(i, ax) { const pad = this.safeGetGamepads()[i]; if (!pad) return 0; const v = pad.axes[ax] ?? 0; return Math.abs(v) < this._deadzone ? 0 : v; }
+  getStick(i, x = 0, y = 1) { const pad = this.safeGetGamepads()[i]; if (!pad) return { x: 0, y: 0 }; const rx = pad.axes[x] ?? 0, ry = pad.axes[y] ?? 0; return Math.sqrt(rx*rx+ry*ry) < this._deadzone ? { x: 0, y: 0 } : { x: rx, y: ry }; }
+  vibrate(i, { duration=200, strongMagnitude=1, weakMagnitude=1, startDelay=0 } = {}) { const pad = this.safeGetGamepads()[i]; if (pad?.vibrationActuator) return pad.vibrationActuator.playEffect('dual-rumble', { startDelay, duration, strongMagnitude, weakMagnitude }).catch(() => null); return null; }
+  get count() { return this.safeGetGamepads().filter(Boolean).length; }
+  _resolve(i, l) { const m = this._buttonMaps[i]; return m ? (m[l] ?? l) : l; }
+  _chordHeld(i, chord) {
+    const curr = this._currButtons[i]; if (!curr) return false;
+    const allHeld = chord.buttons.every(b => curr[this._resolve(i, b)]);
+    if (!allHeld) return false;
+    if (chord.exclusive) { const s = new Set(chord.buttons.map(b => this._resolve(i, b))); for (let j = 0; j < curr.length; j++) { if (curr[j] && !s.has(j)) return false; } }
+    return true;
+  }
+  _evalChords(i) {
+    for (const [name, chord] of this._chords) {
+      if (!this._chordHeld(i, chord)) continue;
+      const prev = this._prevButtons[i];
+      const justCompleted = chord.buttons.some(b => { const p = this._resolve(i,b); return !!this._currButtons[i][p] && !prev?.[p]; });
+      if (!justCompleted) continue;
+      if (!this._chordFiredThisFrame.has(name)) this._chordFiredThisFrame.set(name, new Set());
+      this._chordFiredThisFrame.get(name).add(i);
+      const payload = { name, padIndex: i };
+      for (const fn of (this._chordHandlers.get(name) || [])) { try { fn(payload); } catch(_){} }
+      this._emit('chord', payload);
+    }
+  }
+  safeGetGamepads() { try { return navigator.getGamepads ? Array.from(navigator.getGamepads()) : []; } catch(_) { return []; } }
+  _onConnected(e) { this._emit('connected', e.gamepad); }
+  _onDisconnected(e) { const g = e.gamepad; delete this._prevButtons[g.index]; delete this._currButtons[g.index]; this._emit('disconnected', g); }
+  _poll() {
+    if (!this._running) return;
+    this._chordFiredThisFrame.clear();
+    const rawPads = this.safeGetGamepads();
+    const pads = [];
+    for (const pad of rawPads) {
+      if (!pad) continue;
+      if (!this._prevButtons[pad.index]) this._prevButtons[pad.index] = new Array(pad.buttons.length).fill(false);
+      this._prevButtons[pad.index] = this._currButtons[pad.index] || this._prevButtons[pad.index];
+      this._currButtons[pad.index] = pad.buttons.map(b => b.pressed);
+      this._evalChords(pad.index);
+      pads.push({ index: pad.index, id: pad.id, mapping: pad.mapping, buttons: pad.buttons.map(b => ({ pressed: b.pressed, touched: b.touched, value: b.value })), axes: Array.from(pad.axes), hasVibration: !!pad.vibrationActuator });
+    }
+    this._emit('update', pads);
+    this._rafId = requestAnimationFrame(this._poll);
+  }
+  _emit(event, data) { for (const fn of this._handlers[event] || []) { try { fn(data); } catch(_){} } }
+}
+const BTN = { A:0, B:1, X:2, Y:3, LB:4, RB:5, LT:6, RT:7, SELECT:8, START:9, L3:10, R3:11, UP:12, DOWN:13, LEFT:14, RIGHT:15, HOME:16 };
+const AXIS = { LEFT_X:0, LEFT_Y:1, RIGHT_X:2, RIGHT_Y:3 };
+
+// ─── GAMEPAD INTEGRATION ──────────────────────────────────────────
+const gp = new GamepadManager({ deadzone: 0.12 });
+
+// UI refs
+const gpStatus    = document.getElementById('gp-status');
+const gpName      = document.getElementById('gp-name');
+const gpFullName  = document.getElementById('gp-full-name');
+const gpDisc      = document.getElementById('gp-disconnected');
+const gpConn      = document.getElementById('gp-connected-info');
+
+gp.on('connected', pad => {
+  const shortName = pad.id.length > 28 ? pad.id.slice(0, 26) + '…' : pad.id;
+  gpStatus.style.display = '';
+  gpName.textContent = shortName;
+  gpFullName.textContent = pad.id;
+  gpDisc.style.display = 'none';
+  gpConn.style.display = '';
+});
+
+gp.on('disconnected', () => {
+  if (gp.count === 0) {
+    gpStatus.style.display = 'none';
+    gpDisc.style.display = '';
+    gpConn.style.display = 'none';
+  }
+});
+
+// Stick controls only — all button actions handled below as exclusive chords with 1 ms delay
+gp.on('update', pads => {
+  if (!pads.length) return;
+  const pad = pads[0];
+  const idx = pad.index;
+
+  // ── Sticks: orbit / zoom / truck ────────────────────────────────
+  const lx = gp.axisValue(idx, AXIS.LEFT_X);
+  const ly = gp.axisValue(idx, AXIS.LEFT_Y);
+  const rx = gp.axisValue(idx, AXIS.RIGHT_X);
+  const ry = gp.axisValue(idx, AXIS.RIGHT_Y);
+
+  if (Math.abs(lx) > 0.01 || Math.abs(ly) > 0.01) {
+    const offset = new THREE.Vector3().subVectors(stageCamera.position, orbitControls.target);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
+    spherical.theta -= lx * 0.03;
+    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi + ly * 0.03));
+    offset.setFromSpherical(spherical);
+    stageCamera.position.copy(orbitControls.target).add(offset);
+    orbitControls.update();
+  }
+  if (Math.abs(rx) > 0.01 || Math.abs(ry) > 0.01) {
+    const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+    if (Math.abs(ry) > 0.01) {
+      stageCamera.position.addScaledVector(toTarget, ry * 0.6);
+      orbitControls.target.addScaledVector(toTarget, ry * 0.6);
+    }
+    if (Math.abs(rx) > 0.01) {
+      const rightVec = new THREE.Vector3(1, 0, 0).applyQuaternion(stageCamera.quaternion);
+      stageCamera.position.addScaledVector(rightVec, rx * 0.03);
+      orbitControls.target.addScaledVector(rightVec, rx * 0.03);
+    }
+    orbitControls.update();
+  }
+});
+
+gp.start();
+
+// ── Chord definitions (all exclusive) ───────────────────────────────
+gp.defineChord('UP',    [BTN.UP],    { exclusive: true });  // Zoom in
+gp.defineChord('DOWN',  [BTN.DOWN],  { exclusive: true });  // Zoom out
+gp.defineChord('LB',    [BTN.LB],    { exclusive: true });  // Cycle object ←
+gp.defineChord('RB',    [BTN.RB],    { exclusive: true });  // Cycle object →
+gp.defineChord('A',     [BTN.A],     { exclusive: true });  // Toggle auto-rotate
+gp.defineChord('B',     [BTN.B],     { exclusive: true });  // Deselect
+gp.defineChord('Y',     [BTN.Y],     { exclusive: true });  // Reset camera
+gp.defineChord('START', [BTN.START], { exclusive: true });  // Save PNG
+
+// ── Chord handlers (1 ms delay on every action) ──────────────────────
+gp.on('update', pads => {
+  if (!pads.length) return;
+  const idx = pads[0].index;
+
+  // D-pad ▲▼: zoom in / out
+  if (gp.chordJustFired(idx, 'UP')) {
+    setTimeout(() => {
+      const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+      stageCamera.position.addScaledVector(toTarget, 0.5);
+      orbitControls.update();
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'DOWN')) {
+    setTimeout(() => {
+      const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+      stageCamera.position.addScaledVector(toTarget, -0.5);
+      orbitControls.update();
+    }, 1);
+  }
+
+  // LB / RB: cycle selected object ←/→
+  if (gp.chordJustFired(idx, 'LB')) {
+    setTimeout(() => {
+      if (objects.length > 1) {
+        const i = objects.findIndex(o => o.mesh === selectedObject);
+        selectObject(objects[(i - 1 + objects.length) % objects.length].mesh);
+      }
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'RB')) {
+    setTimeout(() => {
+      if (objects.length > 1) {
+        const i = objects.findIndex(o => o.mesh === selectedObject);
+        selectObject(objects[(i + 1) % objects.length].mesh);
+      }
+    }, 1);
+  }
+
+  // A: toggle auto-rotate on selected object
+  if (gp.chordJustFired(idx, 'A')) {
+    setTimeout(() => {
+      const entry = getSelectedEntry();
+      if (entry) { entry.autoRotate = !entry.autoRotate; syncShadingPanel(); }
+    }, 1);
+  }
+
+  // B: deselect
+  if (gp.chordJustFired(idx, 'B'))
+    setTimeout(() => deselectObject(), 1);
+
+  // Y: reset camera
+  if (gp.chordJustFired(idx, 'Y')) {
+    setTimeout(() => {
+      stageCamera.position.set(0, 2, 5);
+      orbitControls.target.set(0, 0, 0);
+      orbitControls.update();
+    }, 1);
+  }
+
+  // START: save PNG
+  if (gp.chordJustFired(idx, 'START'))
+    setTimeout(() => savePNG(), 1);
+});
+
+// Init
+syncShadingPanel();
+syncAnimSection();
+syncKeyframeSection();
+recomputeTimelineDuration();
+updateTitleOverlay();
+</script>
+</body>
+</html>

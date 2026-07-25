@@ -1,0 +1,44 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+textarea, input[type="text"] {
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.encrypt {
+    background-color: #007bff;
+    color: white;
+}
+
+.decrypt {
+    background-color: #28a745;
+    color: white;
+}
+
+.security-note {
+    border: 1px solid #ffc107;
+    padding: 10px;
+    background-color: #fff3cd;
+    color: #856404;
+    font-weight: bold;
+}
+
+.status-msg {
+    margin-top: 10px;
+    font-weight: bold;
+}

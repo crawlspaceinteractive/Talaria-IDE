@@ -1,0 +1,47 @@
+{
+  "id": "phase6",
+  "icon": "🎮",
+  "title": "Phase 6 – Game Modes & Content",
+  "systems": [
+    {
+      "name": "6.1 Story Mode / Arcade Mode",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase5_2"],
+      "notes": "Implement a full arcade run with cutscenes, boss encounters, and ending. Multiple routes based on choices.",
+      "tasks": [
+        "Level progression map",
+        "Boss battles with unique mechanics",
+        "Cutscene engine (pixel art stills + dialogue)",
+        "Branching paths and multiple endings"
+      ]
+    },
+    {
+      "name": "6.2 Survival & Boss Rush Modes",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_1", "phase6_0"],
+      "notes": "Endless survival mode with increasing difficulty and boss rush mode for speedrunners.",
+      "tasks": [
+        "Survival wave generation",
+        "Leaderboard integration (Star Leaderboard SDK)",
+        "Boss rush timer and rankings"
+      ]
+    },
+    {
+      "name": "6.3 Unlockables & Progression",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase6_0"],
+      "notes": "Add unlockable characters, palette swaps, and cheats tied to achievements.",
+      "tasks": [
+        "Achievement system",
+        "Unlockable characters (bosses, retro skins)",
+        "Cheats menu (SoR3 style)"
+      ]
+    }
+  ]
+}

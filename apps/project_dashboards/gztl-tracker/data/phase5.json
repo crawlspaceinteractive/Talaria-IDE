@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "⚡",
+  "title": "Phase 5 – Performance & GPU Optimization",
+  "systems": [
+    {
+      "name": "5.1 GPU Compute Shader for Actor Ticks",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_5"],
+      "notes": "Move bulk actor state updates to GPU compute shaders for massive monster counts. Ensure codepointer fallback remains functional.",
+      "tasks": [
+        "Profile current CPU actor tick performance",
+        "Design compute shader for state transitions",
+        "Implement GPU-side codepointers for common actions",
+        "Seamless fallback to CPU for unsupported actions"
+      ]
+    },
+    {
+      "name": "5.2 Level Geometry Batching",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Batch static level geometry into larger mesh buffers to reduce draw calls and improve rendering performance.",
+      "tasks": [
+        "Batch wall and flat polygons per sector",
+        "Generate occlusion culling data",
+        "Optimize texture atlas usage"
+      ]
+    },
+    {
+      "name": "5.3 LOD & Culling",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase5_1"],
+      "notes": "Implement level-of-detail for distant things and frustum culling for actors.",
+      "tasks": [
+        "Thing LOD: reduce model complexity at distance",
+        "Sector-based occlusion culling",
+        "Early-out for off-screen actors in tick loop"
+      ]
+    }
+  ]
+}

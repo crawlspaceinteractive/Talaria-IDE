@@ -1,0 +1,49 @@
+{
+  "id": "phase2",
+  "icon": "👊",
+  "title": "Phase 2 – Characters & Combat",
+  "systems": [
+    {
+      "name": "2.1 Multiple Playable Characters",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_2"],
+      "notes": "Design 4 distinct characters with unique stats (speed, jump height, damage) and at least one special move each.",
+      "tasks": [
+        "Define character data (stats, color, sprite offset)",
+        "Implement special move per character (charge, projectile, grapple)",
+        "Add character select screen",
+        "Balance character matchups"
+      ]
+    },
+    {
+      "name": "2.2 Health, Damage & Knockback",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_2"],
+      "notes": "Implement a health bar per player, damage scaling with combos, and proper knockback force that varies per attack.",
+      "tasks": [
+        "Health bar HUD integration",
+        "Damage scaling per combo hit",
+        "Knockback curve (more KB at higher % health?)",
+        "Respawn timer and invincibility frames"
+      ]
+    },
+    {
+      "name": "2.3 Items & Power‑ups",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Spawn temporary pickups: health pack, speed boost, super armor, projectile weapon. Use physics spawn points.",
+      "tasks": [
+        "Design pickup sprites and effects",
+        "Implement timed power‑up system",
+        "Balance spawn rates and duration",
+        "Sync pickups across multiplayer"
+      ]
+    }
+  ]
+}

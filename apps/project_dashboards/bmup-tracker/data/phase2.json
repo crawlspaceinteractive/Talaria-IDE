@@ -1,0 +1,61 @@
+{
+  "id": "phase2",
+  "icon": "🌐",
+  "title": "Phase 2 – Multiplayer & Netcode Stabilization",
+  "systems": [
+    {
+      "name": "2.1 Lobby & Character Select",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Stabilize lobby flow: host authority, ready gating, seat assignment. Fix lingering duplicate player and P2 start issues.",
+      "tasks": [
+        "Hardened seat assignment and de-duplication",
+        "READY/START gating with all‑player confirmation",
+        "Stale presence filtering in char select",
+        "Rejoin / reconnect support"
+      ]
+    },
+    {
+      "name": "2.2 In‑Game Sync & Authority",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase2_0"],
+      "notes": "Authoritative damage, pickup, and wave advancement. Sync all player positions and special states smoothly.",
+      "tasks": [
+        "Contested damage events (host validates)",
+        "Shared pickups (food, weapons) synced",
+        "Level advancement triggered when all players reach end zone",
+        "Special and super state replication"
+      ]
+    },
+    {
+      "name": "2.3 Remote Player Visuals",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_1"],
+      "notes": "Ensure all remote players render correctly with skins, specials, and VFX. Fix shadow and sorting issues.",
+      "tasks": [
+        "Correct sprite and palette per remote player",
+        "Super VFX replication (Flare napalm, Diesel truck, Eve meteor)",
+        "Shadow ellipse positioning for off‑screen players"
+      ]
+    },
+    {
+      "name": "2.4 Net Performance & Latency",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_1"],
+      "notes": "Optimize network update rate, add interpolation for remote entities, and implement prediction for local actions.",
+      "tasks": [
+        "Client-side prediction for movement",
+        "Remote entity interpolation",
+        "Bandwidth profiling and reduction"
+      ]
+    }
+  ]
+}

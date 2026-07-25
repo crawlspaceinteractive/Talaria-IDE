@@ -1,0 +1,75 @@
+{
+  "id": "phase7",
+  "icon": "📦",
+  "title": "Phase 7 – Release & Post-Launch",
+  "systems": [
+    {
+      "name": "7.1 Packaging & Distribution",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase6_0"],
+      "notes": "Compile final PWAD, create installer, ensure Freedoom Phase 2 compatibility, and prepare distribution packages.",
+      "tasks": [
+        "Generate final PWAD with MapBuild (deterministic)",
+        "Create readme and install instructions",
+        "Package for GZDoom and other source ports",
+        "Upload to /idgames archive and other platforms"
+      ]
+    },
+    {
+      "name": "7.2 Documentation & Manual",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Write a comprehensive manual covering story, mechanics, and the oppression contract lens. Include lore booklet and map list.",
+      "tasks": [
+        "Write player manual with quick-start guide",
+        "Create lore booklet (characters, timeline, Epochs)",
+        "Document map list and secrets",
+        "Add credits and attribution"
+      ]
+    },
+    {
+      "name": "7.3 Community & Marketing",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase7_0"],
+      "notes": "Produce a launch trailer, post on Doomworld/ZDoom forums, and engage the community with dev diaries.",
+      "tasks": [
+        "Create a 90-second gameplay/story trailer",
+        "Write dev blog posts and design insights",
+        "Post release thread with screenshots and download",
+        "Set up Discord server for feedback and support"
+      ]
+    },
+    {
+      "name": "7.4 Post-Launch Support",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": "ongoing",
+      "dependencies": ["phase7_0"],
+      "notes": "Fix critical bugs, release minor patches, and possibly add a new game+ mode or bonus chapter.",
+      "tasks": [
+        "Monitor bug reports and release hotfixes",
+        "Plan v1.1 patch with community feedback",
+        "Consider a 'Ghost Runtime' bonus episode"
+      ]
+    },
+    {
+      "name": "7.5 Expansion & Sequel Seeds",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Design seeds for a potential sequel: the Ghost Runtime epoch, new characters, and evolved mechanics. Archive in the genome.",
+      "tasks": [
+        "Write design doc for Computerror II: Ghost Runtime",
+        "Define new oppression contract currencies",
+        "Create concept art for Epoch 2 visuals"
+      ]
+    }
+  ]
+}

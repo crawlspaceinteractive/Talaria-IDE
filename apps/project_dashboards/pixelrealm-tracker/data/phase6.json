@@ -1,0 +1,46 @@
+{
+  "id": "phase6",
+  "icon": "⚡",
+  "title": "Phase 6 – Performance & Compatibility",
+  "systems": [
+    {
+      "name": "6.1 Renderer & Chunk Optimization",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Procedural tiles are heavy on CPU. Optimize tile cache with bigger chunks, worker threads for generation, and reduce draw calls.",
+      "tasks": [
+        "Pre‑render tiles to larger atlas sheets",
+        "Off‑screen canvas for static world layer",
+        "Use Web Worker for chunk generation"
+      ]
+    },
+    {
+      "name": "6.2 Mobile & Low‑End Support",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase6_0"],
+      "notes": "Ensure game runs on mid‑range phones. Add virtual joystick, simplified graphics mode, and responsive UI.",
+      "tasks": [
+        "Mobile HUD layout with virtual d‑pad",
+        "Graphics quality toggle (low/med/high)",
+        "Touch‑friendly inventory and skill use"
+      ]
+    },
+    {
+      "name": "6.3 Bug Fixing & Balance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting. Balance skill damage, monster HP, drop rates, and multiplayer sync issues.",
+      "tasks": [
+        "Fix any remaining footguns from FG section",
+        "Skill and stat balance pass",
+        "Multiplayer latency and ghost fixes"
+      ]
+    }
+  ]
+}

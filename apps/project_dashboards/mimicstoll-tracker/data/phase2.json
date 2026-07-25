@@ -1,0 +1,63 @@
+{
+  "id": "phase2",
+  "icon": "🛡️",
+  "title": "Phase 2 – Party Mechanics & Character System",
+  "systems": [
+    {
+      "name": "2.1 Player Characters & Classes",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Define 4+ character classes with unique abilities, stats, and inventory. Each class offers different survival and detection tools.",
+      "tasks": [
+        "Design class system: Knight (tank), Rogue (stealth/detection), Cleric (heal/cleanse), Wizard (utility/AoE)",
+        "Implement unique abilities per class (cooldown-based)",
+        "Class-specific starting inventory",
+        "Stat system: health, speed, detection radius, spirit affinity"
+      ]
+    },
+    {
+      "name": "2.2 Inventory & Gear System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_0"],
+      "notes": "Players collect gear during runs. Gear persists across chapters. The lone survivor of a chapter receives a permanent enchanted item.",
+      "tasks": [
+        "Implement inventory grid (Diablo-style or list-based)",
+        "Gear stat modifiers (weapon damage, armour, detection boost)",
+        "Lone survivor reward: random enchanted item with unique modifier",
+        "Gear persistence across campaign chapters"
+      ]
+    },
+    {
+      "name": "2.3 Spirit Check Mechanic",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0", "phase2_0"],
+      "notes": "Players can perform a Spirit Check to force a suspected Mimic to reveal their true form. Requires resources, has a cooldown, and can be used strategically.",
+      "tasks": [
+        "Implement Spirit Check action (vote-based or individual)",
+        "On successful check: Mimic forced out of Infiltration mode",
+        "Resource cost: Spirit Check consumes a shared 'Faith' meter",
+        "False check penalty: lose Faith, brief stun on initiator"
+      ]
+    },
+    {
+      "name": "2.4 Revival & Graveyard System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_0"],
+      "notes": "Dead heroes revive at the graveyard near the entrance of the next dungeon. They retain gear but may have a temporary debuff.",
+      "tasks": [
+        "Graveyard spawn point at chapter start",
+        "Revived players return with full health, slight stat debuff (1 chapter)",
+        "Ghosts spectate until next chapter begins",
+        "Visual: spectral form rising from graveyard"
+      ]
+    }
+  ]
+}

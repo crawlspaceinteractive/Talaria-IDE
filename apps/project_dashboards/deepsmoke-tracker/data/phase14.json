@@ -1,0 +1,62 @@
+{
+  "id": "phase14",
+  "icon": "🚀",
+  "title": "Phase 14 – Polish, Balance & Community",
+  "systems": [
+    {
+      "name": "14.1 Full Multiplayer Sync for Dreadnaughts & Kaiju",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase10_2", "phase11_2"],
+      "notes": "Ensure two‑player roles, fuel consumption, and kaiju battles are fully host‑authoritative with no desync.",
+      "tasks": [
+        "Test all dreadnaught actions with 2+ players",
+        "Implement rollback for kaiju combat critical events",
+        "Stress test with high-latency connections",
+        "Fix any desync or ghost issues"
+      ]
+    },
+    {
+      "name": "14.2 Difficulty & Pacing Tuning",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["all"],
+      "notes": "Balance resource costs, kaiju health/damage, and world event escalation for a fair but thrilling experience.",
+      "tasks": [
+        "Playtest full progression from start to endgame",
+        "Adjust dreadnaught component costs and drop rates",
+        "Tune kaiju difficulty scaling with player count",
+        "Smooth the escalation curve (no sudden difficulty spikes)"
+      ]
+    },
+    {
+      "name": "14.3 Modding Support",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase12_1"],
+      "notes": "Expose world state milestones and ancient tech data to allow community‑made kaiju, dreadnaught variants, and custom Ghost King quests.",
+      "tasks": [
+        "Document modding API for world states and entities",
+        "Create example mod (custom kaiju or quest)",
+        "Add mod loading at startup (JSON/PK3)"
+      ]
+    },
+    {
+      "name": "14.4 Release & Beyond",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package as a major update, produce a trailer featuring dreadnaught vs kaiju, distribute on Steam/GOG if applicable, plan continued content drops.",
+      "tasks": [
+        "Create v2 launch trailer",
+        "Prepare patch notes and migration guide",
+        "Set up Steam/GOG distribution pipeline (optional)",
+        "Plan post‑launch content (seasonal kaiju, new dreadnaughts)"
+      ]
+    }
+  ]
+}

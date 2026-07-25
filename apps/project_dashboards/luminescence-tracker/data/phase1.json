@@ -1,0 +1,79 @@
+{
+  "id": "phase1",
+  "icon": "⚔️",
+  "title": "Phase 1 – Core Combat & Vertical Slice",
+  "systems": [
+    {
+      "name": "1.1 Adapt Engine to Top‑Down Dual‑Stick Melee",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Our existing beat‑em‑up engine already has 8‑direction movement, collision, camera, and sprite rendering. We need to reconfigure it for top‑down view with right‑stick aiming/melee direction. No ground plane pseudo‑3D — pure 2D top‑down.",
+      "tasks": [
+        "Reconfigure movement to use left stick / WASD for 8‑direction movement (already present)",
+        "Map right stick / mouse to set facing direction for melee attacks",
+        "Adjust camera to top‑down orthographic view (no depth plane)",
+        "Disable pseudo‑3D ground rendering; replace with flat arena background"
+      ]
+    },
+    {
+      "name": "1.2 Melee Combat & Hit Detection",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Leverage existing attack state machine and hitbox system. Add light/heavy attack chains, directional attacks, and hit reactions.",
+      "tasks": [
+        "Implement light attack chain (3‑hit combo) with directional variation",
+        "Implement heavy attack (hold or separate button) with knockback",
+        "Attach hitboxes to weapon arcs (use existing hitbox system)",
+        "Enemy hit‑react animations and knockback",
+        "Debug hitbox visualisation toggle (reuse existing debug tools)"
+      ]
+    },
+    {
+      "name": "1.3 First Unicorn & Basic Abilities",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0", "phase1_1"],
+      "notes": "Implement Solaris as the first playable unicorn with 2 weapons (Broad Horn, Piercing Horn) and 2 horn powers. Use existing character/sprite framework.",
+      "tasks": [
+        "Create Solaris character data (stats, placeholder sprite using existing art pipeline)",
+        "Implement weapon switching (Broad Horn vs Piercing Horn) — modify attack hitbox shapes",
+        "Implement Sunflare horn power (AoE spin, health drain, cooldown)",
+        "Implement Twilight Dash horn power (teleport strike, brief invuln)",
+        "Cooldown UI and visual feedback (reuse existing HUD system)"
+      ]
+    },
+    {
+      "name": "1.4 Basic Enemy AI (Tier 1: Aliens)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_1"],
+      "notes": "Create 3 alien enemy types using existing enemy AI framework (state machines, patrol/chase). Grey (melee), Drone (ranged), Tentacle Spawn (tank).",
+      "tasks": [
+        "Grey: fast melee rusher using existing melee enemy template",
+        "Drone: ranged burst‑fire projectile, slow movement",
+        "Tentacle Spawn: high HP, slow, grab attack (extend AI with grab state)",
+        "Wave‑based spawning (hand‑crafted waves via existing wave manager adaptation)"
+      ]
+    },
+    {
+      "name": "1.5 Single Arena & Wave Progression",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_3", "phase1_4"],
+      "notes": "Create a single test arena with 5 waves + a mini‑boss placeholder. Win/loss conditions, round management.",
+      "tasks": [
+        "Design arena layout (flat, with obstacle props for visual variety)",
+        "Implement wave manager (escalating enemy count and mix)",
+        "Mini‑boss encounter (The Vanguard placeholder, single phase)",
+        "Victory/defeat screen and restart flow"
+      ]
+    }
+  ]
+}

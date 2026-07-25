@@ -1,0 +1,77 @@
+{
+  "id": "phase6",
+  "icon": "🔍",
+  "title": "Phase 6 – Polish & Quality Assurance",
+  "systems": [
+    {
+      "name": "6.1 Playtesting & Balance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["all"],
+      "notes": "Full playthroughs by external testers. Adjust difficulty, ammo/health placement, and enemy counts. Ensure the sanity economy is fair.",
+      "tasks": [
+        "Recruit testers and distribute builds",
+        "Collect feedback on difficulty and pacing",
+        "Tune enemy HP, damage, and resource drops",
+        "Balance sanity drain vs. restoration opportunities"
+      ]
+    },
+    {
+      "name": "6.2 Bug Fixing & Map Issues",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase6_0"],
+      "notes": "Run audit protocol on all maps. Fix geometry errors, missing textures, stuck monsters, and script logic bugs.",
+      "tasks": [
+        "Automated audit scan on all maps",
+        "Resolve all Error and Warning items",
+        "Fix collision and navigation mesh issues",
+        "Debug script logic and branching"
+      ]
+    },
+    {
+      "name": "6.3 Performance Optimization",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Optimize draw calls, texture memory, and monster AI to ensure smooth 35fps on target hardware (GZDoom, Freedoom baseline).",
+      "tasks": [
+        "Profile map performance with Visplane Explorer",
+        "Reduce texture memory usage and palettize",
+        "Limit monster count and active AI radius",
+        "Test on minimum spec hardware"
+      ]
+    },
+    {
+      "name": "6.4 Accessibility Options",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add colorblind mode, subtitle toggle, control remapping, and reduced-flash option.",
+      "tasks": [
+        "Implement high-contrast HUD mode",
+        "Add subtitle support for all voice lines",
+        "Allow key rebinding via menu",
+        "Reduce screen flash intensity option"
+      ]
+    },
+    {
+      "name": "6.5 SRP Self-Test & Calibration",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_3"],
+      "notes": "Run SRP's synthetic test maps (test-box, light-gradient) to validate the audit system. Calibrate thresholds based on final content.",
+      "tasks": [
+        "Generate synthetic maps for SRP validation",
+        "Run full SRP cycle and review confidence scores",
+        "Adjust audit thresholds if needed",
+        "Finalise RuleSetHash and archive SRP report"
+      ]
+    }
+  ]
+}

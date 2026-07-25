@@ -1,0 +1,36 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+/* Status classes for clear security grading */
+.status-pass {
+    color: green;
+    font-weight: bold;
+}
+.status-fail {
+    color: red;
+    font-weight: bold;
+    background-color: #ffe0e0;
+    padding: 2px 5px;
+}
+.status-warning {
+    color: orange;
+    font-weight: bold;
+}
+
+#runScanButton {
+    padding: 10px 20px;
+    font-size: 1.1em;
+    background-color: #dc3545; /* Red for 'Viri-Scanner' action */
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+.intro-note {
+    font-style: italic;
+    color: #6c757d;
+}

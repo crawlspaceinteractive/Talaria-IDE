@@ -1,0 +1,85 @@
+{
+  "id": "phase5",
+  "icon": "🤝",
+  "title": "Phase 5 – True Cooperative Mechanics",
+  "systems": [
+    {
+      "name": "5.1 Throwable/Transfer System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Core co-op interaction. Players can toss resources or give directly. Host-authoritative physics with client-side prediction for feel. Throw arc should be clear and snappy.",
+      "tasks": [
+        {
+          "text": "Aiming arc + toss item entity (client prediction?)",
+          "priority": "high",
+          "notes": "Client predicts trajectory; host validates and corrects."
+        },
+        {
+          "text": "Host spawns physics object, collides player → item transfer",
+          "priority": "high",
+          "notes": "Simple projectile; on collision, move item to target inventory."
+        },
+        {
+          "text": "Direct transfer (F-key) to nearby player",
+          "priority": "medium",
+          "notes": "Instant give within short range; no projectile."
+        }
+      ]
+    },
+    {
+      "name": "5.2 Revive & Drag",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 14,
+      "dependencies": ["phase1_0", "phase2_2", "phase4_3"],
+      "notes": "Downed state when suit fails completely or hazard damage is fatal. Teammates can revive (or Grub if upgraded). Dragging allows moving a downed player to safety. If player is not revived in time use normal respawn behavior.",
+      "tasks": [
+        {
+          "text": "Downed state (ragdoll when goblin/locked suit when mech), hold interact to repair",
+          "priority": "high",
+          "notes": "Player can still look around; progress bar for revive."
+        },
+        {
+          "text": "Grub revive if upgraded",
+          "priority": "medium",
+          "notes": "Tie to Grub's ability tree from 4.3."
+        },
+        {
+          "text": "Drag mechanic: slow movement while pulling teammate",
+          "priority": "medium",
+          "notes": "One player can drag another; movement speed reduced."
+        }
+      ]
+    },
+    {
+      "name": "5.3 Shared Camp Inventory",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "dependencies": ["phase1_1"],
+      "notes": "Already partially handled by Phase 1 chest sync. Ensure all camp chests are accessible and synced for all players. No additional complex logic needed.",
+      "tasks": [
+        {
+          "text": "All camp chests accessible to all players, synced (phase 1 handles)",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "name": "5.4 Partner-Specific Abilities (Optional)",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 2,
+      "dependencies": [],
+      "notes": "Keep design modular for future goblin character variants. Not a priority for now; placeholder for future expansion.",
+      "tasks": [
+        {
+          "text": "Keep modular for future character variants",
+          "priority": "low"
+        }
+      ]
+    }
+  ]
+}

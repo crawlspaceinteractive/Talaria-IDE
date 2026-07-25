@@ -1,0 +1,80 @@
+{
+  "id": "phase4",
+  "icon": "🎨",
+  "title": "Phase 4 – Art & Asset Production",
+  "systems": [
+    {
+      "name": "4.1 Sprite Standards Compliance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Create sprite QA pipeline: 1:1 scale, cyan transparency key, Doom PLAYPAL palette, 8-frame cycles, 128×128 canvas, full cyan border. All sprites must pass automated checks.",
+      "tasks": [
+        "Build a sprite validator tool (border, palette, transparency)",
+        "Define sprite sheet template (2×4 grid, 8px padding)",
+        "Create automation to check all sprites against standards",
+        "Document sprite naming conventions and rotation groups"
+      ]
+    },
+    {
+      "name": "4.2 Character & Enemy Art",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 80,
+      "dependencies": ["phase4_0"],
+      "notes": "Produce all character sprites: SHI/VA (player, multiple states), Backspace (NPC), Enforcers, broadcast dead variants, bosses, and drones.",
+      "tasks": [
+        "SHI/VA: idle, walk, attack, hurt, death, special frames",
+        "Backspace: idle, talk, hand-over-item frames",
+        "Enforcer: patrol, shoot, melee, death, alert frames",
+        "Broadcast dead: shamble, attack, death, glitched variant",
+        "Bosses: unique multi-frame animations"
+      ]
+    },
+    {
+      "name": "4.3 Environmental Textures",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 50,
+      "dependencies": [],
+      "notes": "Create texture sets for each chapter: gutter neon, corporate archive, sterile corpo, cathedral, blackout, and dead-signal zones. Follow Doom palette and tile size constraints.",
+      "tasks": [
+        "Static City: rain-slicked bricks, neon signs, trash",
+        "Archives: data towers, flickering screens, cold metal",
+        "Corpo districts: white panels, blue light strips, glass",
+        "Cathedral: reactor core, stained-light windows, cables",
+        "Blackout: dark emergency lights, debris, ash"
+      ]
+    },
+    {
+      "name": "4.4 Weapon & Item Graphics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase4_0"],
+      "notes": "Design ChemScrubber, Firewall module, data shards, Karma Coins, and any other pickups. Must fit the 320×200 weapon logic.",
+      "tasks": [
+        "ChemScrubber pickup and HUD icon",
+        "Firewall module pickup and active indicator",
+        "Data shard collectible sprites",
+        "Karma Coin and health/armor items"
+      ]
+    },
+    {
+      "name": "4.5 Sound Design & Voice",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Create all sound effects: weapons, enemy sounds, ambient loops, UI beeps, and voice lines for Backspace, Moon, PA system, and Pirate broadcast.",
+      "tasks": [
+        "Weapon sounds (gunfire, ChemScrubber hiss)",
+        "Enemy sounds (Enforcer commands, dead groans)",
+        "Ambient loops per chapter (rain, hum, static)",
+        "Voice recording and processing for key characters",
+        "Mix and master all audio to consistent levels"
+      ]
+    }
+  ]
+}

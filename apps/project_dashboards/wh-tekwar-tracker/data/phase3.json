@@ -1,0 +1,48 @@
+{
+  "id": "phase3",
+  "icon": "🧟",
+  "title": "Phase 3 – Entity & Sprite Conversion",
+  "systems": [
+    {
+      "name": "3.1 Sprite Picnum to DoomEdNum Mapping",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 16,
+      "dependencies": ["phase1_0"],
+      "notes": "Witchaven sprites (picnums) must be converted to Doom thing types (DoomEdNum). Create exhaustive mapping tables for all Witchaven 1/2 enemies, items, and decorations.",
+      "tasks": [
+        "Dump all sprite picnums used in Witchaven maps",
+        "Map each picnum to a DoomEdNum (e.g., Witchaven zombie → 30001)",
+        "Allow user to edit mapping via sprite remapper tab",
+        "Export mapping to DECORATE definition file"
+      ]
+    },
+    {
+      "name": "3.2 Actor Definitions (DECORATE/ZScript)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase3_0"],
+      "notes": "Provide a base DECORATE/ZScript actor definition set for Witchaven/TekWar enemies and weapons so the UDMF maps are immediately playable in GZDoom.",
+      "tasks": [
+        "Implement placeholder DECORATE actors for all Witchaven enemies",
+        "Add simple AI (chase, attack) to each",
+        "Create weapon actors matching Witchaven arsenal",
+        "Package as a standalone .pk3"
+      ]
+    },
+    {
+      "name": "3.3 TekWar Specifics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase3_0"],
+      "notes": "TekWar uses a different set of sprites and possibly custom entities. Map its pickups and enemies separately.",
+      "tasks": [
+        "Identify unique TekWar sprite picnums",
+        "Create separate mapping table",
+        "Implement TekWar-specific actor definitions"
+      ]
+    }
+  ]
+}

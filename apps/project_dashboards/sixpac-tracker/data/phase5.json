@@ -1,0 +1,32 @@
+{
+  "id": "phase5",
+  "icon": "🌌",
+  "title": "Phase 5 – Level Design & Variety",
+  "systems": [
+    {
+      "name": "5.1 Multiple Levels & Difficulty Progression",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "After collecting all pickups, move to next level with faster enemies, new pickup layouts, and a different background color/scheme.",
+      "tasks": [
+        "Define 5‑8 unique pickup layouts",
+        "Level transition animation (fade or flash)",
+        "Increase enemy speed and spawn rate per level"
+      ]
+    },
+    {
+      "name": "5.2 Environmental Hazards",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Add static hazards like spikes on the ground, or moving platforms that the player can stand on.",
+      "tasks": [
+        "Draw spike tiles and place them in specific levels",
+        "Moving platform logic (simple horizontal oscillation)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "phase4",
+  "icon": "⚡",
+  "title": "Phase 4 – Power-ups & Combat",
+  "systems": [
+    {
+      "name": "4.1 Pickup System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_0"],
+      "notes": "Random power‑up boxes scattered on track. Multiple pickups: speed boost, shield, projectile, oil, EMP.",
+      "tasks": [
+        "Pickup spawn and collection logic",
+        "Visual feedback (glow, sound)",
+        "Player inventory limited to 1 active item"
+      ]
+    },
+    {
+      "name": "4.2 Projectile & Hazard Weapons",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase4_0"],
+      "notes": "Homeless missiles, energy blasts, oil puddles, and EMP pulses that affect nearby racers.",
+      "tasks": [
+        "Homing missile with simple tracking",
+        "Forward energy blast (instant hit)",
+        "Oil slick drop behind vehicle",
+        "EMP burst that slows all nearby racers"
+      ]
+    },
+    {
+      "name": "4.3 Shield & Boost Mechanics",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase4_0"],
+      "notes": "Temporary invincibility shield and turbo boost that can be chained.",
+      "tasks": [
+        "Shield activation and duration",
+        "Boost meter and overcharge risk",
+        "Chain boost for extended turbo"
+      ]
+    }
+  ]
+}

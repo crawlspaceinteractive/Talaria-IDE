@@ -1,0 +1,48 @@
+{
+  "id": "phase5",
+  "icon": "🎨",
+  "title": "Phase 5 – Visuals & Animation",
+  "systems": [
+    {
+      "name": "5.1 Character Sprite Sheets",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Create sprite sheets for all 4 characters: idle, walk, jump, light attack, heavy attack, special, hit, and death animations.",
+      "tasks": [
+        "Design idle and walk cycles per character",
+        "Animate attack sequences with key frames",
+        "Add hit and death transitions",
+        "Export sprite sheets at consistent resolution"
+      ]
+    },
+    {
+      "name": "5.2 Animation System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase5_0"],
+      "notes": "Build an animation state machine that drives frame selection based on player state, integrated into drawPlayer.",
+      "tasks": [
+        "Implement animation controller with states",
+        "Frame timing and looping",
+        "Blend transitions for smooth movement"
+      ]
+    },
+    {
+      "name": "5.3 VFX & Particle System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add hit sparks, blood, smoke, and screen‑shake. Use the deterministic particle system from physics.js.",
+      "tasks": [
+        "Design particle sprites (small geometric shapes)",
+        "Integrate particle emitter for hits and specials",
+        "Add damage numbers (floating text)",
+        "Screen shake on heavy hits"
+      ]
+    }
+  ]
+}

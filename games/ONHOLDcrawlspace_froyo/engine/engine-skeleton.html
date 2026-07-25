@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Froyo Engine — Skeleton</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:      #0a0a12;
+    --panel:   #11111e;
+    --border:  #2a2a44;
+    --accent:  #7b68ee;
+    --green:   #4ade80;
+    --amber:   #fbbf24;
+    --red:     #f87171;
+    --text:    #c8c8e8;
+    --dim:     #5a5a7a;
+    --mono:    'Courier New', monospace;
+  }
+
+  html, body { width:100%; height:100%; background:var(--bg); color:var(--text); font-family:var(--mono); font-size:13px; overflow:hidden; }
+
+  #shell {
+    display:grid;
+    grid-template-columns:220px 1fr 220px;
+    grid-template-rows:36px 1fr 110px;
+    height:100vh; gap:1px; background:var(--border);
+  }
+
+  #header {
+    grid-column:1/-1; background:var(--panel);
+    display:flex; align-items:center; padding:0 14px; gap:14px;
+    border-bottom:1px solid var(--border);
+  }
+  #header .logo { font-size:14px; font-weight:bold; color:var(--accent); letter-spacing:2px; text-transform:uppercase; }
+  #header .sep  { flex:1; }
+  #header .badge { font-size:10px; padding:2px 7px; border-radius:3px; border:1px solid; letter-spacing:1px; cursor:default; }
+  .badge-ok   { color:var(--green); border-color:var(--green); }
+  .badge-off  { color:var(--dim);   border-color:var(--dim);   }
+  .badge-warn { color:var(--amber); border-color:var(--amber); }
+
+  /* view-mode toggle in header */
+  .view-toggle {
+    display:flex; border:1px solid var(--border); border-radius:4px; overflow:hidden; gap:0;
+  }
+  .view-toggle button {
+    background:none; border:none; color:var(--dim); font:10px var(--mono);
+    padding:3px 10px; cursor:pointer; letter-spacing:1px; transition:background .12s, color .12s;
+    text-transform:uppercase;
+  }
+  .view-toggle button.active { background:rgba(123,104,238,.25); color:var(--accent); }
+  .view-toggle button:hover:not(.active) { color:var(--text); }
+
+  #panel-left {
+    background:var(--panel); padding:10px 0; overflow-y:auto;
+    display:flex; flex-direction:column; gap:0;
+  }
+
+  #viewport {
+    background:#000; position:relative;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  #viewport canvas { image-rendering:pixelated; image-rendering:crisp-edges; display:block; }
+  #viewport-label  { position:absolute; bottom:8px; left:10px; font-size:10px; color:var(--dim); letter-spacing:1px; pointer-events:none; }
+
+  /* pointer-lock nudge overlay */
+  #lock-nudge {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:8px;
+    background:rgba(0,0,0,.55); pointer-events:none; opacity:0;
+    transition:opacity .25s;
+  }
+  #lock-nudge.show { opacity:1; pointer-events:auto; }
+  #lock-nudge span { font-size:11px; color:var(--dim); letter-spacing:1px; }
+  #lock-nudge strong { color:var(--accent); font-size:13px; }
+
+  #panel-right { background:var(--panel); padding:10px 0; overflow-y:auto; }
+
+  #bottom {
+    grid-column:1/-1; background:var(--panel);
+    border-top:1px solid var(--border);
+    display:flex; align-items:stretch; gap:1px; overflow:hidden;
+  }
+
+  .section-head {
+    padding:5px 12px 4px; font-size:10px; letter-spacing:2px;
+    text-transform:uppercase; color:var(--dim);
+    border-bottom:1px solid var(--border); margin-bottom:4px; user-select:none;
+  }
+
+  .module-row {
+    display:flex; align-items:center; gap:8px; padding:4px 12px;
+    cursor:default; transition:background .1s;
+  }
+  .module-row:hover { background:rgba(123,104,238,.08); }
+  .module-row .dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .dot-green { background:var(--green); box-shadow:0 0 4px var(--green); }
+  .dot-amber { background:var(--amber); box-shadow:0 0 4px var(--amber); }
+  .dot-dim   { background:var(--dim); }
+  .module-name { flex:1; font-size:11px; color:var(--text); }
+  .module-tag  { font-size:9px; color:var(--dim); letter-spacing:1px; }
+
+  /* NEW — firstperson row highlight */
+  .module-row.fp-highlight .module-name { color:var(--accent); }
+  .module-row.fp-highlight .dot { background:var(--accent); box-shadow:0 0 4px var(--accent); }
+
+  .prof-col {
+    flex:1; padding:8px 12px; min-width:0;
+    border-right:1px solid var(--border);
+  }
+  .prof-col:last-child { border-right:none; }
+  .prof-head { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  .stat-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text); margin-bottom:3px; }
+  .stat-val  { color:var(--accent); min-width:48px; text-align:right; }
+  .stat-bar-wrap { height:3px; background:var(--border); border-radius:2px; margin-top:1px; margin-bottom:4px; }
+  .stat-bar { height:3px; border-radius:2px; background:var(--accent); transition:width .1s; }
+
+  .ctrl-row { display:flex; align-items:center; gap:8px; padding:4px 12px; }
+  .ctrl-label { font-size:10px; color:var(--dim); width:70px; flex-shrink:0; }
+  .ctrl-row input[type=range] { flex:1; -webkit-appearance:none; height:3px; background:var(--border); border-radius:2px; outline:none; }
+  .ctrl-row input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px; border-radius:50%; background:var(--accent); cursor:pointer; }
+  .ctrl-val { font-size:10px; color:var(--accent); width:30px; text-align:right; }
+
+  .ctrl-btn {
+    display:flex; align-items:center; justify-content:center;
+    margin:4px 12px; padding:5px 0; background:none;
+    border:1px solid var(--border); border-radius:4px;
+    color:var(--text); font:11px var(--mono); cursor:pointer;
+    letter-spacing:1px; transition:border-color .15s, color .15s;
+  }
+  .ctrl-btn:hover  { border-color:var(--accent); color:var(--accent); }
+  .ctrl-btn.active { border-color:var(--green); color:var(--green); }
+
+  .input-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:3px; padding:4px 12px; }
+  .input-key  { border:1px solid var(--border); border-radius:3px; text-align:center; font-size:9px; padding:3px 2px; color:var(--dim); transition:background .07s, color .07s, border-color .07s; }
+  .input-key.active { background:rgba(123,104,238,.25); border-color:var(--accent); color:var(--accent); }
+
+  .joy-wrap { display:flex; justify-content:center; padding:6px 12px; }
+  #joystick-canvas { border:1px solid var(--border); border-radius:50%; }
+
+  .cam-stat { padding:2px 12px; font-size:10px; color:var(--dim); display:flex; justify-content:space-between; }
+  .cam-stat span { color:var(--text); }
+
+  ::-webkit-scrollbar       { width:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  /* fp-specific panel items shown/hidden by JS */
+  .fp-only  { display:none; }
+  .tp-only  { display:block; }
+  .active-fp .fp-only { display:block; }
+  .active-fp .tp-only { display:none; }
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- header -->
+  <div id="header">
+    <div class="logo">Froyo Engine</div>
+    <div class="view-toggle" id="view-toggle">
+      <button id="btn-tp" class="active" title="Third-person (Q/E orbit)">3RD-P</button>
+      <button id="btn-fp"               title="First-person (mouse look)">1ST-P</button>
+    </div>
+    <div class="badge badge-ok"   id="badge-renderer">RENDERER</div>
+    <div class="badge badge-ok"   id="badge-audio">AUDIO</div>
+    <div class="badge badge-ok"   id="badge-input">INPUT</div>
+    <div class="badge badge-ok"   id="badge-camera">CAMERA</div>
+    <div class="badge badge-ok"   id="badge-fp">FP CAM</div>
+    <div class="badge badge-warn" id="badge-crt">CRT</div>
+    <div class="sep"></div>
+    <div class="badge badge-ok"   id="badge-fps">-- FPS</div>
+  </div>
+
+  <!-- left panel -->
+  <div id="panel-left">
+    <div class="section-head">modules</div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">renderer.js</div><div class="module-tag">320×200</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">camera.js</div><div class="module-tag">3RD-P</div></div>
+    <div class="module-row fp-highlight" id="fp-module-row">
+      <div class="dot dot-dim"></div><div class="module-name">firstperson.js</div><div class="module-tag fp-tag">STANDBY</div>
+    </div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">input.js</div><div class="module-tag">KB+GP</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">state.js</div><div class="module-tag">BITMASK</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">luts.js</div><div class="module-tag">TABLES</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">ps1fx.js</div><div class="module-tag">POST</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">frustum.js</div><div class="module-tag">CULL</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">audio.js</div><div class="module-tag">SFX+BGM</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">touch.js</div><div class="module-tag">MOBILE</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">gamepad.js</div><div class="module-tag">XInput</div></div>
+    <div class="module-row"><div class="dot dot-amber"></div><div class="module-name">geometry.js</div><div class="module-tag">GLB</div></div>
+    <div class="module-row"><div class="dot dot-amber"></div><div class="module-name">crt.js</div><div class="module-tag">WebGL</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">textureloader.js</div><div class="module-tag">CPU</div></div>
+    <div class="module-row"><div class="dot dot-green"></div><div class="module-name">profiler.js</div><div class="module-tag">PERF</div></div>
+
+    <div class="section-head" style="margin-top:8px">camera</div>
+    <div class="cam-stat">mode<span id="cam-viewmode">3RD-PERSON</span></div>
+    <div class="cam-stat">yaw<span id="cam-yaw">0°</span></div>
+    <div class="cam-stat">pitch<span id="cam-pitch">0°</span></div>
+    <div class="cam-stat">fovMul<span id="cam-fov">1.00</span></div>
+    <div class="cam-stat">pos x<span id="cam-x">0.00</span></div>
+    <div class="cam-stat">pos y<span id="cam-y">0.00</span></div>
+    <div class="cam-stat">pos z<span id="cam-z">0.00</span></div>
+    <div class="cam-stat tp-only">move<span id="move-mode">IDLE</span></div>
+    <div class="cam-stat">jump<span id="jump-mode">GROUNDED</span></div>
+    <div class="cam-stat">state<span id="state-bits">0x00</span></div>
+    <!-- FP-only panel items -->
+    <div class="cam-stat fp-only">locked<span id="fp-locked" style="color:var(--dim)">NO</span></div>
+    <div class="cam-stat fp-only">sens<span id="fp-sens-val">0.10</span></div>
+    <div class="cam-stat fp-only">bob<span id="fp-bob-val">0.00</span></div>
+  </div>
+
+  <!-- viewport -->
+  <div id="viewport">
+    <canvas id="game-canvas" width="320" height="200"></canvas>
+    <div id="viewport-label">320×200 · PS1 · PAINTER'S ALGO</div>
+    <div id="lock-nudge">
+      <strong>FIRST-PERSON MODE</strong>
+      <span>Click viewport to capture mouse</span>
+      <span id="nudge-esc">ESC to release · V to toggle view</span>
+    </div>
+  </div>
+
+  <!-- right panel -->
+  <div id="panel-right">
+    <div class="section-head">render</div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">fog near</div>
+      <input type="range" id="sl-fog-near" min="10" max="160" value="80" step="1">
+      <div class="ctrl-val" id="sl-fog-near-v">80</div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">fog far</div>
+      <input type="range" id="sl-fog-far" min="80" max="400" value="200" step="5">
+      <div class="ctrl-val" id="sl-fog-far-v">200</div>
+    </div>
+    <button class="ctrl-btn" id="btn-crt"     style="width:calc(100% - 24px)">CRT OVERLAY — OFF</button>
+    <button class="ctrl-btn active" id="btn-grid"    style="width:calc(100% - 24px)">GRID PLANE — ON</button>
+    <button class="ctrl-btn" id="btn-frustum" style="width:calc(100% - 24px)">FRUSTUM DEBUG — OFF</button>
+
+    <!-- FP-only controls -->
+    <div class="fp-only">
+      <div class="section-head" style="margin-top:8px">first-person</div>
+      <div class="ctrl-row">
+        <div class="ctrl-label">mouse sens</div>
+        <input type="range" id="sl-sens" min="2" max="40" value="10" step="1">
+        <div class="ctrl-val" id="sl-sens-v">0.10</div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label">fov</div>
+        <input type="range" id="sl-fov" min="60" max="110" value="90" step="1">
+        <div class="ctrl-val" id="sl-fov-v">90°</div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label">head bob</div>
+        <input type="range" id="sl-bob" min="0" max="20" value="8" step="1">
+        <div class="ctrl-val" id="sl-bob-v">8</div>
+      </div>
+      <button class="ctrl-btn" id="btn-lock" style="width:calc(100% - 24px)">CLICK VIEWPORT TO LOCK</button>
+    </div>
+
+    <div class="section-head" style="margin-top:8px">audio</div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">sfx vol</div>
+      <input type="range" id="sl-sfx" min="0" max="100" value="80" step="1">
+      <div class="ctrl-val" id="sl-sfx-v">80</div>
+    </div>
+    <div class="ctrl-row">
+      <div class="ctrl-label">bgm vol</div>
+      <input type="range" id="sl-bgm" min="0" max="100" value="55" step="1">
+      <div class="ctrl-val" id="sl-bgm-v">55</div>
+    </div>
+    <button class="ctrl-btn" id="btn-sfx-test" style="width:calc(100% - 24px)">TEST SFX — JUMP</button>
+
+    <div class="section-head" style="margin-top:8px">input</div>
+    <div class="input-grid" id="key-grid"></div>
+    <div class="section-head" style="margin-top:8px">stick</div>
+    <div class="joy-wrap"><canvas id="joystick-canvas" width="80" height="80"></canvas></div>
+  </div>
+
+  <!-- bottom profiler -->
+  <div id="bottom">
+    <div class="prof-col">
+      <div class="prof-head">frame time</div>
+      <div class="stat-row"><span>ms</span><span class="stat-val" id="p-ms">0.0</span></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" id="pb-ms" style="width:0%;background:var(--green)"></div></div>
+      <div class="stat-row"><span>fps</span><span class="stat-val" id="p-fps">0</span></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" id="pb-fps" style="width:0%;background:var(--accent)"></div></div>
+      <div class="stat-row"><span>frame</span><span class="stat-val" id="p-frame">0</span></div>
+    </div>
+    <div class="prof-col">
+      <div class="prof-head">triangles</div>
+      <div class="stat-row"><span>in</span><span class="stat-val" id="p-tris-in">0</span></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" id="pb-tris-in" style="width:0%"></div></div>
+      <div class="stat-row"><span>culled</span><span class="stat-val" id="p-tris-cull">0</span></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" id="pb-tris-cull" style="width:0%;background:var(--red)"></div></div>
+      <div class="stat-row"><span>drawn</span><span class="stat-val" id="p-tris-draw">0</span></div>
+      <div class="stat-bar-wrap"><div class="stat-bar" id="pb-tris-draw" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="prof-col">
+      <div class="prof-head">pipeline</div>
+      <div class="stat-row"><span>clip</span><span class="stat-val" id="p-clip">0</span></div>
+      <div class="stat-row"><span>subdiv</span><span class="stat-val" id="p-subdiv">0</span></div>
+      <div class="stat-row"><span>buf32</span><span class="stat-val">320×200</span></div>
+      <div class="stat-row"><span>depth</span><span class="stat-val">Float32</span></div>
+    </div>
+    <div class="prof-col">
+      <div class="prof-head">state flags</div>
+      <div class="stat-row"><span>WALK</span>  <span class="stat-val" id="sf-walk"   style="color:var(--dim)">—</span></div>
+      <div class="stat-row"><span>CHARGE</span><span class="stat-val" id="sf-charge" style="color:var(--dim)">—</span></div>
+      <div class="stat-row"><span>JUMP</span>  <span class="stat-val" id="sf-jump"   style="color:var(--dim)">—</span></div>
+      <div class="stat-row"><span>GLIDE</span> <span class="stat-val" id="sf-glide"  style="color:var(--dim)">—</span></div>
+      <div class="stat-row"><span>HIT</span>   <span class="stat-val" id="sf-hit"    style="color:var(--dim)">—</span></div>
+    </div>
+    <div class="prof-col" style="border-right:none">
+      <div class="prof-head">physics</div>
+      <div class="stat-row"><span>velX</span>    <span class="stat-val" id="ph-vx">0.000</span></div>
+      <div class="stat-row"><span>velY</span>    <span class="stat-val" id="ph-vy">0.000</span></div>
+      <div class="stat-row"><span>velZ</span>    <span class="stat-val" id="ph-vz">0.000</span></div>
+      <div class="stat-row"><span>grounded</span><span class="stat-val" id="ph-gr" style="color:var(--green)">YES</span></div>
+      <div class="stat-row"><span>tokens</span>  <span class="stat-val" id="ph-tok">2</span></div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<script type="module">
+// ═════════════════════════════════════════════════════════════════════════════
+// Froyo Engine Skeleton — with firstperson.js module
+//
+// VIEW MODES
+//   3RD-PERSON (default) — third-person orbit camera using camera.js logic.
+//     Q / E              orbit yaw
+//     WASD               move (camera-relative)
+//     Space              jump / double-jump / glide
+//
+//   1ST-PERSON           — firstperson.js module takes over.
+//     Click viewport     capture pointer (Pointer Lock API)
+//     Mouse X/Y          yaw / pitch (raw mouse delta → no OS accel)
+//     WASD               strafe (player-forward-relative)
+//     Space              jump
+//     V                  toggle view mode from any focus state
+//
+// MODULE: firstperson.js
+//   createFPCamera(opts)        — returns an FP camera state object
+//   updateFPCamera(fp, player)  — snaps camera to eye position each frame
+//   applyMouseDelta(fp, dx, dy) — integrates raw mouse movement
+//   fpMovement(fp, input)       — returns { fwdX, fwdZ } world-space deltas
+//   fpFOVMul(fp)                — live FOV multiplier for the renderer
+//   fpHeadBob(fp, player, dt)   — computes bob offset { x, y }
+//
+// INTEGRATION CONTRACT (matches camera.js interface)
+//   In 1st-person mode:
+//     - camera.x/y/z is set to player eye position (player.y + FP_EYE_HEIGHT)
+//     - camera.yaw   is fp.yaw   (raw, no lag)
+//     - camera.pitch is fp.pitch (clamped -80..+80)
+//     - camera.fovMul is fp.fovMul
+//     - player cube is NOT rendered (you're inside it)
+//
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─── Renderer constants ───────────────────────────────────────────────────────
+const SCREEN_W=320, SCREEN_H=200, HALF_W=160, HALF_H=100;
+const FOCAL_X=134, FOCAL_Y=119;
+const NEAR_Z=0.4;
+
+// ─── Trig LUT ─────────────────────────────────────────────────────────────────
+const TRIG_SIN=new Float32Array(360), TRIG_COS=new Float32Array(360);
+for (let d=0;d<360;d++){const r=d*Math.PI/180;TRIG_SIN[d]=Math.sin(r);TRIG_COS[d]=Math.cos(r);}
+function sinDeg(d){return TRIG_SIN[((d%360)+360)%360|0];}
+function cosDeg(d){return TRIG_COS[((d%360)+360)%360|0];}
+function scaleAtX(z){return z>0.1?FOCAL_X/z:FOCAL_X/0.1;}
+function scaleAtY(z){return z>0.1?FOCAL_Y/z:FOCAL_Y/0.1;}
+
+const BAYER_4X4=new Int8Array([0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5]);
+const _BAYER=new Int32Array(16);
+for (let i=0;i<16;i++) _BAYER[i]=BAYER_4X4[i]-7;
+
+// ─── State / mode tables ──────────────────────────────────────────────────────
+const MOVE={IDLE:0,WALK:1,CHARGE:2,AIRBORNE:3,GLIDE:4};
+const MOVE_NAMES=['IDLE','WALK','CHARGE','AIRBORNE','GLIDE'];
+const JUMPM={GROUNDED:0,JUMPING:1,DOUBLE_JUMP:2,FALLING:3};
+const JUMPM_NAMES=['GROUNDED','JUMPING','D-JUMP','FALLING'];
+const STATE={NONE:0,WALK:1,CHARGE:2,JUMP:4,DOUBLE_JUMP:8,GLIDE:16,HIT:32,FROZEN:64,DEAD:128};
+
+const PHYSICS_LUT=[
+  {accel:0.0,  maxSpeed:0.0,  groundDamp:0.65,airDamp:0.98,gravity:0.030,maxFall:0.45},
+  {accel:0.040,maxSpeed:0.18, groundDamp:0.78,airDamp:0.98,gravity:0.030,maxFall:0.45},
+  {accel:0.080,maxSpeed:0.36, groundDamp:0.88,airDamp:0.99,gravity:0.030,maxFall:0.45},
+  {accel:0.025,maxSpeed:0.22, groundDamp:0.65,airDamp:0.98,gravity:0.030,maxFall:0.55},
+  {accel:0.030,maxSpeed:0.20, groundDamp:0.65,airDamp:0.99,gravity:0.008,maxFall:0.10,vClamp:-0.10},
+];
+const CAMERA_OFFSET_LUT=[{back:7.0,up:3.5},{back:8.0,up:3.5},{back:11.0,up:4.2},{back:8.5,up:4.0},{back:9.5,up:4.5}];
+const CAMERA_LAG_LUT=[0.10,0.12,0.18,0.10,0.08];
+const CAMERA_FOV_LUT=[1.00,1.00,0.92,1.00,1.02];
+
+// ─── Renderer ─────────────────────────────────────────────────────────────────
+const canvas=document.getElementById('game-canvas');
+const ctx2d=canvas.getContext('2d',{alpha:false,willReadFrequently:true});
+ctx2d.imageSmoothingEnabled=false;
+const image=ctx2d.createImageData(SCREEN_W,SCREEN_H);
+const buf32=new Uint32Array(image.data.buffer);
+const depth=new Float32Array(SCREEN_W*SCREEN_H);
+
+let FOG_NEAR=80, FOG_FAR=200;
+const SKY_TOP=rgba(40,32,90), SKY_MID=rgba(120,100,180), SKY_BOT=rgba(240,180,200);
+const FOG_COLOR=rgba(200,160,200);
+const skyRows=new Uint32Array(SCREEN_H);
+for (let y=0;y<SCREEN_H;y++){const t=y/(SCREEN_H-1);skyRows[y]=t<0.55?lerpColor(SKY_TOP,SKY_MID,t/0.55):lerpColor(SKY_MID,SKY_BOT,(t-0.55)/0.45);}
+
+function rgba(r,g,b,a=255){return((a&0xff)<<24)|((b&0xff)<<16)|((g&0xff)<<8)|(r&0xff);}
+function lerpColor(a,b,t){
+  const ar=a&0xff,ag=(a>>>8)&0xff,ab=(a>>>16)&0xff;
+  const br=b&0xff,bg=(b>>>8)&0xff,bb=(b>>>16)&0xff;
+  return rgba((ar+(br-ar)*t)|0,(ag+(bg-ag)*t)|0,(ab+(bb-ab)*t)|0);
+}
+function clearSky(yaw,frame){
+  for(let y=0;y<SCREEN_H;y++){const row=y*SCREEN_W;buf32.fill(skyRows[y],row,row+SCREEN_W);depth.fill(Infinity,row,row+SCREEN_W);}
+  const ys=(yaw*5.6)|0;
+  for(let i=0;i<80;i++){const x=(((i*73)-ys)%SCREEN_W+SCREEN_W)%SCREEN_W|0;const y=((i*37)%(SCREEN_H*0.45))|0;buf32[y*SCREEN_W+x]=rgba(220+((i*13)&31),220+((i*7)&31),240);}
+}
+function toCameraSpace(wx,wy,wz,cam){
+  const dx=wx-cam.x,dy=wy-cam.y,dz=wz-cam.z;
+  const cy=cosDeg(-cam.yaw),sy=sinDeg(-cam.yaw);
+  let cx=dx*cy+dz*sy,cz=-dx*sy+dz*cy,cyy=dy;
+  const pitch=cam.pitch||0;
+  if(pitch!==0){const cp=cosDeg(pitch),sp=sinDeg(pitch);const cyy2=cyy*cp+cz*sp,cz2=-cyy*sp+cz*cp;cyy=cyy2;cz=cz2;}
+  return{cx,cy:cyy,cz};
+}
+function projectCS(cs,cam){
+  if(cs.cz<NEAR_Z)return{sx:0,sy:0,cz:cs.cz,visible:false};
+  const fm=cam.fovMul||1;
+  return{sx:(HALF_W+cs.cx*scaleAtX(cs.cz)*fm)|0,sy:(HALF_H-cs.cy*scaleAtY(cs.cz)*fm)|0,cz:cs.cz,visible:true};
+}
+function clipNear(pts){
+  const out=[],n=pts.length;
+  for(let i=0;i<n;i++){const a=pts[i],b=pts[(i+1)%n];const aIn=a.cz>=NEAR_Z,bIn=b.cz>=NEAR_Z;if(aIn)out.push(a);if(aIn!==bIn){const t=(NEAR_Z-a.cz)/(b.cz-a.cz);out.push({cx:a.cx+t*(b.cx-a.cx),cy:a.cy+t*(b.cy-a.cy),cz:NEAR_Z});}}
+  return out;
+}
+function buildFace(worldPts,color,cam){
+  const cs=worldPts.map(p=>toCameraSpace(p.x,p.y,p.z,cam));
+  const clipped=clipNear(cs);if(clipped.length<3)return[];
+  const tris=[],v0=projectCS(clipped[0],cam);
+  for(let i=1;i+1<clipped.length;i++){const va=projectCS(clipped[i],cam),vb=projectCS(clipped[i+1],cam);if(!v0.visible||!va.visible||!vb.visible)continue;tris.push({verts:[v0,va,vb],color,avgZ:(v0.cz+va.cz+vb.cz)/3});}
+  return tris;
+}
+function shadeFace(c,b){return rgba(Math.min(255,((c&0xff)*b)|0),Math.min(255,(((c>>>8)&0xff)*b)|0),Math.min(255,(((c>>>16)&0xff)*b)|0));}
+function buildCube(cx,cy,cz,sx,sy,sz,topColor,sideColor,cam){
+  const C=[{x:cx-sx,y:cy+sy,z:cz-sz},{x:cx+sx,y:cy+sy,z:cz-sz},{x:cx+sx,y:cy+sy,z:cz+sz},{x:cx-sx,y:cy+sy,z:cz+sz},{x:cx-sx,y:cy-sy,z:cz-sz},{x:cx+sx,y:cy-sy,z:cz-sz},{x:cx+sx,y:cy-sy,z:cz+sz},{x:cx-sx,y:cy-sy,z:cz+sz}];
+  const sN=shadeFace(sideColor,0.85),sE=shadeFace(sideColor,0.70),sS=shadeFace(sideColor,0.55),sW=shadeFace(sideColor,0.85);
+  const cdx=cam.x-cx,cdy=cam.y-cy,cdz=cam.z-cz;
+  const quads=[[[0,1,2,3],topColor,0,1,0],[[4,0,1,5],sN,0,0,-1],[[5,1,2,6],sE,1,0,0],[[6,2,3,7],sS,0,0,1],[[7,3,0,4],sW,-1,0,0]];
+  const tris=[];
+  for(const[idx,col,nx,ny,nz]of quads){if(cdx*nx+cdy*ny+cdz*nz<=0)continue;for(const t of buildFace(idx.map(i=>C[i]),col,cam))tris.push(t);}
+  return tris;
+}
+function drawTriangle(v0,v1,v2,color){
+  if(!v0.visible||!v1.visible||!v2.visible)return;
+  const x1=v0.sx|0,y1=v0.sy|0,x2=v1.sx|0,y2=v1.sy|0,x3=v2.sx|0,y3=v2.sy|0;
+  const minX=Math.min(x1,x2,x3),maxX=Math.max(x1,x2,x3),minY=Math.min(y1,y2,y3),maxY=Math.max(y1,y2,y3);
+  if(maxX<0||minX>=SCREEN_W||maxY<0||minY>=SCREEN_H)return;
+  const area=(x1-x3)*(y2-y1)-(x1-x2)*(y3-y1);if(area===0)return;
+  const dx12=x1-x2,dy12=y1-y2,dx23=x2-x3,dy23=y2-y3,dx31=x3-x1,dy31=y3-y1;
+  const inv=1/area,zF0=v0.cz*inv,zF1=v1.cz*inv,zF2=v2.cz*inv;
+  const x0c=Math.max(0,minX),xec=Math.min(SCREEN_W-1,maxX),y0c=Math.max(0,minY),yec=Math.min(SCREEN_H-1,maxY);
+  const cR=color&0xff,cG=(color>>>8)&0xff,cB=(color>>>16)&0xff,cA=color>>>24;
+  const fogRange=FOG_FAR-FOG_NEAR,fcR=FOG_COLOR&0xff,fcG=(FOG_COLOR>>>8)&0xff,fcB=(FOG_COLOR>>>16)&0xff;
+  let w1r=(x0c-x2)*dy23-(y0c-y2)*dx23,w2r=(x0c-x3)*dy31-(y0c-y3)*dx31,w3r=(x0c-x1)*dy12-(y0c-y1)*dx12;
+  for(let y=y0c;y<=yec;y++){
+    const row=y*SCREEN_W,by=y&3;let w1=w1r,w2=w2r,w3=w3r,zRow=w1r*zF0+w2r*zF1+w3r*zF2;
+    for(let x=x0c;x<=xec;x++){
+      if(((w1>=0)&(w2>=0)&(w3>=0))|((w1<=0)&(w2<=0)&(w3<=0))){
+        const z=zRow,idx=row+x;
+        if(z<depth[idx]){
+          depth[idx]=z;
+          const t256=z<=FOG_NEAR?0:z>=FOG_FAR?256:((z-FOG_NEAR)/fogRange*256)|0,invT=256-t256;
+          const bt=_BAYER[(by<<2)|(x&3)];
+          const r0=((fcR*t256+cR*invT)>>8),g0=((fcG*t256+cG*invT)>>8),b0=((fcB*t256+cB*invT)>>8);
+          buf32[idx]=(cA<<24)|(((b0+bt)<0?0:(b0+bt)>255?0xf8:((b0+bt)&0xf8))<<16)|(((g0+bt)<0?0:(g0+bt)>255?0xf8:((g0+bt)&0xf8))<<8)|((r0+bt)<0?0:(r0+bt)>255?0xf8:((r0+bt)&0xf8));
+        }
+      }
+      w1+=dy23;w2+=dy31;w3+=dy12;zRow+=dy23*zF0+dy31*zF1+dy12*zF2;
+    }
+    w1r-=dx23;w2r-=dx31;w3r-=dx12;
+  }
+}
+function present(){ctx2d.putImageData(image,0,0);}
+const FONT={"0":0x69996,"1":0x4c44e,"2":0xe168f,"3":0xe161e,"4":0x99f11,"5":0xf8e1e,"6":0x68e96,"7":0xf1244,"8":0x69696,"9":0x69716,"A":0x69f99,"B":0xe9e9e,"C":0x78887,"D":0xe999e,"E":0xf8e8f,"F":0xf8e88,"G":0x78b97,"H":0x99f99,"I":0xe444e,"J":0x722a4,"K":0x9aca9,"L":0x8888f,"M":0x9ff99,"N":0x9dfb9,"O":0x69996,"P":0xe9e88,"Q":0x699b7,"R":0xe9ea9,"S":0x7861e,"T":0xf4444,"U":0x99996,"V":0x99966,"W":0x99ff9,"X":0x96669,"Y":0x99644,"Z":0xf168f," ":0,".":0x00004,"-":0x00e00,":":0x04040,"!":0x44404};
+function drawText(text,x,y,color=0xffffffff,scale=1){
+  text=String(text).toUpperCase();let cx=x|0;
+  for(let i=0;i<text.length;i++){const g=FONT[text[i]]??0;for(let gy=0;gy<5;gy++){const row=(g>>>((4-gy)*4))&0xf;for(let gx=0;gx<4;gx++){if(!((row>>>(3-gx))&1))continue;for(let py=0;py<scale;py++)for(let px=0;px<scale;px++){const xx=cx+gx*scale+px,yy=y+gy*scale+py;if(xx>=0&&xx<SCREEN_W&&yy>=0&&yy<SCREEN_H)buf32[yy*SCREEN_W+xx]=color;}}}cx+=5*scale;}
+}
+
+// ─── Third-person camera ──────────────────────────────────────────────────────
+function createCamera(){return{x:0,y:1,z:-3,yaw:0,pitch:0,fovMul:1.0,targetX:0,targetY:1,targetZ:-3,targetYaw:0,targetPitch:0,targetFovMul:1.0,autoPitch:0,lookPitch:0};}
+function updateCamera(cam,player,movementMode,dtScale=1){
+  const off=CAMERA_OFFSET_LUT[movementMode],yaw=cam.targetYaw;
+  const fx=sinDeg(yaw),fz=cosDeg(yaw);
+  cam.targetX=player.x-fx*off.back;cam.targetZ=player.z-fz*off.back;cam.targetY=player.y+off.up;
+  cam.targetFovMul=CAMERA_FOV_LUT[movementMode];
+  const lag=CAMERA_LAG_LUT[movementMode];
+  cam.x+=(cam.targetX-cam.x)*lag*dtScale;cam.y+=(cam.targetY-cam.y)*lag*dtScale;cam.z+=(cam.targetZ-cam.z)*lag*dtScale;
+  cam.fovMul+=(cam.targetFovMul-cam.fovMul)*lag*0.7*dtScale;
+  let dyaw=cam.targetYaw-cam.yaw;if(dyaw>180)dyaw-=360;if(dyaw<-180)dyaw+=360;
+  cam.yaw+=dyaw*lag*dtScale;if(cam.yaw<0)cam.yaw+=360;if(cam.yaw>=360)cam.yaw-=360;
+  cam.autoPitch=12;cam.targetPitch=cam.autoPitch+cam.lookPitch;
+  cam.pitch+=(cam.targetPitch-cam.pitch)*lag*0.6*dtScale;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// firstperson.js — First-Person Camera Module
+//
+// This module is self-contained. Drop it into any Froyo project and call:
+//
+//   import { createFPCamera, updateFPCamera, applyMouseDelta,
+//            fpMovement, fpFOVMul, fpHeadBob } from './firstperson.js';
+//
+// DESIGN NOTES
+// ───────────────
+// - Yaw wraps 0–360. Pitch clamps to [-FP_PITCH_MAX, +FP_PITCH_MAX].
+// - Raw pointer delta arrives via Pointer Lock (movementX/Y). The module
+//   scales it by sensitivity and a fixed (1/resolution) factor so sensitivity
+//   behaves identically across screen sizes.
+// - Head bob is driven by the player's XZ velocity magnitude, not time, so
+//   it automatically stops when the player stops. Bob output is { x, y } in
+//   screen-space pixels — caller adds it to the HUD crosshair or view weapon.
+// - FP camera position = player.x, player.y + FP_EYE_HEIGHT + bob.y, player.z.
+//   In 3D this would also shift the camera right/left by bob.x, but in
+//   a 320×200 software renderer the most practical use is shifting the
+//   entire rendered view by bob.x (partial-pixel sub-column shift) and the
+//   crosshair by bob.y. See fpHeadBob() return value.
+// - fovMul: moving forward (axisY < 0) linearly nudges FOV wider by up to
+//   FP_SPEED_FOV, giving a subtle speed-feel without a dedicated sprint mode.
+// ═════════════════════════════════════════════════════════════════════════════
+
+const FP_EYE_HEIGHT   = 0.72;  // eye-level above player.y (platform top)
+const FP_PITCH_MAX    = 80;    // degrees; clamps look-up / look-down
+const FP_SENS_SCALE   = 0.001; // base radians per raw pixel — multiplied by user sensitivity
+const FP_BOB_FREQ     = 0.14;  // cycles per world-unit of XZ travel
+const FP_BOB_AMPLITUDE= 0.55;  // max bob offset in screen pixels (Y)
+const FP_BOB_LATERAL  = 0.30;  // max bob offset in screen pixels (X)
+const FP_BOB_DECAY    = 0.88;  // bob phase damps toward 0 when speed drops
+const FP_SPEED_FOV    = 0.06;  // max fovMul widening at top run speed
+const FP_FOV_DECAY    = 0.12;  // lerp factor per frame toward target fovMul
+
+/**
+ * createFPCamera(opts)
+ *
+ * opts:
+ *   sensitivity  {number} 0.01–1.0, default 0.10  (user-facing slider, 0–1 range)
+ *   fovDeg       {number} 60–120,   default 90     (vertical FOV in degrees)
+ *   headBob      {number} 0–1,      default 0.8    (bob amplitude scale)
+ *
+ * Returns an FP camera state object. Pass this to all other FP functions.
+ */
+function createFPCamera(opts = {}) {
+  const fovDeg  = opts.fovDeg      ?? 90;
+  // Convert vertical FOV degrees → fovMul relative to the engine baseline (80°).
+  // FOCAL_Y = HALF_H / tan(FOV_baseline/2).  fovMul = tan(baseline/2) / tan(fovDeg/2).
+  const BASE_HALF_TAN = Math.tan(40 * Math.PI / 180); // tan(80°/2)
+  const fovMulBase = BASE_HALF_TAN / Math.tan((fovDeg / 2) * Math.PI / 180);
+
+  return {
+    // Orientation
+    yaw:   0,       // degrees, same convention as camera.js
+    pitch: 0,       // degrees, positive = look up (matches camera.js)
+
+    // Eye position (set by updateFPCamera each frame)
+    x: 0, y: FP_EYE_HEIGHT, z: 0,
+
+    // FOV
+    fovMul:         fovMulBase,
+    fovMulBase:     fovMulBase,
+    fovMulTarget:   fovMulBase,
+
+    // Settings (mutable at runtime)
+    sensitivity: opts.sensitivity ?? 0.10,
+    bobScale:    opts.headBob     ?? 0.8,
+
+    // Internal bob state
+    _bobPhase:   0,     // accumulated XZ distance (drives sin cycle)
+    _bobVel:     0,     // smoothed speed for bob amplitude
+    _bobX:       0,     // current lateral bob (pixels)
+    _bobY:       0,     // current vertical bob (pixels)
+  };
+}
+
+/**
+ * updateFPCamera(fp, player)
+ *
+ * Snaps the FP camera position to the player's eye point.
+ * Call once per frame BEFORE frustum update and rendering.
+ * Returns the camera-compatible object { x, y, z, yaw, pitch, fovMul }.
+ */
+function updateFPCamera(fp, player) {
+  fp.x = player.x;
+  fp.z = player.z;
+  fp.y = player.y + FP_EYE_HEIGHT;
+  // fovMul eases toward target
+  fp.fovMul += (fp.fovMulTarget - fp.fovMul) * FP_FOV_DECAY;
+  return fp;
+}
+
+/**
+ * applyMouseDelta(fp, dx, dy)
+ *
+ * Integrates a raw pointer-lock delta (movementX, movementY) into fp.yaw/pitch.
+ * dx positive = look right, dy positive = look down (matches browser convention).
+ */
+function applyMouseDelta(fp, dx, dy) {
+  const scale = FP_SENS_SCALE * fp.sensitivity * 100; // sensitivity 0.1 → ~1.0 deg/px
+  fp.yaw   += dx * scale;
+  fp.pitch += dy * scale; // positive dy = down = higher pitch in our convention
+  // Wrap yaw
+  fp.yaw = ((fp.yaw % 360) + 360) % 360;
+  // Clamp pitch
+  if (fp.pitch >  FP_PITCH_MAX) fp.pitch =  FP_PITCH_MAX;
+  if (fp.pitch < -FP_PITCH_MAX) fp.pitch = -FP_PITCH_MAX;
+}
+
+/**
+ * fpMovement(fp, input)
+ *
+ * Converts WASD axes into world-space movement deltas aligned to fp.yaw.
+ * Returns { fwdX, fwdZ } — caller multiplies by accel and adds to velocity.
+ * In FP mode the player always moves along the camera's horizontal bearing;
+ * vertical aim (pitch) does NOT tilt the movement vector.
+ */
+function fpMovement(fp, input) {
+  const fw   = -input.axisY; // W = forward (-Y axis → +Z world)
+  const side =  input.axisX; // D = right
+  const fwdX = sinDeg(fp.yaw|0) * fw + sinDeg((fp.yaw + 90)|0) * side;
+  const fwdZ = cosDeg(fp.yaw|0) * fw + cosDeg((fp.yaw + 90)|0) * side;
+  return { fwdX, fwdZ };
+}
+
+/**
+ * fpFOVMul(fp, speedXZ)
+ *
+ * Returns the current live fovMul, also updating the speed-based FOV target.
+ * speedXZ = magnitude of player's horizontal velocity vector.
+ */
+function fpFOVMul(fp, speedXZ) {
+  // Widen FOV slightly at speed (max at top walk speed ~0.18)
+  const norm   = Math.min(1, speedXZ / 0.18);
+  fp.fovMulTarget = fp.fovMulBase - norm * FP_SPEED_FOV;
+  return fp.fovMul;
+}
+
+/**
+ * fpHeadBob(fp, player, dt)
+ *
+ * Drives the head bob oscillator from the player's XZ velocity.
+ * Returns { x, y } in screen-space pixels — add to crosshair position
+ * or use as a view-weapon offset.
+ *
+ * The bob only advances when the player is moving AND grounded; it decays
+ * smoothly when the player stops or becomes airborne.
+ */
+function fpHeadBob(fp, player, dt) {
+  const speedXZ = Math.sqrt(player.vx * player.vx + player.vz * player.vz);
+  const moving  = speedXZ > 0.02 && player.grounded;
+
+  // Smooth bob velocity toward current speed (or 0 when airborne/stopped)
+  const targetBobVel = moving ? speedXZ : 0;
+  fp._bobVel += (targetBobVel - fp._bobVel) * (moving ? 0.15 : 0.06);
+
+  // Advance phase by distance traveled (so bob frequency is world-consistent)
+  if (fp._bobVel > 0.005) {
+    fp._bobPhase += fp._bobVel * FP_BOB_FREQ * Math.PI * 2;
+  } else {
+    // Decay phase back toward nearest zero crossing to avoid a pop when stopped
+    const nearest = Math.round(fp._bobPhase / Math.PI) * Math.PI;
+    fp._bobPhase += (nearest - fp._bobPhase) * 0.08;
+  }
+
+  const amp  = fp._bobVel / 0.18 * fp.bobScale; // 0..1 relative to walk speed
+  fp._bobY = Math.sin(fp._bobPhase)         * FP_BOB_AMPLITUDE * amp;
+  fp._bobX = Math.sin(fp._bobPhase * 0.5)  * FP_BOB_LATERAL   * amp;
+
+  return { x: fp._bobX, y: fp._bobY };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// End of firstperson.js
+// ═════════════════════════════════════════════════════════════════════════════
+
+// ─── Frustum (simplified) ─────────────────────────────────────────────────────
+const _planes=Array.from({length:6},()=>({nx:0,ny:0,nz:0,d:0}));
+function updateFrustum(cam){
+  const yaw=cam.yaw||0,pitch=cam.pitch||0;
+  const cosY=cosDeg(yaw|0),sinY=sinDeg(yaw|0),cosP=cosDeg(pitch|0),sinP=sinDeg(pitch|0);
+  const fwdX=sinY*cosP,fwdY=sinP,fwdZ=cosY*cosP;
+  const cx=cam.x,cy=cam.y,cz=cam.z;
+  _planes[0].nx=fwdX;_planes[0].ny=fwdY;_planes[0].nz=fwdZ;_planes[0].d=-(fwdX*(cx+fwdX*0.4)+fwdY*(cy+fwdY*0.4)+fwdZ*(cz+fwdZ*0.4));
+  _planes[1].nx=-fwdX;_planes[1].ny=-fwdY;_planes[1].nz=-fwdZ;_planes[1].d=fwdX*(cx+fwdX*250)+fwdY*(cy+fwdY*250)+fwdZ*(cz+fwdZ*250);
+  for(let i=2;i<6;i++){_planes[i].nx=0;_planes[i].ny=(i<4?0:1);_planes[i].nz=0;_planes[i].d=10000;}
+}
+function sphereInFrustum(x,y,z,r){for(let i=0;i<6;i++){const p=_planes[i];if(p.nx*x+p.ny*y+p.nz*z+p.d<-r)return false;}return true;}
+
+// ─── Profiler ─────────────────────────────────────────────────────────────────
+const profiler={enabled:true,frame:0,trisIn:0,trisCulled:0,trisClipped:0,trisSubdivided:0,trisDrawn:0,frameStart:0,frameMS:0,
+  resetFrame(){this.trisIn=0;this.trisCulled=0;this.trisClipped=0;this.trisSubdivided=0;this.trisDrawn=0;this.frame++;this.frameStart=performance.now();},
+  endFrame(){this.frameMS=performance.now()-this.frameStart;}
+};
+
+// ─── Audio ────────────────────────────────────────────────────────────────────
+let _actx=null;
+function getCtx(){if(!_actx){try{_actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(_actx.state==='suspended')_actx.resume();return _actx;}
+let _sfxVol=0.8;
+function tone(type,f0,f1,gain,dur,delay=0){const ctx=getCtx();if(!ctx)return;const now=ctx.currentTime+delay;const osc=ctx.createOscillator(),env=ctx.createGain();osc.connect(env);env.connect(ctx.destination);osc.type=type;osc.frequency.setValueAtTime(f0,now);osc.frequency.linearRampToValueAtTime(f1,now+dur);env.gain.setValueAtTime(0,now);env.gain.linearRampToValueAtTime(gain*_sfxVol,now+0.005);env.gain.exponentialRampToValueAtTime(0.001,now+dur);osc.start(now);osc.stop(now+dur+0.01);}
+const sfxJump=()=>{tone('square',280,520,0.18,0.12);tone('sine',280,520,0.10,0.15);};
+const sfxLand=()=>{tone('sine',120,60,0.1,0.18);};
+const sfxDoubleJump=()=>{tone('square',380,700,0.18,0.10);tone('square',500,900,0.12,0.10,0.06);};
+function sfxSetVolume(v){_sfxVol=Math.max(0,Math.min(1,v));}
+
+// ─── Input ────────────────────────────────────────────────────────────────────
+const BTN_FLAGS={A:1,B:2,X:4,Y:8,RT:16,LT:32,START:64,SEL:128,LB:256,RB:512};
+const KEY_MAP={Space:BTN_FLAGS.A,KeyJ:BTN_FLAGS.X,KeyK:BTN_FLAGS.B,KeyL:BTN_FLAGS.Y,ShiftLeft:BTN_FLAGS.LT,ShiftRight:BTN_FLAGS.LT,ControlLeft:BTN_FLAGS.RT,ControlRight:BTN_FLAGS.RT,Enter:BTN_FLAGS.START,Escape:BTN_FLAGS.START,Tab:BTN_FLAGS.SEL};
+const _keys=new Set(),_keyPulses=new Set();
+let _kbMask=0,_kbX=0,_kbY=0,_kbOrbitX=0;
+function recomputeKb(){let m=0;for(const k of _keys)if(KEY_MAP[k])m|=KEY_MAP[k];_kbMask=m;let x=0,y=0;if(_keys.has('KeyA')||_keys.has('ArrowLeft'))x-=1;if(_keys.has('KeyD')||_keys.has('ArrowRight'))x+=1;if(_keys.has('KeyW')||_keys.has('ArrowUp'))y-=1;if(_keys.has('KeyS')||_keys.has('ArrowDown'))y+=1;_kbX=x;_kbY=y;let ox=0;if(_keys.has('KeyQ'))ox-=1;if(_keys.has('KeyE'))ox+=1;_kbOrbitX=ox;}
+document.addEventListener('keydown',e=>{if(['Space','Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();if(e.code==='Escape'&&isFirstPerson&&document.pointerLockElement===canvas){/* let browser handle unlock */}if(!_keys.has(e.code))_keyPulses.add(e.code);_keys.add(e.code);recomputeKb();});
+document.addEventListener('keyup',e=>{_keys.delete(e.code);recomputeKb();});
+window.addEventListener('blur',()=>{_keys.clear();recomputeKb();});
+const input={mask:0,prevMask:0,axisX:0,axisY:0,orbitX:0,orbitY:0,
+  sample(){this.prevMask=this.mask;this.mask=_kbMask;for(const k of _keyPulses){if(KEY_MAP[k])this.mask|=KEY_MAP[k];}_keyPulses.clear();this.axisX=_kbX;this.axisY=_kbY;this.orbitX=_kbOrbitX;},
+  isDown(f){return(this.mask&f)!==0;},
+  justPressed(f){return(this.mask&f)!==0&&(this.prevMask&f)===0;},
+  justReleased(f){return(this.mask&f)===0&&(this.prevMask&f)!==0;}
+};
+
+// ─── View-mode toggle ─────────────────────────────────────────────────────────
+let isFirstPerson = false;
+const fpCamera = createFPCamera({ sensitivity: 0.10, fovDeg: 90, headBob: 0.8 });
+const camera   = createCamera();
+camera.targetYaw = 0;
+
+// The "active camera" fed to the renderer — either camera (TP) or fpCamera (FP).
+// Both objects share the same interface: { x, y, z, yaw, pitch, fovMul }.
+let activeCam = camera;
+
+function setViewMode(fp) {
+  isFirstPerson = fp;
+  activeCam = fp ? fpCamera : camera;
+
+  // UI
+  document.getElementById('btn-tp').classList.toggle('active', !fp);
+  document.getElementById('btn-fp').classList.toggle('active',  fp);
+  document.getElementById('cam-viewmode').textContent = fp ? '1ST-PERSON' : '3RD-PERSON';
+
+  // Panel layout: show/hide FP-only controls
+  document.getElementById('panel-right').classList.toggle('active-fp', fp);
+  document.getElementById('panel-left').classList.toggle('active-fp', fp);
+
+  // Module row indicator
+  const fpRow = document.getElementById('fp-module-row');
+  const fpDot = fpRow.querySelector('.dot');
+  const fpTag = fpRow.querySelector('.fp-tag');
+  if (fp) {
+    fpDot.className='dot dot-green'; fpTag.textContent='ACTIVE';
+  } else {
+    fpDot.className='dot dot-dim';   fpTag.textContent='STANDBY';
+  }
+
+  // Pointer lock: request on switch to FP, release on switch to TP
+  if (fp) {
+    showLockNudge(true);
+  } else {
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    showLockNudge(false);
+  }
+}
+
+// ─── Pointer Lock ─────────────────────────────────────────────────────────────
+function showLockNudge(show) {
+  document.getElementById('lock-nudge').classList.toggle('show', show && isFirstPerson && document.pointerLockElement !== canvas);
+}
+
+canvas.addEventListener('click', () => {
+  if (isFirstPerson && document.pointerLockElement !== canvas) {
+    canvas.requestPointerLock();
+  }
+});
+document.addEventListener('pointerlockchange', () => {
+  const locked = document.pointerLockElement === canvas;
+  showLockNudge(!locked && isFirstPerson);
+  const lockEl = document.getElementById('fp-locked');
+  if (lockEl) { lockEl.textContent = locked ? 'YES' : 'NO'; lockEl.style.color = locked ? 'var(--green)' : 'var(--dim)'; }
+  const lockBtn = document.getElementById('btn-lock');
+  if (lockBtn) { lockBtn.textContent = locked ? 'MOUSE CAPTURED — ESC TO RELEASE' : 'CLICK VIEWPORT TO LOCK'; lockBtn.classList.toggle('active', locked); }
+});
+
+// Raw mouse delta → fp camera
+canvas.addEventListener('mousemove', e => {
+  if (isFirstPerson && document.pointerLockElement === canvas) {
+    applyMouseDelta(fpCamera, e.movementX, e.movementY);
+  }
+});
+
+// V key toggles view mode from anywhere
+document.addEventListener('keydown', e => {
+  if (e.code === 'KeyV') setViewMode(!isFirstPerson);
+});
+
+// ─── World ────────────────────────────────────────────────────────────────────
+const GROUND_Y=0;
+const platforms=[
+  {x:0,  y:GROUND_Y,z:0,  sx:8,  sy:0.4,sz:8},
+  {x:14, y:1.5,     z:4,  sx:3,  sy:0.4,sz:3},
+  {x:-10,y:2.5,     z:8,  sx:3,  sy:0.4,sz:2.5},
+  {x:6,  y:4.0,     z:-10,sx:2,  sy:0.4,sz:4},
+  {x:-4, y:6.0,     z:-6, sx:2,  sy:0.4,sz:2},
+  {x:18, y:3.0,     z:-5, sx:3,  sy:0.4,sz:3},
+];
+const GRASS_TOP=rgba(88,172,60),GRASS_SIDE=rgba(80,120,50),DIRT_SIDE=rgba(110,75,40);
+const STONE_TOP=rgba(160,160,170),STONE_SIDE=rgba(120,120,130);
+
+// ─── Player ───────────────────────────────────────────────────────────────────
+const player={x:0,y:1.0,z:0,vx:0,vy:0,vz:0,yaw:0,state:0,movementMode:MOVE.IDLE,jumpMode:JUMPM.GROUNDED,jumpTokens:2,glideArmed:false,grounded:true};
+
+let frame=0,_lastTs=0,_fpsSmooth=60;
+let _showGrid=true;
+
+// ─── State resolution ─────────────────────────────────────────────────────────
+function resolveState(){
+  let s=player.state;
+  if(s&STATE.DEAD||s&STATE.FROZEN)return;
+  const moving=Math.abs(input.axisX)>0.05||Math.abs(input.axisY)>0.05;
+  if(player.grounded&&moving)s|=STATE.WALK;else s&=~STATE.WALK;
+  if(input.isDown(BTN_FLAGS.RT)&&player.grounded)s|=STATE.CHARGE;else s&=~STATE.CHARGE;
+  if(input.justPressed(BTN_FLAGS.A)){if(player.grounded){s|=STATE.JUMP;s&=~(STATE.DOUBLE_JUMP|STATE.GLIDE);player.jumpTokens=1;}else if(player.jumpTokens===1){s&=~STATE.JUMP;s|=STATE.DOUBLE_JUMP;s&=~STATE.GLIDE;player.jumpTokens=0;}}
+  if(!player.grounded&&player.jumpTokens===0&&player.glideArmed)s|=STATE.GLIDE;else if(player.grounded)s&=~STATE.GLIDE;
+  player.state=s;
+  if(s&STATE.DEAD)player.movementMode=MOVE.IDLE;
+  else if(s&STATE.GLIDE)player.movementMode=MOVE.GLIDE;
+  else if(s&STATE.CHARGE)player.movementMode=MOVE.CHARGE;
+  else if(s&(STATE.JUMP|STATE.DOUBLE_JUMP))player.movementMode=MOVE.AIRBORNE;
+  else if(s&STATE.WALK)player.movementMode=MOVE.WALK;
+  else player.movementMode=MOVE.IDLE;
+  if(!player.grounded){if(player.state&STATE.DOUBLE_JUMP)player.jumpMode=JUMPM.DOUBLE_JUMP;else if(player.state&STATE.JUMP)player.jumpMode=JUMPM.JUMPING;else player.jumpMode=JUMPM.FALLING;}else player.jumpMode=JUMPM.GROUNDED;
+}
+
+// ─── Physics ──────────────────────────────────────────────────────────────────
+function stepPhysics(dt){
+  const m=player.movementMode,phys=PHYSICS_LUT[m];
+  let fwdX,fwdZ;
+  if(isFirstPerson){
+    // FP: movement aligned to fp camera yaw (horizontal only)
+    const mv=fpMovement(fpCamera,input);fwdX=mv.fwdX;fwdZ=mv.fwdZ;
+    // Player body yaw tracks fp camera yaw so 3P shadow would face right
+    player.yaw=fpCamera.yaw;
+  }else{
+    // TP: movement relative to third-person camera yaw
+    const cy=camera.yaw,fw=-input.axisY,side=input.axisX;
+    fwdX=sinDeg(cy|0)*fw+sinDeg((cy+90)|0)*side;
+    fwdZ=cosDeg(cy|0)*fw+cosDeg((cy+90)|0)*side;
+    const hasInput=Math.abs(fwdX)>0.01||Math.abs(fwdZ)>0.01;
+    if(hasInput)player.yaw=Math.atan2(player.vx,player.vz)*180/Math.PI;
+  }
+  const hasInput=Math.abs(fwdX)>0.01||Math.abs(fwdZ)>0.01;
+  if(hasInput){player.vx+=fwdX*phys.accel;player.vz+=fwdZ*phys.accel;}
+  const spd=Math.sqrt(player.vx*player.vx+player.vz*player.vz);
+  if(spd>phys.maxSpeed&&spd>0){player.vx=player.vx/spd*phys.maxSpeed;player.vz=player.vz/spd*phys.maxSpeed;}
+  const damp=player.grounded?phys.groundDamp:phys.airDamp;
+  player.vx*=damp;player.vz*=damp;
+  if(m===MOVE.GLIDE&&phys.vClamp&&player.vy<phys.vClamp)player.vy=phys.vClamp;
+  player.vy-=phys.gravity;if(player.vy<-phys.maxFall)player.vy=-phys.maxFall;
+  if(input.justPressed(BTN_FLAGS.A)&&player.grounded){player.vy=0.38;player.grounded=false;sfxJump();}
+  else if(input.justPressed(BTN_FLAGS.A)&&!player.grounded&&player.jumpTokens===1){player.vy=0.30;player.jumpTokens=0;sfxDoubleJump();}
+  player.x+=player.vx;player.y+=player.vy;player.z+=player.vz;
+  if(!player.grounded&&player.jumpTokens===0&&input.isDown(BTN_FLAGS.A))player.glideArmed=true;
+  if(player.grounded)player.glideArmed=false;
+  let wasGrounded=player.grounded;player.grounded=false;
+  for(const p of platforms){const topY=p.y+p.sy;if(Math.abs(player.x-p.x)<p.sx&&Math.abs(player.z-p.z)<p.sz&&player.y>=topY-0.1&&player.y-player.vy<=topY+0.25){player.y=topY;if(!wasGrounded)sfxLand();player.vy=0;player.grounded=true;player.jumpTokens=2;player.state&=~(STATE.JUMP|STATE.DOUBLE_JUMP|STATE.GLIDE);break;}}
+  if(player.y<-20){player.y=1;player.x=0;player.z=0;player.vy=0;}
+}
+
+// ─── Viewport scale ───────────────────────────────────────────────────────────
+function scaleCanvas(){const vp=document.getElementById('viewport');const s=Math.min(vp.clientWidth/SCREEN_W,vp.clientHeight/SCREEN_H);canvas.style.width=(SCREEN_W*s)+'px';canvas.style.height=(SCREEN_H*s)+'px';}
+window.addEventListener('resize',scaleCanvas);scaleCanvas();
+
+// ─── HUD ──────────────────────────────────────────────────────────────────────
+function drawHUD(bob){
+  const W=rgba(255,255,255),G=rgba(100,255,160),A=rgba(255,200,80);
+  drawText('FROYO ENGINE',3,3,rgba(123,104,238),1);
+  drawText('FPS:'+(_fpsSmooth|0),SCREEN_W-44,3,W,1);
+  if(isFirstPerson){
+    drawText('1ST-P',3,SCREEN_H-10,rgba(123,104,238),1);
+    // Crosshair (shifts with head bob)
+    const cx=(HALF_W+bob.x)|0,cy=(HALF_H-bob.y)|0;
+    const CC=rgba(200,200,200);
+    if(cx>2&&cx<SCREEN_W-3&&cy>2&&cy<SCREEN_H-3){
+      buf32[cy*SCREEN_W+cx]=CC;
+      buf32[(cy-3)*SCREEN_W+cx]=CC;buf32[(cy+3)*SCREEN_W+cx]=CC;
+      buf32[cy*SCREEN_W+cx-3]=CC;buf32[cy*SCREEN_W+cx+3]=CC;
+      // gap-style crosshair: draw a 1px dot at center
+      buf32[cy*SCREEN_W+cx]=W;
+    }
+    // Minimal pitch indicator strip on right edge
+    const pitchPx=(HALF_H - fpCamera.pitch * (SCREEN_H*0.5/FP_PITCH_MAX))|0;
+    for(let dy=-2;dy<=2;dy++){const py=pitchPx+dy;if(py>=0&&py<SCREEN_H)buf32[py*SCREEN_W+(SCREEN_W-3)]=A;}
+  }else{
+    drawText(MOVE_NAMES[player.movementMode],3,SCREEN_H-10,A,1);
+    drawText('TK:'+player.jumpTokens,60,SCREEN_H-10,player.grounded?G:A,1);
+    let fx=100;
+    const flags=[['W',STATE.WALK,G],['C',STATE.CHARGE,A],['J',STATE.JUMP,rgba(100,200,255)],['D',STATE.DOUBLE_JUMP,rgba(100,200,255)],['L',STATE.GLIDE,rgba(180,140,255)]];
+    for(const[ch,bit,col]of flags)if(player.state&bit){drawText(ch,fx,SCREEN_H-10,col,1);fx+=8;}
+    // Standard crosshair
+    const cx2=HALF_W,cy2=HALF_H;
+    buf32[cy2*SCREEN_W+cx2]=W;buf32[(cy2-2)*SCREEN_W+cx2]=W;buf32[(cy2+2)*SCREEN_W+cx2]=W;buf32[cy2*SCREEN_W+cx2-2]=W;buf32[cy2*SCREEN_W+cx2+2]=W;
+  }
+}
+
+// ─── Main loop ────────────────────────────────────────────────────────────────
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=Math.min(ts-_lastTs,50)/(1000/60);_lastTs=ts;
+  _fpsSmooth+=(1000/Math.max(profiler.frameMS,0.001)-_fpsSmooth)*0.05;
+  profiler.resetFrame();
+  input.sample();
+  resolveState();
+  stepPhysics(dt);
+
+  // ── Camera update ─────────────────────────────────────────────────────────
+  let bob={x:0,y:0};
+  if(isFirstPerson){
+    updateFPCamera(fpCamera,player);
+    fpFOVMul(fpCamera, Math.sqrt(player.vx*player.vx+player.vz*player.vz));
+    bob=fpHeadBob(fpCamera,player,dt);
+    activeCam=fpCamera;
+  }else{
+    camera.targetYaw+=input.orbitX*2.5;
+    if(camera.targetYaw<0)camera.targetYaw+=360;if(camera.targetYaw>=360)camera.targetYaw-=360;
+    updateCamera(camera,player,player.movementMode,dt);
+    activeCam=camera;
+  }
+  updateFrustum(activeCam);
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  clearSky(activeCam.yaw,frame);
+  const allTris=[];
+  for(const p of platforms){
+    profiler.trisIn+=12;
+    if(!sphereInFrustum(p.x,p.y,p.z,Math.sqrt(p.sx*p.sx+p.sy*p.sy+p.sz*p.sz)+1)){profiler.trisCulled+=12;continue;}
+    const isBig=p.sx>=6;
+    const tC=isBig?GRASS_TOP:STONE_TOP,sC=isBig?DIRT_SIDE:STONE_SIDE;
+    const tris=buildCube(p.x,p.y,p.z,p.sx,p.sy,p.sz,tC,sC,activeCam);
+    for(const t of tris)allTris.push(t);profiler.trisDrawn+=tris.length;
+  }
+  // Only draw player cube in third-person (in FP you're inside it)
+  if(!isFirstPerson){
+    const s=0.32;profiler.trisIn+=10;
+    const tris=buildCube(player.x,player.y+s,player.z,s,s,s,rgba(120,200,255),rgba(80,150,210),activeCam);
+    for(const t of tris)allTris.push(t);profiler.trisDrawn+=tris.length;
+  }
+  allTris.sort((a,b)=>b.avgZ-a.avgZ);
+  for(const t of allTris)drawTriangle(t.verts[0],t.verts[1],t.verts[2],t.color);
+  drawHUD(bob);
+  present();
+  profiler.endFrame();
+  frame++;
+  updateDevPanel(ts);
+}
+
+// ─── Dev panel ────────────────────────────────────────────────────────────────
+let _lastPanelUpdate=0;
+function updateDevPanel(ts){
+  if(ts-_lastPanelUpdate<80)return;_lastPanelUpdate=ts;
+  const fps=Math.min(99,1000/Math.max(profiler.frameMS,1))|0;
+  document.getElementById('badge-fps').textContent=fps+' FPS';
+  const cam=activeCam;
+  document.getElementById('cam-yaw').textContent=cam.yaw.toFixed(1)+'°';
+  document.getElementById('cam-pitch').textContent=cam.pitch.toFixed(1)+'°';
+  document.getElementById('cam-fov').textContent=cam.fovMul.toFixed(2);
+  document.getElementById('cam-x').textContent=cam.x.toFixed(2);
+  document.getElementById('cam-y').textContent=cam.y.toFixed(2);
+  document.getElementById('cam-z').textContent=cam.z.toFixed(2);
+  const mmEl=document.getElementById('move-mode');if(mmEl)mmEl.textContent=MOVE_NAMES[player.movementMode];
+  document.getElementById('jump-mode').textContent=JUMPM_NAMES[player.jumpMode];
+  document.getElementById('state-bits').textContent='0x'+player.state.toString(16).padStart(2,'0').toUpperCase();
+  document.getElementById('p-ms').textContent=profiler.frameMS.toFixed(1);
+  document.getElementById('p-fps').textContent=fps;
+  document.getElementById('p-frame').textContent=profiler.frame;
+  document.getElementById('p-tris-in').textContent=profiler.trisIn;
+  document.getElementById('p-tris-cull').textContent=profiler.trisCulled;
+  document.getElementById('p-tris-draw').textContent=profiler.trisDrawn;
+  document.getElementById('pb-ms').style.width=Math.min(100,profiler.frameMS/50*100)+'%';
+  document.getElementById('pb-ms').style.background=profiler.frameMS>33?'var(--red)':profiler.frameMS>16?'var(--amber)':'var(--green)';
+  document.getElementById('pb-fps').style.width=Math.min(100,fps/60*100)+'%';
+  document.getElementById('pb-tris-in').style.width=Math.min(100,profiler.trisIn/200*100)+'%';
+  document.getElementById('pb-tris-cull').style.width=Math.min(100,profiler.trisCulled/200*100)+'%';
+  document.getElementById('pb-tris-draw').style.width=Math.min(100,profiler.trisDrawn/200*100)+'%';
+  document.getElementById('p-clip').textContent=profiler.trisClipped;
+  document.getElementById('p-subdiv').textContent=profiler.trisSubdivided;
+  const setFlag=(id,bit)=>{const el=document.getElementById(id);const on=!!(player.state&bit);el.textContent=on?'ON':'—';el.style.color=on?'var(--green)':'var(--dim)';};
+  setFlag('sf-walk',STATE.WALK);setFlag('sf-charge',STATE.CHARGE);setFlag('sf-jump',STATE.JUMP|STATE.DOUBLE_JUMP);setFlag('sf-glide',STATE.GLIDE);setFlag('sf-hit',STATE.HIT);
+  document.getElementById('ph-vx').textContent=player.vx.toFixed(3);
+  document.getElementById('ph-vy').textContent=player.vy.toFixed(3);
+  document.getElementById('ph-vz').textContent=player.vz.toFixed(3);
+  const grEl=document.getElementById('ph-gr');grEl.textContent=player.grounded?'YES':'NO';grEl.style.color=player.grounded?'var(--green)':'var(--amber)';
+  document.getElementById('ph-tok').textContent=player.jumpTokens;
+  // FP-specific
+  const fpSensEl=document.getElementById('fp-sens-val');if(fpSensEl)fpSensEl.textContent=fpCamera.sensitivity.toFixed(2);
+  const fpBobEl=document.getElementById('fp-bob-val');if(fpBobEl)fpBobEl.textContent=fpCamera._bobY.toFixed(2);
+  updateKeyGrid();updateJoystick();
+}
+
+// ─── Key grid ─────────────────────────────────────────────────────────────────
+const KEY_LABELS=[['W','ArrowUp'],['A','ArrowLeft'],['S','ArrowDown'],['D','ArrowRight'],['SPC','Space'],['J','KeyJ'],['K','KeyK'],['L','KeyL'],['SHF','ShiftLeft'],['CTRL','ControlLeft'],['Q','KeyQ'],['E','KeyE'],['ENT','Enter'],['V','KeyV'],['ESC','Escape']];
+let _kgBuilt=false;
+function updateKeyGrid(){
+  const grid=document.getElementById('key-grid');
+  if(!_kgBuilt){grid.innerHTML='';for(const[lbl,code]of KEY_LABELS){const el=document.createElement('div');el.className='input-key';el.id='key-'+code;el.textContent=lbl;grid.appendChild(el);}_kgBuilt=true;}
+  for(const[,code]of KEY_LABELS){const el=document.getElementById('key-'+code);if(el)el.classList.toggle('active',_keys.has(code));}
+  // Highlight V key differently — it's the view-mode toggle
+  const vEl=document.getElementById('key-KeyV');if(vEl&&isFirstPerson)vEl.style.borderColor='var(--accent)';else if(vEl)vEl.style.borderColor='';
+}
+
+// ─── Joystick mini-vis ────────────────────────────────────────────────────────
+const joyCanvas=document.getElementById('joystick-canvas'),joyCtx=joyCanvas.getContext('2d');
+function updateJoystick(){
+  const W=80,H=80,cx=40,cy=40,R=32;
+  joyCtx.clearRect(0,0,W,H);
+  joyCtx.strokeStyle='#2a2a44';joyCtx.lineWidth=1;
+  joyCtx.beginPath();joyCtx.arc(cx,cy,R,0,Math.PI*2);joyCtx.stroke();
+  joyCtx.beginPath();joyCtx.moveTo(cx-R,cy);joyCtx.lineTo(cx+R,cy);joyCtx.stroke();
+  joyCtx.beginPath();joyCtx.moveTo(cx,cy-R);joyCtx.lineTo(cx,cy+R);joyCtx.stroke();
+  // In FP show camera-relative forward direction arrow too
+  if(isFirstPerson){
+    const aw=14;
+    joyCtx.strokeStyle='rgba(123,104,238,0.35)';joyCtx.lineWidth=1;
+    joyCtx.beginPath();joyCtx.moveTo(cx,cy);joyCtx.lineTo(cx,cy-aw);joyCtx.stroke();
+  }
+  const kx=cx+input.axisX*R*0.9,ky=cy+input.axisY*R*0.9;
+  joyCtx.beginPath();joyCtx.arc(kx,ky,7,0,Math.PI*2);
+  joyCtx.fillStyle=(Math.abs(input.axisX)>0.05||Math.abs(input.axisY)>0.05)?'#7b68ee':'#2a2a44';
+  joyCtx.fill();
+}
+
+// ─── Panel controls ───────────────────────────────────────────────────────────
+function bindSlider(id,valId,fmt,onChange){
+  const sl=document.getElementById(id),vl=document.getElementById(valId);
+  if(!sl)return;
+  vl.textContent=fmt(+sl.value);
+  sl.addEventListener('input',()=>{vl.textContent=fmt(+sl.value);onChange(+sl.value);});
+}
+bindSlider('sl-fog-near','sl-fog-near-v',v=>v,v=>{FOG_NEAR=v;});
+bindSlider('sl-fog-far', 'sl-fog-far-v', v=>v,v=>{FOG_FAR=v;});
+bindSlider('sl-sfx','sl-sfx-v',v=>v,v=>sfxSetVolume(v/100));
+bindSlider('sl-bgm','sl-bgm-v',v=>v,()=>{});
+bindSlider('sl-sens','sl-sens-v',v=>(v/100).toFixed(2),v=>{fpCamera.sensitivity=v/100;});
+bindSlider('sl-fov','sl-fov-v',v=>v+'°',v=>{
+  const BASE_HALF_TAN=Math.tan(40*Math.PI/180);
+  fpCamera.fovMulBase=BASE_HALF_TAN/Math.tan((v/2)*Math.PI/180);
+  fpCamera.fovMulTarget=fpCamera.fovMulBase;
+});
+bindSlider('sl-bob','sl-bob-v',v=>v,v=>{fpCamera.bobScale=v/10;});
+
+document.getElementById('btn-sfx-test').addEventListener('click',()=>sfxJump());
+document.getElementById('btn-grid').addEventListener('click',function(){_showGrid=!_showGrid;this.textContent='GRID PLANE — '+(_showGrid?'ON':'OFF');this.classList.toggle('active',_showGrid);});
+document.getElementById('btn-frustum').addEventListener('click',function(){this.textContent='FRUSTUM DEBUG — OFF';});
+document.getElementById('btn-crt').addEventListener('click',function(){this.textContent='CRT OVERLAY — REQUIRES FILE SERVER';this.style.color='var(--amber)';});
+document.getElementById('btn-tp').addEventListener('click',()=>setViewMode(false));
+document.getElementById('btn-fp').addEventListener('click',()=>setViewMode(true));
+const lockBtn=document.getElementById('btn-lock');
+if(lockBtn)lockBtn.addEventListener('click',()=>{if(isFirstPerson&&document.pointerLockElement!==canvas)canvas.requestPointerLock();});
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

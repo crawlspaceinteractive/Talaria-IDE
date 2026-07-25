@@ -1,0 +1,47 @@
+{
+  "id": "phase1",
+  "icon": "🎮",
+  "title": "Phase 1 – Core Gameplay Polish",
+  "systems": [
+    {
+      "name": "1.1 Movement & Physics Refinement",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Fine‑tune player acceleration, gravity feel, and jetpack thrust. Add screen‑edge wrapping or hard clamping? Currently hard clamped; consider wrap for classic Jetpac feel.",
+      "tasks": [
+        "Adjust jetpack thrust strength and fuel consumption rate",
+        "Tweak gravity and max fall speed for snappy control",
+        "Add screen‑edge horizontal wrap (like Jetpac)",
+        "Player sprite facing direction based on last horizontal input"
+      ]
+    },
+    {
+      "name": "1.2 Collision Detection Overhaul",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Current collision is per‑pixel with manual 3×3 hitbox. Extend to proper bounding‑box routines that can be reused for any sprite size.",
+      "tasks": [
+        "Replace repetitive per‑enemy collision code with a generic bounding‑box check subroutine",
+        "Use actual sprite widths (8px) instead of hardcoded 3px range",
+        "Add pickup collision using the same generic routine"
+      ]
+    },
+    {
+      "name": "1.3 Fuel & Resource Management",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 4,
+      "dependencies": ["phase1_0"],
+      "notes": "Fuel currently depletes on thrust and refills on pickup. Add a visual warning when low, and possibly a 'rescue' mechanic if fuel runs out over solid ground.",
+      "tasks": [
+        "Flash fuel bar red when below 25%",
+        "Sound or visual cue on low fuel (if audio available)",
+        "Landing platform that slowly refuels player (like Jetpac rocket)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "id": "phase8",
+  "icon": "🧬",
+  "title": "Phase 8 – Neural Cellular Automata (NCA)",
+  "systems": [
+    {
+      "name": "8.1 NCA Kernel Architecture",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_1"],
+      "notes": "Replace hardcoded B3/S23 with a small convolutional neural network (NCA kernel) that processes a 3×3 or 5×5 neighbourhood and outputs the next cell state.",
+      "tasks": [
+        "Design NCA kernel: 3×3 conv → hidden layer → softmax over {empty, red, blue}",
+        "Implement forward pass in pure JavaScript (WebGL optional for performance)",
+        "Support multi‑channel hidden state per cell (e.g., 8‑16 channels)",
+        "Ensure deterministic output per agent colour"
+      ]
+    },
+    {
+      "name": "8.2 Offline Training Pipeline",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase8_0"],
+      "notes": "Train NCA kernels offline using TensorFlow.js or a Python script. Target morphologies: glider, block cluster, self‑repair wall.",
+      "tasks": [
+        "Generate training data from B3/S23 simulation runs",
+        "Define loss function: cell‑wise accuracy + morphogenesis stability",
+        "Train NCA to reproduce Conway‑like patterns with fewer timesteps",
+        "Export trained weights as JSON for browser loading"
+      ]
+    },
+    {
+      "name": "8.3 Fog‑Aware NCA",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase8_0", "phase2_0"],
+      "notes": "Train the NCA to accept fog (0xFF) as an additional input channel so it can predict/reconstruct hidden patterns.",
+      "tasks": [
+        "Add fog channel to NCA input (0 = visible, 1 = fog)",
+        "Train on partially‑occluded grid snapshots",
+        "Test: NCA should 'hallucinate' plausible opponent positions under fog"
+      ]
+    },
+    {
+      "name": "8.4 Mutation on System Purge",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase8_0", "phase4_2"],
+      "notes": "When SYSTEM_PURGE fires, apply a small Gaussian mutation to the NCA kernel weights, shifting the game meta each cycle.",
+      "tasks": [
+        "Implement weight mutation function (small random noise per parameter)",
+        "Trigger mutation on every SYSTEM_PURGE event",
+        "Log mutation history for tournament replay analysis",
+        "Ensure mutations don't destabilise the automaton completely"
+      ]
+    },
+    {
+      "name": "8.5 NCA vs Classic Tournament Mode",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 4,
+      "dependencies": ["phase8_0", "phase6_3"],
+      "notes": "Allow tournament hosts to select NCA or Classic B3/S23 rules. NCA agents have different emergent behaviour — new strategies required.",
+      "tasks": [
+        "Add rule‑set selector to tournament UI",
+        "Separate leaderboard for NCA and Classic matches",
+        "Observe and document emergent NCA strategies"
+      ]
+    }
+  ]
+}

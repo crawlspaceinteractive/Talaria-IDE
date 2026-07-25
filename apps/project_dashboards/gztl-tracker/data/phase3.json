@@ -1,0 +1,61 @@
+{
+  "id": "phase3",
+  "icon": "📜",
+  "title": "Phase 3 – ZScript Support",
+  "systems": [
+    {
+      "name": "3.1 ZScript Parser / Compiler",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase1_0"],
+      "notes": "Implement a ZScript parser that can read .zs files from PK3 and convert them into an intermediate representation suitable for the runtime.",
+      "tasks": [
+        "Lexer and parser for ZScript syntax",
+        "Parse classes, structs, enums, and constants",
+        "Handle inheritance, virtual functions, and flags",
+        "Translate ZScript into runtime bytecode or GDScript"
+      ]
+    },
+    {
+      "name": "3.2 ZScript Runtime Integration",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase3_0", "phase1_5"],
+      "notes": "Execute ZScript logic within the Godot scene tree. Replace or augment existing actors with ZScript-defined behaviour.",
+      "tasks": [
+        "Instantiate ZScript actors in place of DECORATE actors",
+        "Call ZScript virtual functions (BeginPlay, Tick, etc.)",
+        "Access game data (players, level, RNG) from ZScript",
+        "Implement ZScript action functions (A_*)"
+      ]
+    },
+    {
+      "name": "3.3 Actor Class Replacement",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase3_1"],
+      "notes": "Allow ZScript to replace built-in actor classes (player, monster, weapon).",
+      "tasks": [
+        "Replace native classes with ZScript subclasses",
+        "Handle actor property overrides",
+        "Support DECORATE → ZScript fallback"
+      ]
+    },
+    {
+      "name": "3.4 DECORATE ↔ ZScript Compatibility",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase3_0", "phase1_1"],
+      "notes": "Ensure smooth interop between DECORATE-defined actors and ZScript actors. Shared state, inheritance, and function calling.",
+      "tasks": [
+        "DECORATE actors can inherit from ZScript classes",
+        "ZScript can reference DECORATE actors",
+        "Shared damage, inventory, and state systems"
+      ]
+    }
+  ]
+}

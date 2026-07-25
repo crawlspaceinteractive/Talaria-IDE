@@ -1,0 +1,48 @@
+{
+  "id": "phase7",
+  "icon": "⚡",
+  "title": "Phase 7 – Polish & Performance",
+  "systems": [
+    {
+      "name": "7.1 Performance Optimization",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase2_0"],
+      "notes": "CPU rasterizer must run at 60fps on mid‑range hardware. Reduce overdraw, frustum culling, LOD system.",
+      "tasks": [
+        "Frustum culling for triangles",
+        "Back‑face culling (already partially)",
+        "Level‑of‑detail for distant objects",
+        "Atlas texture batching",
+        "Worker‑thread rasterization (if needed)"
+      ]
+    },
+    {
+      "name": "7.2 Bug Fixing & QA",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Thorough playtesting, edge case collision fixes, camera jank, input latency.",
+      "tasks": [
+        "Collision regression testing",
+        "Controller support testing (various gamepads)",
+        "Browser compatibility (Chrome, Firefox, Safari)"
+      ]
+    },
+    {
+      "name": "7.3 Export & Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Ship as static website. Optional: package as Electron app or zip with HTML.",
+      "tasks": [
+        "Create offline‑friendly build (all assets inlined)",
+        "Zip distribution with simple README",
+        "Optional: itch.io page"
+      ]
+    }
+  ]
+}

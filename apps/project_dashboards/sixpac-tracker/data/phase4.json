@@ -1,0 +1,46 @@
+{
+  "id": "phase4",
+  "icon": "📟",
+  "title": "Phase 4 – UI & Game Flow",
+  "systems": [
+    {
+      "name": "4.1 Title Screen & Menus",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Add a simple title screen with game name and 'PRESS START' prompt. Use the tile buffer to draw large text.",
+      "tasks": [
+        "Draw 'SIXPAC' title using tile graphics",
+        "Animate a blinking 'PRESS START' message",
+        "Transition to game on start button press"
+      ]
+    },
+    {
+      "name": "4.2 Game Over & Win Screens",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "Currently the game just hangs on death/win. Replace with proper screens showing score and restart prompt.",
+      "tasks": [
+        "Game over screen with score display",
+        "Win screen when all pickups collected",
+        "Option to restart from either screen"
+      ]
+    },
+    {
+      "name": "4.3 High Score System",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase4_1"],
+      "notes": "Store high score in battery‑backed RAM (if available) or display session best. Show on title and game over screen.",
+      "tasks": [
+        "Allocate high‑score bytes in memory",
+        "Compare and update high score on game end",
+        "Display 'HI' alongside current score"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Polish & Release",
+  "systems": [
+    {
+      "name": "7.1 Performance Optimization",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Optimize software rasterizer for 60fps at 640×400. Reduce triangle count, early‑out culling, and LODs.",
+      "tasks": [
+        "Frustum and back‑face culling",
+        "Level‑of‑detail for distant geometry",
+        "Batch draw calls (hardware acceleration for 2D? maybe WebGL for HUD)",
+        "Memory profiling and GC reduction"
+      ]
+    },
+    {
+      "name": "7.2 Audio Integration",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Engine sounds, drift screech, pickup jingles, and dynamic music that shifts with race intensity.",
+      "tasks": [
+        "Synthesize vehicle engine hum (pitch based on RPM)",
+        "Drift and crash SFX",
+        "Background music tracks (multi‑layer intensity)",
+        "Volume options"
+      ]
+    },
+    {
+      "name": "7.3 Bug Fixing & QA",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting across browsers and controllers. Balance drift physics and AI difficulty.",
+      "tasks": [
+        "Collision and wall‑clipping fixes",
+        "AI rubberbanding adjustments",
+        "Multiplayer sync stress tests",
+        "Controller mapping compatibility"
+      ]
+    },
+    {
+      "name": "7.4 Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Package as static web app. Deploy to itch.io and GitHub Pages. Prepare trailer and screenshots.",
+      "tasks": [
+        "Offline HTML build with all assets inlined",
+        "itch.io page with game description",
+        "Social media trailer",
+        "GitHub repository release"
+      ]
+    }
+  ]
+}

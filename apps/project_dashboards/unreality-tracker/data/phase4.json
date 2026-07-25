@@ -1,0 +1,47 @@
+{
+  "id": "phase4",
+  "icon": "📺",
+  "title": "Phase 4 – Audio & Visual Atmosphere Deepen",
+  "systems": [
+    {
+      "name": "4.1 Dynamic Announcer & Voice Lines",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Replace text-only announcer with synthesized or pre-recorded voice clips. Context-sensitive lines for kill streaks, low HP, boss spawn, and shop entry.",
+      "tasks": [
+        "Generate announcer lines via TTS or hire VO",
+        "Priority queue system so critical lines override",
+        "Radio static filter effect for dieselpunk aesthetic"
+      ]
+    },
+    {
+      "name": "4.2 Enhanced CRT & Post-Processing",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add more CRT realism: screen curvature, phosphor persistence, interlacing artifacts, and signal distortion on hit. Adjustable via options.",
+      "tasks": [
+        "Implement barrel distortion shader (or canvas warp)",
+        "Phosphor glow trail on fast-moving objects",
+        "Signal glitch effect on boss hits or EMP",
+        "User preference for CRT intensity"
+      ]
+    },
+    {
+      "name": "4.3 Environmental Storytelling Elements",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Scattered lore: flickering terminals with logs, blood-spattered notes, dead contestants with audio diaries. Opt-in immersion, never intrusive.",
+      "tasks": [
+        "Place lore objects in rooms (terminal, diary, corpse)",
+        "Interact key to read/listen",
+        "Collectible lore log menu in main menu"
+      ]
+    }
+  ]
+}

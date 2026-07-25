@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "🔊",
+  "title": "Phase 6 – Audio & UI Polish",
+  "systems": [
+    {
+      "name": "6.1 Sound Effects",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Create punch/kick/swish/hit/death sounds. Use procedural synthesis or a small audio library. Hook into action events.",
+      "tasks": [
+        "Generate attack and impact sounds (Web Audio API)",
+        "Add character‑specific voice lines or grunts",
+        "Implement positional audio for multiplayer",
+        "Add menu UI sounds"
+      ]
+    },
+    {
+      "name": "6.2 Music & Ambience",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Compose or source energetic background tracks for menus and each arena. Implement dynamic intensity changes during combat.",
+      "tasks": [
+        "Select or create music loops per arena",
+        "Implement music manager with crossfade",
+        "Add final‑countdown music for close matches"
+      ]
+    },
+    {
+      "name": "6.3 UI Overhaul",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Redesign HUD: sleek health bars, combo counter, player status, and minimap. Ensure clarity on small screens.",
+      "tasks": [
+        "Design new HUD elements using canvas",
+        "Add player nameplate and health bar",
+        "Implement combo meter and damage pop‑ups",
+        "Responsive layout for mobile"
+      ]
+    }
+  ]
+}

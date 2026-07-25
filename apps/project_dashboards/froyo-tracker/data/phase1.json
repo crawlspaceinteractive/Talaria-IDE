@@ -1,0 +1,68 @@
+{
+  "id": "phase1",
+  "icon": "🕹️",
+  "title": "Phase 1 – Core Platforming Mechanics",
+  "systems": [
+    {
+      "name": "1.1 Player Controller",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Tight, responsive PS1‑style 3D platformer controls. Must support keyboard and gamepad. Acceleration, deceleration, jump arc, and coyote time.",
+      "tasks": [
+        {
+          "text": "3D movement with acceleration & deceleration",
+          "priority": "high",
+          "notes": "Analog stick + d‑pad simulation. No ice physics."
+        },
+        {
+          "text": "Jump with variable height (hold to jump higher)",
+          "priority": "high"
+        },
+        {
+          "text": "Coyote time & input buffering",
+          "priority": "medium"
+        },
+        {
+          "text": "Ground / air state detection",
+          "priority": "high"
+        },
+        {
+          "text": "Wall slide / wall jump?",
+          "priority": "low",
+          "notes": "Nice to have but not essential for core feel."
+        }
+      ]
+    },
+    {
+      "name": "1.2 Camera System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Third‑person follow camera with manual rotation. Must avoid clipping through geometry. PS1‑style auto‑adjust when near walls.",
+      "tasks": [
+        "Third‑person follow at fixed distance",
+        "Manual horizontal rotation (right stick / mouse)",
+        "Collision avoidance (camera vs world geometry)",
+        "Smooth look‑ahead based on player velocity"
+      ]
+    },
+    {
+      "name": "1.3 Basic Physics & Collision",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Already have a physics module. Needs refinement for platforming: stepped collisions, slopes, moving platforms.",
+      "tasks": [
+        "AABB / sphere vs triangle mesh collision",
+        "Sliding along walls",
+        "Slope handling (walk up ≤ 45°, slide down > 45°)",
+        "One‑way platforms (jump through from below)",
+        "Moving platforms (kinematic objects)"
+      ]
+    }
+  ]
+}

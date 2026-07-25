@@ -1,0 +1,65 @@
+{
+  "id": "phase7",
+  "icon": "🩸",
+  "title": "Phase 7 – Polish, Balance & Release",
+  "systems": [
+    {
+      "name": "7.1 Visual Atmosphere & Art",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Create a cohesive visual style: dark fantasy, gothic, atmospheric. Top-down sprites for characters, dungeon tiles, props, and UI elements.",
+      "tasks": [
+        "Character sprites: 4 classes + Mimic forms + Ghost forms",
+        "Dungeon tilesets: crypt, catacombs, archives, prison, sanctum",
+        "Prop sprites: chests, crates, torches, statues, traps",
+        "UI design: HUD, spirit check meter, inventory, Trophy Room"
+      ]
+    },
+    {
+      "name": "7.2 Sound Design & Atmosphere",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Immersive audio is critical for horror. Proximity-based sounds, ambient dungeon audio, and distinct audio cues for Mimic reveals and ghost interactions.",
+      "tasks": [
+        "Ambient dungeon sounds per chapter theme (drips, echoes, creaks)",
+        "Proximity audio: footsteps, voices, object interactions",
+        "Mimic audio cues: subtle tell when near (heartbeat, whisper)",
+        "Ghost audio: ethereal effects, poltergeist sounds",
+        "Campfire ambience: crackling fire, night sounds"
+      ]
+    },
+    {
+      "name": "7.3 Balance & Playtesting",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["all"],
+      "notes": "Asymmetric games require extensive playtesting. Balance Mimic power vs party survivability. Ensure social deduction is fair but tense.",
+      "tasks": [
+        "Internal playtesting with 5 players (1 Mimic + 4 Party)",
+        "Balance pass: Mimic kill potential vs party detection tools",
+        "Spirit Check cost and cooldown tuning",
+        "Ghost ability impact: ensure meaningful but not overpowered",
+        "Campaign pacing: chapter difficulty curve"
+      ]
+    },
+    {
+      "name": "7.4 Platform Integration & Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Package for Foundry VTT or as a standalone client. Ensure networking supports 5+ players with proximity chat.",
+      "tasks": [
+        "Foundry VTT module packaging (if targeting VTT)",
+        "Standalone client build (Electron or web-based)",
+        "Server setup for proximity voice (WebRTC or similar)",
+        "Distribution: itch.io, Steam page, community Discord"
+      ]
+    }
+  ]
+}

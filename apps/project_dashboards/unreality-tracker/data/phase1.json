@@ -1,0 +1,49 @@
+{
+  "id": "phase1",
+  "icon": "🔧",
+  "title": "Phase 1 – Content Expansion: Sectors & Biomes",
+  "systems": [
+    {
+      "name": "1.1 New Sector Thematics",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Add 3 new sectors: Sewer Tunnels (toxic puddles, pipe clumps), Furnace (moving pistons, heat vents), and Containment Vault (holding cells, energy barriers). Each with unique floor tiles, props, and ambient effects.",
+      "tasks": [
+        "Design tile sheets and wall sets for each sector",
+        "Create sector-specific decorative props (pipes, vents, cells)",
+        "Implement environmental hazards (toxic damage, piston crush, energy burst)",
+        "Integrate into procedural room generator with spawn weights"
+      ]
+    },
+    {
+      "name": "1.2 Boss Variety & Loop Modifiers",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Expand beyond THE PRODUCER. Add 3 new bosses: THE MAW (bio-lab horror, tentacle swipes), THE FURNACE KING (fire-based arena control), and THE OVERSEER (rifting void entity with teleporting adds). Each boss appears based on current sector or loop modifier.",
+      "tasks": [
+        "Boss AI, attack patterns, and phase transitions",
+        "Boss-specific arena setpieces and camera effects",
+        "Loop mutations that change boss spawn behavior",
+        "Defeat rewards (unique powerup or weapon skin)"
+      ]
+    },
+    {
+      "name": "1.3 Setpiece & Room Variety",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Increase room setpiece variety per theme. Add conveyor belts, crusher traps, healing stations, and arena control panels that temporarily modify the room (lower walls, activate turrets).",
+      "tasks": [
+        "Design 6 new setpiece types with gameplay impact",
+        "Implement conveyor belt physics (push players/enemies)",
+        "Crusher trap timing and visual warning",
+        "Turret spawner that allies with player for a wave"
+      ]
+    }
+  ]
+}

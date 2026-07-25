@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SLADE - Web Map Editor (Enhanced) - Complete Thing Registry (Doom/Heretic/Hexen/Strife/VE)</title>
+  <style>
+    /* inlined style.css (unchanged) */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: "MS Sans Serif", "Microsoft Sans Serif", Tahoma, sans-serif;
+        background-color: #008080;
+        color: #000;
+        overflow: hidden;
+        height: 100vh;
+        -webkit-font-smoothing: none;
+    }
+    #app {
+        display: flex;
+        flex-direction: row;
+        height: 100vh;
+        padding: 4px;
+        gap: 4px;
+    }
+    .next-menu {
+        width: 120px;
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        background: #000;
+        border: 2px solid #fff;
+        border-right-color: #555;
+        border-bottom-color: #555;
+        flex-shrink: 0;
+    }
+    .next-menu-item {
+        background: #999;
+        color: #000;
+        padding: 8px 4px;
+        text-align: center;
+        font-weight: bold;
+        border: 2px solid #eee;
+        border-right-color: #444;
+        border-bottom-color: #444;
+        cursor: default;
+        user-select: none;
+        font-size: 11px;
+    }
+    .next-menu-item:active, .next-menu-item.active {
+        background: #000;
+        color: #fff;
+        border-color: #444;
+        border-right-color: #eee;
+        border-bottom-color: #eee;
+    }
+    .main-workspace {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        gap: 4px;
+        min-width: 0;
+    }
+    .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px;
+        background-color: #c0c0c0;
+        border: 1px solid;
+        border-color: #fff #808080 #808080 #fff;
+        box-shadow: inset 1px 1px #dfdfdf, inset -1px -1px #0a0a0a;
+        flex-wrap: wrap;
+    }
+    .toolbar-section {
+        display: flex;
+        gap: 2px;
+        align-items: center;
+        padding-right: 8px;
+        border-right: 1px solid #808080;
+        box-shadow: 1px 0 #fff;
+    }
+    .toolbar-btn {
+        padding: 4px 6px;
+        background-color: #c0c0c0;
+        color: #000;
+        border: 1px solid;
+        border-color: #fff #808080 #808080 #fff;
+        box-shadow: inset 1px 1px #dfdfdf;
+        cursor: default;
+        font-size: 11px;
+        user-select: none;
+    }
+    .toolbar-btn:active {
+        border-color: #808080 #fff #fff #808080;
+        box-shadow: none;
+        padding: 5px 5px 3px 7px;
+    }
+    .toolbar-btn:hover { background-color: #1177bb; }
+    .toolbar-btn:active { background-color: #007acc; }
+    .toolbar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    select, input[type="range"], input[type="number"], input[type="text"] {
+        padding: 4px 8px;
+        background-color: #3c3c3c;
+        color: #d4d4d4;
+        border: 1px solid #555;
+        border-radius: 3px;
+        font-size: 12px;
+    }
+    input[type="range"] { width: 120px; padding: 0; }
+    .main-container {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+    }
+    .sidebar {
+        width: 200px;
+        background-color: #c0c0c0;
+        border: 1px solid;
+        border-color: #fff #808080 #808080 #fff;
+        box-shadow: inset 1px 1px #dfdfdf;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        padding: 2px;
+    }
+    .sidebar-right { order: 3; }
+    .panel {
+        padding: 6px;
+        border: 1px solid #808080;
+        margin-bottom: 4px;
+        background: #c0c0c0;
+    }
+    .panel h3 {
+        font-size: 11px;
+        background: #000080;
+        color: #fff;
+        padding: 2px 4px;
+        margin-bottom: 6px;
+    }
+    .panel label {
+        display: block;
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+    .panel label input[type="checkbox"] { margin-right: 6px; cursor: pointer; }
+    .tool-btn {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        background-color: #3c3c3c;
+        color: #d4d4d4;
+        border: 1px solid #555;
+        border-radius: 3px;
+        cursor: pointer;
+        text-align: left;
+        font-size: 12px;
+    }
+    .tool-btn:hover { background-color: #464646; }
+    .tool-btn.active { background-color: #0e639c; color: white; border-color: #007acc; }
+    .canvas-container {
+        flex: 1;
+        position: relative;
+        background-color: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        order: 2;
+        overflow: hidden;
+        border: 2px solid;
+        border-color: #808080 #fff #fff #808080;
+    }
+    #map-canvas {
+        cursor: crosshair;
+        background-color: #000;
+        width: 100%;
+        height: 100%;
+    }
+    .canvas-info {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        padding: 6px 12px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #d4d4d4;
+        font-size: 11px;
+        font-family: 'Courier New', monospace;
+        border: 1px solid #555;
+        border-radius: 3px;
+        pointer-events: none;
+    }
+    .selection-box {
+        position: absolute;
+        border: 2px dashed #f59e0b;
+        background-color: rgba(245, 158, 11, 0.1);
+        pointer-events: none;
+        display: none;
+    }
+    #properties-panel, #thing-properties, #sector-properties, #line-properties { font-size: 12px; }
+    #properties-panel label, #thing-properties label, #sector-properties label, #line-properties label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 500;
+    }
+    #properties-panel input, #thing-properties input, #sector-properties input, #line-properties input,
+    #thing-properties select, #sector-properties select, #line-properties select {
+        display: inline-block;
+        margin-top: 4px;
+        width: 100%;
+    }
+    #stats-panel { font-size: 12px; }
+    #stats-panel p { margin-bottom: 6px; }
+    #stats-panel span { font-weight: 600; color: #0e639c; }
+    ::-webkit-scrollbar { width: 12px; }
+    ::-webkit-scrollbar-track { background: #252526; }
+    ::-webkit-scrollbar-thumb { background: #464646; border-radius: 6px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555555; }
+    @media (max-width: 1200px) { .sidebar { width: 200px; } .toolbar-section { gap: 8px; } .toolbar-btn { padding: 4px 8px; font-size: 11px; } }
+    @media (max-width: 768px) { .sidebar-right { display: none; } .sidebar { width: 180px; } }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- NeXTSTEP Style Side Menu -->
+  <div class="next-menu">
+    <div class="next-menu-item" style="background:#555; color:#fff; height:40px; display:flex; align-items:center; justify-content:center;">SLADE95</div>
+    <div class="next-menu-item active" data-tool="select">Select</div>
+    <div class="next-menu-item" data-tool="vertex">Vertex</div>
+    <div class="next-menu-item" data-tool="line">Line</div>
+    <div class="next-menu-item" data-tool="sector">Sector</div>
+    <div class="next-menu-item" data-tool="thing">Thing</div>
+    <div class="next-menu-item" data-tool="pan">Pan</div>
+    <div style="flex:1"></div>
+    <div class="next-menu-item" id="btn-import-udmf-side">Import...</div>
+    <div class="next-menu-item" id="btn-save-side">Save...</div>
+    <div class="next-menu-item" onclick="location.reload()">Quit</div>
+  </div>
+
+  <div class="main-workspace">
+    <!-- Win95 Style Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-section">
+        <button id="btn-new" class="toolbar-btn">New</button>
+        <button id="btn-open" class="toolbar-btn">Open</button>
+        <button id="btn-save" class="toolbar-btn">Save</button>
+        <button id="btn-import-udmf" class="toolbar-btn">Import UDMF</button>
+        <input type="file" id="file-input" accept=".wad,.json,.map" style="display: none;">
+      </div>
+      <div class="toolbar-section">
+        <button id="btn-undo" class="toolbar-btn">Undo</button>
+        <button id="btn-redo" class="toolbar-btn">Redo</button>
+      </div>
+      <div class="toolbar-section">
+        <button id="btn-copy" class="toolbar-btn">Copy</button>
+        <button id="btn-paste" class="toolbar-btn">Paste</button>
+        <button id="btn-delete" class="toolbar-btn">Del</button>
+      </div>
+      <div class="toolbar-section">
+        <button id="btn-select-all" class="toolbar-btn">All</button>
+        <button id="btn-merge-vertices" class="toolbar-btn">Merge</button>
+      </div>
+      <div class="toolbar-section" style="border:none; box-shadow:none;">
+        <button id="btn-fit" class="toolbar-btn">Fit</button>
+        <input type="range" id="zoom-slider" min="0.25" max="4" step="0.01" value="1" style="width:60px;">
+      </div>
+    </div>
+
+    <!-- UDMF Import Dialog -->
+    <div id="udmf-dialog" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; height: 400px; background: #c0c0c0; border: 2px solid; border-color: #fff #000 #000 #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 1000; flex-direction: column; padding: 4px; border-radius: 0;">
+      <div style="background: #000080; color: #fff; padding: 2px 4px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span>IMPORT TEXTMAP (UDMF)</span>
+        <span id="btn-udmf-close" style="cursor: default; padding: 0 4px; background: #c0c0c0; color: #000; border: 1px solid; border-color: #fff #808080 #808080 #fff; line-height: 1;">&times;</span>
+      </div>
+      <div style="padding: 8px; flex: 1; display: flex; flex-direction: column;">
+        <p style="font-size: 11px; margin-bottom: 8px;">Paste your TEXTMAP content below. Structure: MAP01 -> TEXTMAP -> ENDMAP.</p>
+        <textarea id="udmf-textarea" style="flex: 1; background: #fff; color: #000; border: 2px solid; border-color: #808080 #fff #fff #808080; padding: 4px; font-family: 'Courier New', monospace; font-size: 12px; resize: none; margin-bottom: 8px;"></textarea>
+        <div style="display: flex; justify-content: flex-end; gap: 4px;">
+          <button id="btn-udmf-cancel" class="toolbar-btn">Cancel</button>
+          <button id="btn-udmf-confirm" class="toolbar-btn">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-container">
+      <aside class="sidebar sidebar-left">
+        <div class="panel">
+          <h3>Tool Options</h3>
+          <label><input type="checkbox" id="opt-snap" checked> Snap to grid</label>
+          <label>Grid snap size: <input type="number" id="opt-grid-size" value="8" min="1" style="width:80px; margin-left:8px;"></label>
+          <label>Grid display unit: <input type="number" id="opt-grid-unit" value="64" min="1" style="width:80px; margin-left:8px;"></label>
+          <label><input type="checkbox" id="opt-auto-merge" checked> Auto-merge vertices</label>
+        </div>
+        <div class="panel">
+          <h3>Properties</h3>
+          <div id="properties-panel"><p style="color: #999;">No selection</p></div>
+        </div>
+        <div class="panel">
+          <h3>Layers</h3>
+          <label><input type="checkbox" id="layer-vertices" checked> Vertices</label>
+          <label><input type="checkbox" id="layer-lines" checked> Lines</label>
+          <label><input type="checkbox" id="layer-sectors" checked> Sectors</label>
+          <label><input type="checkbox" id="layer-things" checked> Things</label>
+          <label><input type="checkbox" id="layer-grid" checked> Grid</label>
+        </div>
+        <div class="panel">
+          <h3>Stats</h3>
+          <div id="stats-panel">
+            <p>Vertices: <span id="stat-vertices">0</span></p>
+            <p>Lines: <span id="stat-lines">0</span></p>
+            <p>Sectors: <span id="stat-sectors">0</span></p>
+            <p>Things: <span id="stat-things">0</span></p>
+            <p>Selected: <span id="stat-selected">0</span></p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="canvas-container">
+        <canvas id="map-canvas"></canvas>
+        <div class="selection-box" id="selection-box"></div>
+        <div id="canvas-info" class="canvas-info">
+          <span id="cursor-coords">0, 0</span> | 
+          <span id="zoom-level">100%</span>
+        </div>
+      </main>
+
+      <aside class="sidebar sidebar-right">
+        <div class="panel">
+          <h3>Thing Type Table</h3>
+          <label>Game: 
+            <select id="game-selector" style="width:100%;">
+              <option value="1">Doom</option>
+              <option value="2">Heretic</option>
+              <option value="3">Hexen</option>
+              <option value="4">Strife</option>
+              <option value="5">Veteran Edition</option>
+            </select>
+          </label>
+          <div id="thing-type-count" style="font-size:10px; margin-top:4px;"></div>
+        </div>
+        <div class="panel">
+          <h3>Thing Properties</h3>
+          <div id="thing-properties" style="display: none;">
+            <label>Type: <select id="thing-type"></select></label>
+            <label>Angle: <input type="number" id="thing-angle" min="0" max="359" value="0"></label>
+            <label>Options:
+              <div style="margin-left: 10px;">
+                <label><input type="checkbox" id="thing-easy"> Easy</label>
+                <label><input type="checkbox" id="thing-medium"> Medium</label>
+                <label><input type="checkbox" id="thing-hard"> Hard</label>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Sector Properties</h3>
+          <div id="sector-properties" style="display: none;">
+            <label>Floor Height: <input type="number" id="sector-floor" value="0"></label>
+            <label>Ceiling Height: <input type="number" id="sector-ceiling" value="128"></label>
+            <label>Floor Texture: <input type="text" id="sector-floor-tex" value="FLAT23"></label>
+            <label>Ceiling Texture: <input type="text" id="sector-ceil-tex" value="F_SKY1"></label>
+            <label>Special: <input type="number" id="sector-special" value="0" min="0"></label>
+            <label>Tag: <input type="number" id="sector-tag" value="0" min="0"></label>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Line Properties</h3>
+          <div id="line-properties" style="display: none;">
+            <label>Special: <input type="number" id="line-special" value="0" min="0"></label>
+            <label>Tag: <input type="number" id="line-tag" value="0" min="0"></label>
+            <label>Front Texture: <input type="text" id="line-front-tex" value="STARTAN3"></label>
+            <label>Back Texture: <input type="text" id="line-back-tex" value=""></label>
+            <label>Flags:
+              <div style="margin-left: 10px;">
+                <label><input type="checkbox" id="line-impassable"> Impassable</label>
+                <label><input type="checkbox" id="line-block-monsters"> Block Monsters</label>
+                <label><input type="checkbox" id="line-two-sided"> Two-Sided</label>
+              </div>
+            </label>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================================================
+  // THING REGISTRY FROM thing_LUT.json (inherited as langConfigs pattern)
+  // ==========================================================================
+  const RAW_THING_DATA = [
+    [1,"M",68,"Arachnotron"],
+    [1,"M",64,"Arch-vile"],
+    [1,"M",3003,"Baron of Hell"],
+    [1,"M",3005,"Cacodemon"],
+    [1,"M",72,"Commander Keen"],
+    [1,"M",16,"Cyberdemon"],
+    [1,"M",3002,"Demon"],
+    [1,"M",65,"Heavy weapon dude"],
+    [1,"M",69,"Hell knight"],
+    [1,"M",3001,"Imp"],
+    [1,"M",3006,"Lost soul"],
+    [1,"M",67,"Mancubus"],
+    [1,"M",71,"Pain elemental"],
+    [1,"M",66,"Revenant"],
+    [1,"M",9,"Shotgun guy"],
+    [1,"M",58,"Spectre"],
+    [1,"M",7,"Spiderdemon"],
+    [1,"M",84,"Wolfenstein SS"],
+    [1,"M",3004,"Zombieman"],
+    [1,"W",2006,"BFG9000"],
+    [1,"W",2002,"Chaingun"],
+    [1,"W",2005,"Chainsaw"],
+    [1,"W",2004,"Plasma gun"],
+    [1,"W",2003,"Rocket launcher"],
+    [1,"W",2001,"Shotgun"],
+    [1,"W",82,"Super shotgun"],
+    [1,"A",2008,"4 shotgun shells"],
+    [1,"A",2048,"Box of bullets"],
+    [1,"A",2046,"Box of rockets"],
+    [1,"A",2049,"Box of shotgun shells"],
+    [1,"A",2007,"Clip"],
+    [1,"A",2047,"Energy cell"],
+    [1,"A",17,"Energy cell pack"],
+    [1,"A",2010,"Rocket"],
+    [1,"I",2015,"Armor bonus"],
+    [1,"I",2023,"Berserk"],
+    [1,"I",2026,"Computer area map"],
+    [1,"I",2014,"Health bonus"],
+    [1,"I",2022,"Invulnerability"],
+    [1,"I",2045,"Light amplification visor"],
+    [1,"I",83,"Megasphere"],
+    [1,"I",2024,"Partial invisibility"],
+    [1,"I",2013,"Supercharge"],
+    [1,"H",2018,"Armor"],
+    [1,"H",8,"Backpack"],
+    [1,"H",2012,"Medikit"],
+    [1,"H",2019,"Megaarmor"],
+    [1,"H",2025,"Radiation shielding suit"],
+    [1,"H",2011,"Stimpack"],
+    [1,"K",5,"Blue keycard"],
+    [1,"K",40,"Blue skull key"],
+    [1,"K",13,"Red keycard"],
+    [1,"K",38,"Red skull key"],
+    [1,"K",6,"Yellow keycard"],
+    [1,"K",39,"Yellow skull key"],
+    [1,"O",47,"Brown stump"],
+    [1,"O",70,"Burning barrel"],
+    [1,"O",43,"Burnt tree"],
+    [1,"O",35,"Candelabra"],
+    [1,"O",41,"Evil eye"],
+    [1,"O",2035,"Exploding barrel"],
+    [1,"O",28,"Five skulls \"shish kebab\""],
+    [1,"O",42,"Floating skull"],
+    [1,"O",2028,"Floor lamp"],
+    [1,"O",53,"Hanging leg"],
+    [1,"O",52,"Hanging pair of legs"],
+    [1,"O",78,"Hanging torso, brain removed"],
+    [1,"O",75,"Hanging torso, looking down"],
+    [1,"O",77,"Hanging torso, looking up"],
+    [1,"O",76,"Hanging torso, open skull"],
+    [1,"O",50,"Hanging victim, arms out"],
+    [1,"O",74,"Hanging victim, guts and brain removed"],
+    [1,"O",73,"Hanging victim, guts removed"],
+    [1,"O",51,"Hanging victim, one-legged"],
+    [1,"O",49,"Hanging victim, twitching"],
+    [1,"O",25,"Impaled human"],
+    [1,"O",54,"Large brown tree"],
+    [1,"O",29,"Pile of skulls and candles"],
+    [1,"O",55,"Short blue firestick"],
+    [1,"O",56,"Short green firestick"],
+    [1,"O",31,"Short green pillar"],
+    [1,"O",36,"Short green pillar with beating heart"],
+    [1,"O",57,"Short red firestick"],
+    [1,"O",33,"Short red pillar"],
+    [1,"O",37,"Short red pillar with skull"],
+    [1,"O",86,"Short techno floor lamp"],
+    [1,"O",27,"Skull on a pole"],
+    [1,"O",44,"Tall blue firestick"],
+    [1,"O",45,"Tall green firestick"],
+    [1,"O",30,"Tall green pillar"],
+    [1,"O",46,"Tall red firestick"],
+    [1,"O",32,"Tall red pillar"],
+    [1,"O",48,"Tall techno column"],
+    [1,"O",85,"Tall techno floor lamp"],
+    [1,"O",26,"Twitching impaled human"],
+    [1,"D",10,"Bloody mess"],
+    [1,"D",12,"Bloody mess 2"],
+    [1,"D",34,"Candle"],
+    [1,"D",22,"Dead cacodemon"],
+    [1,"D",21,"Dead demon"],
+    [1,"D",18,"Dead former human"],
+    [1,"D",19,"Dead former sergeant"],
+    [1,"D",20,"Dead imp"],
+    [1,"D",23,"Dead lost soul (invisible)"],
+    [1,"D",15,"Dead player"],
+    [1,"D",62,"Hanging leg"],
+    [1,"D",60,"Hanging pair of legs"],
+    [1,"D",59,"Hanging victim, arms out"],
+    [1,"D",61,"Hanging victim, one-legged"],
+    [1,"D",63,"Hanging victim, twitching"],
+    [1,"D",79,"Pool of blood"],
+    [1,"D",80,"Pool of blood"],
+    [1,"D",24,"Pool of blood and flesh"],
+    [1,"D",81,"Pool of brains"],
+    [1,"T",11,"Deathmatch start"],
+    [1,"T",89,"Monster spawner"],
+    [1,"T",1,"Player 1 start"],
+    [1,"T",2,"Player 2 start"],
+    [1,"T",3,"Player 3 start"],
+    [1,"T",4,"Player 4 start"],
+    [1,"T",88,"Romero's head"],
+    [1,"T",87,"Spawn spot"],
+    [1,"T",14,"Teleport landing"],
+    [2,"M",7,"D'Sparil"],
+    [2,"M",15,"Disciple of D'Sparil"],
+    [2,"M",5,"Fire gargoyle"],
+    [2,"M",66,"Gargoyle"],
+    [2,"M",68,"Golem"],
+    [2,"M",69,"Golem ghost"],
+    [2,"M",6,"Iron lich"],
+    [2,"M",9,"Maulotaur"],
+    [2,"M",45,"Nitrogolem"],
+    [2,"M",46,"Nitrogolem ghost"],
+    [2,"M",92,"Ophidian"],
+    [2,"M",90,"Sabreclaw"],
+    [2,"M",64,"Undead warrior"],
+    [2,"M",65,"Undead warrior ghost"],
+    [2,"M",70,"Weredragon"],
+    [2,"W",53,"Dragon claw"],
+    [2,"W",2001,"Ethereal crossbow"],
+    [2,"W",2002,"Firemace"],
+    [2,"W",2005,"Gauntlets of the Necromancer"],
+    [2,"W",2004,"Hellstaff"],
+    [2,"W",2003,"Phoenix rod"],
+    [2,"A",54,"Claw orb"],
+    [2,"A",12,"Crystal geode"],
+    [2,"A",55,"Energy orb"],
+    [2,"A",18,"Ethereal arrows"],
+    [2,"A",22,"Flame orb"],
+    [2,"A",21,"Greater runes"],
+    [2,"A",23,"Inferno orb"],
+    [2,"A",20,"Lesser runes"],
+    [2,"A",13,"Mace spheres"],
+    [2,"A",16,"Pile of mace spheres"],
+    [2,"A",19,"Quiver of ethereal arrows"],
+    [2,"A",10,"Wand crystal"],
+    [2,"I",8,"Bag of Holding"],
+    [2,"I",36,"Chaos Device"],
+    [2,"I",35,"Map scroll"],
+    [2,"I",30,"Morph Ovum"],
+    [2,"I",32,"Mystic urn"],
+    [2,"I",82,"Quartz flask"],
+    [2,"I",84,"Ring of Invincibility"],
+    [2,"I",75,"Shadowsphere"],
+    [2,"I",34,"Time Bomb of the Ancients"],
+    [2,"I",86,"Tome of Power"],
+    [2,"I",33,"Torch"],
+    [2,"I",83,"Wings of Wrath"],
+    [2,"H",81,"Crystal vial"],
+    [2,"H",31,"Enchanted shield"],
+    [2,"H",85,"Silver shield"],
+    [2,"K",79,"Blue key"],
+    [2,"K",73,"Green key"],
+    [2,"K",80,"Yellow key"],
+    [2,"O",44,"Barrel"],
+    [2,"O",76,"Fire brazier"],
+    [2,"O",51,"Hanging corpse"],
+    [2,"O",40,"Large stalactite"],
+    [2,"O",38,"Large stalagmite"],
+    [2,"O",27,"Serpent torch"],
+    [2,"O",29,"Short grey pillar"],
+    [2,"O",39,"Small stalactite"],
+    [2,"O",37,"Small stalagmite"],
+    [2,"O",47,"Tall brown pillar"],
+    [2,"D",28,"Chandelier"],
+    [2,"D",17,"Hanging skull (long rope)"],
+    [2,"D",24,"Hanging skull (medium rope)"],
+    [2,"D",25,"Hanging skull (short rope)"],
+    [2,"D",26,"Hanging skull (shortest rope)"],
+    [2,"D",49,"Moss 1 string"],
+    [2,"D",48,"Moss 2 strings"],
+    [2,"D",50,"Wall torch"],
+    [2,"S",1205,"Bells"],
+    [2,"S",1202,"Drops"],
+    [2,"S",1209,"Fast footsteps"],
+    [2,"S",1206,"Growl"],
+    [2,"S",1204,"Heart beat"],
+    [2,"S",1208,"Laughter"],
+    [2,"S",1207,"Magic"],
+    [2,"S",1200,"Scream"],
+    [2,"S",1203,"Slow footsteps"],
+    [2,"S",1201,"Squish"],
+    [2,"S",41,"Waterfall"],
+    [2,"S",42,"Wind"],
+    [2,"T",56,"D'Sparil teleport spot"],
+    [2,"T",11,"Deathmatch start"],
+    [2,"T",94,"Key gizmo (blue)"],
+    [2,"T",95,"Key gizmo (green)"],
+    [2,"T",96,"Key gizmo (yellow)"],
+    [2,"T",1,"Player 1 start"],
+    [2,"T",2,"Player 2 start"],
+    [2,"T",3,"Player 3 start"],
+    [2,"T",4,"Player 4 start"],
+    [2,"T",2035,"Pod"],
+    [2,"T",43,"Pod generator"],
+    [2,"T",52,"Teleport glitter (blue)"],
+    [2,"T",74,"Teleport glitter (red)"],
+    [2,"T",14,"Teleport landing"],
+    [2,"T",87,"Volcano"],
+    [3,"M",10060,"Afrit"],
+    [3,"M",8080,"Brown chaos serpent"],
+    [3,"M",107,"Centaur"],
+    [3,"M",114,"Dark bishop"],
+    [3,"M",254,"Death wyvern"],
+    [3,"M",10030,"Ettin"],
+    [3,"M",31,"Green chaos serpent"],
+    [3,"M",10080,"Heresiarch"],
+    [3,"M",10200,"Korax"],
+    [3,"M",10102,"Menelkir"],
+    [3,"M",34,"Reiver"],
+    [3,"M",10011,"Reiver (buried)"],
+    [3,"M",115,"Slaughtaur"],
+    [3,"M",121,"Stalker"],
+    [3,"M",120,"Stalker boss"],
+    [3,"M",10101,"Traductus"],
+    [3,"M",8020,"Wendigo"],
+    [3,"M",10100,"Zedek"],
+    [3,"W",8040,"Arc of Death"],
+    [3,"W",21,"Bloodscourge (skull)"],
+    [3,"W",23,"Bloodscourge (stick)"],
+    [3,"W",22,"Bloodscourge (stub)"],
+    [3,"W",8009,"Firestorm"],
+    [3,"W",53,"Frost shards"],
+    [3,"W",123,"Hammer of Retribution"],
+    [3,"W",12,"Quietus (blade)"],
+    [3,"W",13,"Quietus (cross)"],
+    [3,"W",16,"Quietus (hilt)"],
+    [3,"W",10,"Serpent staff"],
+    [3,"W",8010,"Timon's Axe"],
+    [3,"W",18,"Wraithverge (arc)"],
+    [3,"W",19,"Wraithverge (cross)"],
+    [3,"W",20,"Wraithverge (shaft)"],
+    [3,"A",122,"Blue mana"],
+    [3,"A",8004,"Combined mana"],
+    [3,"A",124,"Green mana"],
+    [3,"I",10040,"Banishment Device"],
+    [3,"I",8002,"Boots of Speed"],
+    [3,"I",36,"Chaos Device"],
+    [3,"I",86,"Dark Servant"],
+    [3,"I",10110,"Disc of Repulsion"],
+    [3,"I",8041,"Dragonskin bracers"],
+    [3,"I",8000,"Flechette"],
+    [3,"I",84,"Icon of the Defender"],
+    [3,"I",8003,"Krater of Might"],
+    [3,"I",10120,"Mystic Ambit Incant"],
+    [3,"I",32,"Mystic urn"],
+    [3,"I",30,"Porkalator"],
+    [3,"I",82,"Quartz flask"],
+    [3,"I",33,"Torch"],
+    [3,"I",83,"Wings of Wrath"],
+    [3,"H",8008,"Amulet of Warding"],
+    [3,"H",81,"Crystal vial"],
+    [3,"H",8006,"Falcon shield"],
+    [3,"H",8005,"Mesh armor"],
+    [3,"H",8007,"Platinum helm"],
+    [3,"K",8032,"Axe key"],
+    [3,"K",8200,"Castle key"],
+    [3,"K",8031,"Cave key"],
+    [3,"K",9021,"Clock gear (bronze in steel)"],
+    [3,"K",9019,"Clock gear (bronze)"],
+    [3,"K",9020,"Clock gear (steel in bronze)"],
+    [3,"K",9018,"Clock gear (steel)"],
+    [3,"K",9007,"Daemon Codex"],
+    [3,"K",8035,"Dungeon key"],
+    [3,"K",8034,"Emerald key"],
+    [3,"K",9005,"Emerald planet 1"],
+    [3,"K",9009,"Emerald planet 2"],
+    [3,"K",8033,"Fire key"],
+    [3,"K",9014,"Flame Mask"],
+    [3,"K",9015,"Glaive Seal"],
+    [3,"K",9003,"Heart of D'Sparil"],
+    [3,"K",9016,"Holy Relic"],
+    [3,"K",8038,"Horn key"],
+    [3,"K",9008,"Liber Oscura"],
+    [3,"K",9004,"Ruby planet"],
+    [3,"K",8037,"Rusted key"],
+    [3,"K",9006,"Sapphire planet 1"],
+    [3,"K",9010,"Sapphire planet 2"],
+    [3,"K",9017,"Sigil of the Magus"],
+    [3,"K",8036,"Silver key"],
+    [3,"K",8030,"Steel key"],
+    [3,"K",8039,"Swamp key"],
+    [3,"K",9002,"Yorick's Skull"],
+    [3,"O",8100,"Barrel"],
+    [3,"O",77,"Battle rag banner"],
+    [3,"O",8065,"Bell"],
+    [3,"O",99,"Black rock"],
+    [3,"O",8061,"Brazier with flame"],
+    [3,"O",8051,"Bronze gargoyle (short)"],
+    [3,"O",8047,"Bronze gargoyle (tall)"],
+    [3,"O",97,"Brown rock (large)"],
+    [3,"O",98,"Brown rock (small)"],
+    [3,"O",8069,"Cauldron (lit)"],
+    [3,"O",8070,"Cauldron (unlit)"],
+    [3,"O",8049,"Dark lava gargoyle (short)"],
+    [3,"O",8045,"Dark lava gargoyle (tall)"],
+    [3,"O",24,"Dead tree"],
+    [3,"O",8062,"Destructible tree"],
+    [3,"O",8068,"Evergreen tree"],
+    [3,"O",80,"Gnarled tree 1"],
+    [3,"O",87,"Gnarled tree 2"],
+    [3,"O",8103,"Hanging bucket"],
+    [3,"O",71,"Hanging corpse"],
+    [3,"O",76,"Ice gargoyle (short)"],
+    [3,"O",73,"Ice gargoyle (tall)"],
+    [3,"O",93,"Ice spike (large)"],
+    [3,"O",94,"Ice spike (medium)"],
+    [3,"O",95,"Ice spike (small)"],
+    [3,"O",96,"Ice spike (tiny)"],
+    [3,"O",89,"Icicle (large)"],
+    [3,"O",90,"Icicle (medium)"],
+    [3,"O",91,"Icicle (small)"],
+    [3,"O",92,"Icicle (tiny)"],
+    [3,"O",61,"Impaled corpse"],
+    [3,"O",8067,"Iron maiden"],
+    [3,"O",25,"Leafless tree"],
+    [3,"O",8050,"Light lava gargoyle (short)"],
+    [3,"O",8046,"Light lava gargoyle (tall)"],
+    [3,"O",108,"Lynched corpse"],
+    [3,"O",109,"Lynched corpse (heartless)"],
+    [3,"O",8042,"Minotaur statue (lit)"],
+    [3,"O",8043,"Minotaur statue (unlit)"],
+    [3,"O",60,"Mossy dead tree"],
+    [3,"O",15,"Mossy rock (large)"],
+    [3,"O",26,"Mossy tree 1"],
+    [3,"O",27,"Mossy tree 2"],
+    [3,"O",9012,"Pedestal of D'Sparil"],
+    [3,"O",103,"Pillar with vase"],
+    [3,"O",105,"Pot (medium)"],
+    [3,"O",106,"Pot (short)"],
+    [3,"O",104,"Pot (tall)"],
+    [3,"O",8044,"Rusty gargoyle (tall)"],
+    [3,"O",8102,"Shrub (large)"],
+    [3,"O",8101,"Shrub (small)"],
+    [3,"O",110,"Sitting corpse"],
+    [3,"O",8060,"Skull with flame"],
+    [3,"O",52,"Stalactite (large)"],
+    [3,"O",56,"Stalactite (medium)"],
+    [3,"O",57,"Stalactite (small)"],
+    [3,"O",49,"Stalagmite (large)"],
+    [3,"O",50,"Stalagmite (medium)"],
+    [3,"O",51,"Stalagmite (small)"],
+    [3,"O",48,"Stalagmite pillar"],
+    [3,"O",8052,"Steel gargoyle (short)"],
+    [3,"O",8048,"Steel gargoyle (tall)"],
+    [3,"O",74,"Stone gargoyle (short)"],
+    [3,"O",72,"Stone gargoyle (tall)"],
+    [3,"O",8064,"Suit of armor"],
+    [3,"O",78,"Tall tree 1"],
+    [3,"O",79,"Tall tree 2"],
+    [3,"O",69,"Tombstone (Brian P)"],
+    [3,"O",66,"Tombstone (Brian R)"],
+    [3,"O",63,"Tombstone (RIP)"],
+    [3,"O",64,"Tombstone (Shane)"],
+    [3,"O",67,"Tombstone (cross circle)"],
+    [3,"O",65,"Tombstone (slimy)"],
+    [3,"O",68,"Tombstone (small cross)"],
+    [3,"O",88,"Tree log"],
+    [3,"O",29,"Tree stump (bare)"],
+    [3,"O",28,"Tree stump (burned)"],
+    [3,"O",116,"Twined torch (lit)"],
+    [3,"O",117,"Twined torch (unlit)"],
+    [3,"O",5,"Winged statue"],
+    [3,"O",9011,"Yorick's statue"],
+    [3,"D",119,"3 Candles (lit)"],
+    [3,"D",8066,"Blue candle (lit)"],
+    [3,"D",100,"Brick rubble (large)"],
+    [3,"D",102,"Brick rubble (medium)"],
+    [3,"D",101,"Brick rubble (small)"],
+    [3,"D",8504,"Candle w/o web (unlit)"],
+    [3,"D",8502,"Candle with web (unlit)"],
+    [3,"D",8072,"Chain (long)"],
+    [3,"D",8071,"Chain (short)"],
+    [3,"D",8074,"Chain with large hook"],
+    [3,"D",8075,"Chain with small hook"],
+    [3,"D",8076,"Chain with spike ball"],
+    [3,"D",17,"Chandelier (lit)"],
+    [3,"D",8063,"Chandelier (unlit)"],
+    [3,"D",8507,"Goblet (short)"],
+    [3,"D",8508,"Goblet (silver)"],
+    [3,"D",8505,"Goblet (spilled)"],
+    [3,"D",8506,"Goblet (tall)"],
+    [3,"D",8503,"Gray candle (unlit)"],
+    [3,"D",58,"Hanging moss 1"],
+    [3,"D",59,"Hanging moss 2"],
+    [3,"D",8073,"Hook with heart"],
+    [3,"D",8077,"Hook with skull"],
+    [3,"D",10503,"Large flame"],
+    [3,"D",10502,"Large flame (timed)"],
+    [3,"D",39,"Large mushroom 1"],
+    [3,"D",40,"Large mushroom 2"],
+    [3,"D",8509,"Meat cleaver"],
+    [3,"D",41,"Medium mushroom"],
+    [3,"D",8501,"Metal beer stein"],
+    [3,"D",9,"Mossy rock (medium)"],
+    [3,"D",7,"Mossy rock (small)"],
+    [3,"D",6,"Mossy rock (tiny)"],
+    [3,"D",111,"Pool of blood"],
+    [3,"D",62,"Sleeping corpse"],
+    [3,"D",10501,"Small flame"],
+    [3,"D",10500,"Small flame (timed)"],
+    [3,"D",42,"Small mushroom 1"],
+    [3,"D",44,"Small mushroom 2"],
+    [3,"D",45,"Small mushroom 3"],
+    [3,"D",46,"Small mushroom 4"],
+    [3,"D",47,"Small mushroom 5"],
+    [3,"D",37,"Tree stump 1"],
+    [3,"D",38,"Tree stump 2"],
+    [3,"D",54,"Wall torch (lit)"],
+    [3,"D",55,"Wall torch (unlit)"],
+    [3,"D",8500,"Wooden beer stein"],
+    [3,"S",1403,"Creak"],
+    [3,"S",1408,"Earth"],
+    [3,"S",1401,"Heavy"],
+    [3,"S",1407,"Ice"],
+    [3,"S",1405,"Lava"],
+    [3,"S",1402,"Metal"],
+    [3,"S",1409,"Metal2"],
+    [3,"S",1404,"Silence"],
+    [3,"S",1400,"Stone"],
+    [3,"S",1406,"Water"],
+    [3,"S",1410,"Wind"],
+    [3,"T",10225,"Bat spawner"],
+    [3,"T",11,"Deathmatch start"],
+    [3,"T",10003,"Fog patch (large)"],
+    [3,"T",10002,"Fog patch (medium)"],
+    [3,"T",10001,"Fog patch (small)"],
+    [3,"T",10000,"Fog spawner"],
+    [3,"T",118,"Glitter bridge"],
+    [3,"T",113,"Leaf spawner"],
+    [3,"T",9001,"Map spot"],
+    [3,"T",9013,"Map spot (gravity)"],
+    [3,"T",1,"Player 1 start"],
+    [3,"T",2,"Player 2 start"],
+    [3,"T",3,"Player 3 start"],
+    [3,"T",4,"Player 4 start"],
+    [3,"T",9100,"Player 5 start"],
+    [3,"T",9101,"Player 6 start"],
+    [3,"T",9102,"Player 7 start"],
+    [3,"T",9103,"Player 8 start"],
+    [3,"T",8104,"Poisonous mushroom"],
+    [3,"T",3000,"Polyobject anchor"],
+    [3,"T",3001,"Polyobject start spot"],
+    [3,"T",3002,"Polyobject start spot (crush)"],
+    [3,"T",10090,"Spike down"],
+    [3,"T",10091,"Spike up"],
+    [3,"T",14,"Teleport landing"],
+    [3,"T",40,"Teleport swirl"],
+    [4,"M",231,"Acolyte (blue)"],
+    [4,"M",147,"Acolyte (dark green)"],
+    [4,"M",148,"Acolyte (gold)"],
+    [4,"M",146,"Acolyte (gray)"],
+    [4,"M",232,"Acolyte (light green)"],
+    [4,"M",142,"Acolyte (red)"],
+    [4,"M",143,"Acolyte (rust)"],
+    [4,"M",3002,"Acolyte (tan)"],
+    [4,"M",201,"Becoming Acolyte"],
+    [4,"M",187,"Bishop"],
+    [4,"M",27,"Ceiling turret"],
+    [4,"M",3005,"Crusader"],
+    [4,"M",128,"Entity"],
+    [4,"M",26,"Entity nest"],
+    [4,"M",198,"Entity pod"],
+    [4,"M",16,"Inquisitor"],
+    [4,"M",12,"Loremaster"],
+    [4,"M",64,"Macil"],
+    [4,"M",200,"Macil Spectre"],
+    [4,"M",199,"Oracle"],
+    [4,"M",71,"Programmer"],
+    [4,"M",3001,"Reaver"],
+    [4,"M",3006,"Sentinel"],
+    [4,"M",58,"Shadow Acolyte"],
+    [4,"M",75,"Spectre (Bishop)"],
+    [4,"M",168,"Spectre (Loremaster)"],
+    [4,"M",167,"Spectre (Macil)"],
+    [4,"M",76,"Spectre (Oracle)"],
+    [4,"M",129,"Spectre (Programmer)"],
+    [4,"M",186,"Stalker"],
+    [4,"M",3003,"Templar"],
+    [4,"C",73,"Armorer"],
+    [4,"C",72,"Barkeep"],
+    [4,"C",141,"Beggar 1"],
+    [4,"C",155,"Beggar 2"],
+    [4,"C",156,"Beggar 3"],
+    [4,"C",157,"Beggar 4"],
+    [4,"C",158,"Beggar 5"],
+    [4,"C",204,"Kneeling Guy"],
+    [4,"C",74,"Medic"],
+    [4,"C",181,"Peasant Blue"],
+    [4,"C",172,"Peasant Dark Green 1"],
+    [4,"C",173,"Peasant Dark Green 2"],
+    [4,"C",174,"Peasant Dark Green 3"],
+    [4,"C",178,"Peasant Gold 1"],
+    [4,"C",179,"Peasant Gold 2"],
+    [4,"C",180,"Peasant Gold 3"],
+    [4,"C",66,"Peasant Gray 1"],
+    [4,"C",134,"Peasant Gray 2"],
+    [4,"C",135,"Peasant Gray 3"],
+    [4,"C",175,"Peasant Light Green 1"],
+    [4,"C",176,"Peasant Light Green 2"],
+    [4,"C",177,"Peasant Light Green 3"],
+    [4,"C",65,"Peasant Red 1"],
+    [4,"C",132,"Peasant Red 2"],
+    [4,"C",133,"Peasant Red 3"],
+    [4,"C",67,"Peasant Rust 1"],
+    [4,"C",136,"Peasant Rust 2"],
+    [4,"C",137,"Peasant Rust 3"],
+    [4,"C",3004,"Peasant Tan 1"],
+    [4,"C",130,"Peasant Tan 2"],
+    [4,"C",131,"Peasant Tan 3"],
+    [4,"C",9,"Rebel 1"],
+    [4,"C",144,"Rebel 2"],
+    [4,"C",145,"Rebel 3"],
+    [4,"C",149,"Rebel 4"],
+    [4,"C",150,"Rebel 5"],
+    [4,"C",151,"Rebel 6"],
+    [4,"C",116,"Weapon smith"],
+    [4,"C",169,"Zombie"],
+    [4,"C",170,"Zombie spawner"],
+    [4,"W",2002,"Assault rifle (lying)"],
+    [4,"W",2006,"Assault rifle (standing)"],
+    [4,"W",2001,"Crossbow"],
+    [4,"W",2005,"Flamethrower"],
+    [4,"W",154,"Grenade launcher"],
+    [4,"W",2004,"Mauler"],
+    [4,"W",2003,"Mini-missile launcher"],
+    [4,"W",77,"Sigil 1 (Lightning)"],
+    [4,"W",78,"Sigil 2 (Rail)"],
+    [4,"W",79,"Sigil 3 (Spread)"],
+    [4,"W",80,"Sigil 4 (Column)"],
+    [4,"W",81,"Sigil 5 (Blast)"],
+    [4,"A",2048,"Box of bullets"],
+    [4,"A",2007,"Bullet clip"],
+    [4,"A",2046,"Crate of missiles"],
+    [4,"A",114,"Electric bolt"],
+    [4,"A",17,"Energy pack"],
+    [4,"A",2047,"Energy pod"],
+    [4,"A",152,"HE grenade"],
+    [4,"A",2010,"Mini-missile"],
+    [4,"A",153,"Phosphorous grenade"],
+    [4,"A",115,"Poison bolt"],
+    [4,"I",138,"10 Gold"],
+    [4,"I",139,"25 Gold"],
+    [4,"I",140,"50 Gold"],
+    [4,"I",183,"Ammo satchel"],
+    [4,"I",206,"Communicator"],
+    [4,"I",2025,"Environmental suit"],
+    [4,"I",93,"Gold coin"],
+    [4,"I",2026,"Map"],
+    [4,"I",2027,"Scanner"],
+    [4,"I",2024,"Shadow armor"],
+    [4,"I",207,"Targeter"],
+    [4,"I",10,"Teleporter beacon"],
+    [4,"H",2018,"Leather armor"],
+    [4,"H",2011,"Med patch"],
+    [4,"H",2012,"Medical kit"],
+    [4,"H",2019,"Metal armor"],
+    [4,"H",83,"Surgery kit"],
+    [4,"K",230,"Base key"],
+    [4,"K",193,"Blue crystal key"],
+    [4,"K",39,"Brass key"],
+    [4,"K",226,"Broken power coupling"],
+    [4,"K",195,"Chapel key"],
+    [4,"K",182,"Computer"],
+    [4,"K",236,"Core key"],
+    [4,"K",59,"Deginin ore"],
+    [4,"K",234,"Factory key"],
+    [4,"K",25,"Force field guard"],
+    [4,"K",45,"Gate piston"],
+    [4,"K",40,"Gold key"],
+    [4,"K",90,"Guard uniform"],
+    [4,"K",184,"ID badge"],
+    [4,"K",13,"ID card"],
+    [4,"K",233,"Mauler key"],
+    [4,"K",235,"Mine key"],
+    [4,"K",205,"Offering chalice"],
+    [4,"K",52,"Officer uniform"],
+    [4,"K",61,"Oracle key"],
+    [4,"K",86,"Order key"],
+    [4,"K",185,"Pass card"],
+    [4,"K",220,"Power coupling"],
+    [4,"K",92,"Power crystal"],
+    [4,"K",192,"Red crystal key"],
+    [4,"K",91,"Severed hand"],
+    [4,"K",38,"Silver key"],
+    [4,"K",166,"Warehouse key"],
+    [4,"O",224,"Alien asp climber"],
+    [4,"O",221,"Alien bubble column"],
+    [4,"O",223,"Alien ceiling bubble"],
+    [4,"O",222,"Alien floor bubble"],
+    [4,"O",225,"Alien spider light"],
+    [4,"O",228,"Ammo filler"],
+    [4,"O",194,"Anvil"],
+    [4,"O",54,"Aztec pillar"],
+    [4,"O",69,"Barricade column"],
+    [4,"O",202,"Big tree"],
+    [4,"O",197,"Brass tech lamp"],
+    [4,"O",70,"Burning barrel"],
+    [4,"O",105,"Burning bowl"],
+    [4,"O",106,"Burning brazier"],
+    [4,"O",35,"Candelabra"],
+    [4,"O",162,"Cave pillar bottom"],
+    [4,"O",159,"Cave pillar top"],
+    [4,"O",63,"Chimneystack"],
+    [4,"O",55,"Damaged aztec pillar"],
+    [4,"O",94,"Exploding barrel"],
+    [4,"O",2028,"Globe light"],
+    [4,"O",113,"Hearts in tank"],
+    [4,"O",227,"Huge alien pillar"],
+    [4,"O",209,"Huge tank 1 with skeleton"],
+    [4,"O",210,"Huge tank 2"],
+    [4,"O",211,"Huge tank 3"],
+    [4,"O",57,"Huge tech pillar"],
+    [4,"O",50,"Huge torch"],
+    [4,"O",47,"Large torch"],
+    [4,"O",111,"Medium torch"],
+    [4,"O",43,"Outside lamp"],
+    [4,"O",51,"Palm tree"],
+    [4,"O",188,"Pitcher"],
+    [4,"O",46,"Pole lantern"],
+    [4,"O",165,"Pot"],
+    [4,"O",203,"Potted tree"],
+    [4,"O",56,"Ruined aztec pillar"],
+    [4,"O",44,"Ruined statue"],
+    [4,"O",60,"Short bush"],
+    [4,"O",196,"Silver tech lamp"],
+    [4,"O",98,"Stalactite (large)"],
+    [4,"O",161,"Stalactite (small)"],
+    [4,"O",160,"Stalagmite (large)"],
+    [4,"O",163,"Stalagmite (small)"],
+    [4,"O",110,"Statue"],
+    [4,"O",189,"Stool"],
+    [4,"O",117,"Surgery crab"],
+    [4,"O",62,"Tall bush"],
+    [4,"O",213,"Tank 4 spine with organs"],
+    [4,"O",214,"Tank 5 stumpy the acolyte"],
+    [4,"O",229,"Tank 6 spectre"],
+    [4,"O",48,"Tech pillar"],
+    [4,"O",68,"Tray"],
+    [4,"O",33,"Tree stub"],
+    [4,"O",82,"Wooden barrel"],
+    [4,"D",96,"Brass fluorescent light"],
+    [4,"D",28,"Cage light"],
+    [4,"D",34,"Candle"],
+    [4,"D",109,"Ceiling chain"],
+    [4,"D",53,"Ceiling water drip"],
+    [4,"D",21,"Dead acolyte (disappears)"],
+    [4,"D",22,"Dead crusader"],
+    [4,"D",18,"Dead peasant (disappears)"],
+    [4,"D",15,"Dead player (disappears)"],
+    [4,"D",20,"Dead reaver"],
+    [4,"D",19,"Dead rebel"],
+    [4,"D",103,"Floor water drip"],
+    [4,"D",97,"Gold fluorescent light"],
+    [4,"D",24,"Klaxon warning light"],
+    [4,"D",190,"Metal pot"],
+    [4,"D",164,"Mug"],
+    [4,"D",217,"Rebel boots"],
+    [4,"D",218,"Rebel helmet"],
+    [4,"D",219,"Rebel shirt"],
+    [4,"D",99,"Rock 1"],
+    [4,"D",100,"Rock 2"],
+    [4,"D",101,"Rock 3"],
+    [4,"D",102,"Rock 4"],
+    [4,"D",29,"Rubble 1"],
+    [4,"D",30,"Rubble 2"],
+    [4,"D",31,"Rubble 3"],
+    [4,"D",32,"Rubble 4"],
+    [4,"D",36,"Rubble 5"],
+    [4,"D",37,"Rubble 6"],
+    [4,"D",41,"Rubble 7"],
+    [4,"D",42,"Rubble 8"],
+    [4,"D",212,"Sacrificed guy"],
+    [4,"D",216,"Sigil banner"],
+    [4,"D",95,"Silver fluorescent light"],
+    [4,"D",107,"Small torch (lit)"],
+    [4,"D",108,"Small torch (unlit)"],
+    [4,"D",215,"Stick in water"],
+    [4,"D",191,"Tub"],
+    [4,"D",2014,"Water bottle"],
+    [4,"D",112,"Water fountain"],
+    [4,"D",104,"Waterfall splash"],
+    [4,"T",11,"Deathmatch start"],
+    [4,"T",1,"Player 1 start"],
+    [4,"T",2,"Player 2 start"],
+    [4,"T",3,"Player 3 start"],
+    [4,"T",4,"Player 4 start"],
+    [4,"T",208,"Practice target"],
+    [4,"T",85,"Rat buddy"],
+    [4,"T",14,"Teleport landing"],
+    [4,"T",23,"Teleport swirl"],
+    [5,"T",7970,"Blue chalice"],
+    [5,"T",5130,"Blue flag spot"],
+    [5,"T",7968,"Blue talisman"],
+    [5,"T",7967,"Green talisman"],
+    [5,"T",7975,"Ore spawner"],
+    [5,"T",5131,"Red flag spot"],
+    [5,"T",7966,"Red talisman"],
+    [5,"T",5080,"Team Blue start"],
+    [5,"T",5081,"Team Red start"]
+  ];
+
+  // Build the thing registry per game (langConfigs style)
+  const thingRegistry = {
+    1: [], // Doom
+    2: [], // Heretic
+    3: [], // Hexen
+    4: [], // Strife
+    5: []  // Veteran Edition
+  };
+
+  for (const [game, cat, id, name] of RAW_THING_DATA) {
+    thingRegistry[game].push({ id: Number(id), name, category: cat });
+  }
+
+  // Sort each game's list by id
+  for (const game in thingRegistry) {
+    thingRegistry[game].sort((a,b) => a.id - b.id);
+  }
+
+  // Helper to get thing name and color
+  function getThingDef(game, id) {
+    const list = thingRegistry[game];
+    if (!list) return null;
+    return list.find(t => t.id === id);
+  }
+
+  // Assign a color based on category and a simple hash
+  function getThingColor(category, id) {
+    const catColors = {
+      'M': '#d32f2f', // monsters red
+      'W': '#ffa500', // weapons orange
+      'A': '#c0c0c0', // ammo silver
+      'I': '#9c27b0', // items purple
+      'H': '#4caf50', // health green
+      'K': '#ffd700', // keys gold
+      'O': '#8d6e63', // obstacles brown
+      'D': '#607d8b', // decorations blue-grey
+      'S': '#00bcd4', // sounds cyan
+      'C': '#ff9800', // characters orange
+      'T': '#e91e63'  // teleport/starts pink
+    };
+    if (catColors[category]) return catColors[category];
+    // fallback: hash the id
+    const hue = (id * 131) % 360;
+    return `hsl(${hue}, 70%, 50%)`;
+  }
+
+  // ==========================================================================
+  // MAP EDITOR CORE (fully preserved from original, only thing handling changed)
+  // ==========================================================================
+  class MapData {
+    constructor() {
+      this.vertices = [];
+      this.lines = [];
+      this.sectors = [];
+      this.things = [];
+      this.nextVertexId = 0;
+      this.nextLineId = 0;
+      this.nextSectorId = 0;
+      this.nextThingId = 0;
+    }
+    addVertex(x, y) { const vertex = { id: this.nextVertexId++, x: Math.round(x), y: Math.round(y) }; this.vertices.push(vertex); return vertex; }
+    removeVertex(id) { this.vertices = this.vertices.filter(v => v.id !== id); this.lines = this.lines.filter(l => l.v1 !== id && l.v2 !== id); }
+    getVertex(id) { return this.vertices.find(v => v.id === id); }
+    getVertexAt(x, y, threshold = 8) { return this.vertices.find(v => Math.hypot(v.x - x, v.y - y) < threshold); }
+    addLine(v1Id, v2Id, sectorId = null) { const line = { id: this.nextLineId++, v1: v1Id, v2: v2Id, sectorId, special:0, tag:0, frontTex:'STARTAN3', backTex:'', impassable:false, blockMonsters:false, twoSided:false }; this.lines.push(line); return line; }
+    removeLine(id) { this.lines = this.lines.filter(l => l.id !== id); }
+    getLine(id) { return this.lines.find(l => l.id === id); }
+    getLineAt(x, y, threshold = 8) { return this.lines.find(line => { const v1 = this.getVertex(line.v1); const v2 = this.getVertex(line.v2); if (!v1||!v2) return false; const dist = this.distanceToLineSegment(x,y,v1.x,v1.y,v2.x,v2.y); return dist < threshold; }); }
+    addSector(lineIds = []) { const sector = { id: this.nextSectorId++, lineIds, floorHeight:0, ceilingHeight:128, floorTex:'FLAT23', ceilingTex:'F_SKY1', special:0, tag:0, lightLevel:255 }; this.sectors.push(sector); return sector; }
+    removeSector(id) { this.sectors = this.sectors.filter(s=>s.id!==id); }
+    getSector(id) { return this.sectors.find(s=>s.id===id); }
+    addThing(x,y,type=1,angle=0) { const thing={ id:this.nextThingId++, x:Math.round(x), y:Math.round(y), type, angle, easy:true, medium:true, hard:true }; this.things.push(thing); return thing; }
+    removeThing(id) { this.things = this.things.filter(t=>t.id!==id); }
+    getThing(id) { return this.things.find(t=>t.id===id); }
+    getThingAt(x,y,threshold=16) { return this.things.find(t=>Math.hypot(t.x-x,t.y-y)<threshold); }
+    distanceToLineSegment(px,py,x1,y1,x2,y2){ const A=px-x1; const B=py-y1; const C=x2-x1; const D=y2-y1; const dot=A*C+B*D; const lenSq=C*C+D*D; let param=-1; if(lenSq!==0) param=dot/lenSq; let xx,yy; if(param<0){xx=x1;yy=y1;} else if(param>1){xx=x2;yy=y2;} else {xx=x1+param*C; yy=y1+param*D;} const dx=px-xx; const dy=py-yy; return Math.hypot(dx,dy); }
+    getStats(){ return { vertices:this.vertices.length, lines:this.lines.length, sectors:this.sectors.length, things:this.things.length }; }
+    toJSON(){ return { vertices:this.vertices, lines:this.lines, sectors:this.sectors, things:this.things }; }
+    fromJSON(data){ this.vertices=data.vertices||[]; this.lines=data.lines||[]; this.sectors=data.sectors||[]; this.things=data.things||[]; this.nextVertexId=Math.max(...this.vertices.map(v=>v.id),-1)+1; this.nextLineId=Math.max(...this.lines.map(l=>l.id),-1)+1; this.nextSectorId=Math.max(...this.sectors.map(s=>s.id),-1)+1; this.nextThingId=Math.max(...this.things.map(t=>t.id),-1)+1; }
+    clear(){ this.vertices=[]; this.lines=[]; this.sectors=[]; this.things=[]; this.nextVertexId=0; this.nextLineId=0; this.nextSectorId=0; this.nextThingId=0; }
+  }
+
+  class MapRenderer {
+    constructor(canvas, mapData) {
+      this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.mapData = mapData; this.panX=0; this.panY=0; this.zoom=1; this.showGrid=true; this.showVertices=true; this.showLines=true; this.showSectors=true; this.showThings=true; this.selection=new Set(); this.hoveredElement=null; this.colors={ bg:'#0a0a0a', grid:'#222', vertex:'#0e639c', vertexHovered:'#1177bb', vertexSelected:'#f59e0b', line:'#d4d4d4', lineHovered:'#1177bb', lineSelected:'#f59e0b', thing:'#10b981', thingHovered:'#22d3ee', thingSelected:'#f59e0b', sectorFill:'rgba(79, 172, 254, 0.05)', sectorBorder:'#4facfe'}; this.gridUnit=64; this.gridSnapSize=8; this.snapToGrid=true;
+      this.dpr = window.devicePixelRatio || 1; this.useDPR = false;
+      this.currentGame = 1; // will be set by app
+    }
+    _align(v){ const d = this.dpr || 1; return Math.round(v * d) / d; }
+    snapWorld(x, y){ if(!this.snapToGrid) return { x, y }; const gs = this.gridSnapSize || 8; return { x: Math.round(x / gs) * gs, y: Math.round(y / gs) * gs }; }
+    render(){ this.clear(); this.drawGrid(); this.drawSectors(); this.drawLines(); this.drawVertices(); this.drawThings(); }
+    clear(){ this.ctx.fillStyle=this.colors.bg; const dpr=this.dpr||1; const w=this.canvas.width/dpr; const h=this.canvas.height/dpr; this.ctx.fillRect(0,0,w,h); }
+    drawGrid(){
+      if(!this.showGrid) return;
+      const gs = this.gridSnapSize || 8;
+      const topLeft = this.screenToWorld(0, 0);
+      const bottomRight = this.screenToWorld(this.canvas.width / (this.dpr||1), this.canvas.height / (this.dpr||1));
+      const minX = Math.min(topLeft.x, bottomRight.x);
+      const maxX = Math.max(topLeft.x, bottomRight.x);
+      const minY = Math.min(topLeft.y, bottomRight.y);
+      const maxY = Math.max(topLeft.y, bottomRight.y);
+      const firstX = Math.floor(minX / gs) * gs;
+      const firstY = Math.floor(minY / gs) * gs;
+      this.ctx.strokeStyle = this.colors.grid;
+      this.ctx.lineWidth = 1 / this.dpr;
+      const w = this.canvas.width / (this.dpr||1);
+      const h = this.canvas.height / (this.dpr||1);
+      for(let gx = firstX; gx <= maxX; gx += gs){
+        const screenX = this._align(this.worldToScreen(gx, 0).x);
+        this.ctx.beginPath();
+        this.ctx.moveTo(screenX, 0);
+        this.ctx.lineTo(screenX, this._align(h));
+        this.ctx.stroke();
+      }
+      for(let gy = firstY; gy <= maxY; gy += gs){
+        const screenY = this._align(this.worldToScreen(0, gy).y);
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, screenY);
+        this.ctx.lineTo(this._align(w), screenY);
+        this.ctx.stroke();
+      }
+    }
+    drawSectors(){
+      if(!this.showSectors) return;
+      for(const sector of this.mapData.sectors){
+        this.ctx.fillStyle = this.colors.sectorFill;
+        this.ctx.strokeStyle = this.colors.sectorBorder;
+        this.ctx.lineWidth = 1 / this.dpr;
+        for(const lineId of sector.lineIds){
+          const line = this.mapData.getLine(lineId);
+          if(!line) continue;
+          const v1 = this.mapData.getVertex(line.v1);
+          const v2 = this.mapData.getVertex(line.v2);
+          if(!v1 || !v2) continue;
+          const p1 = this.worldToScreen(v1.x, v1.y);
+          const p2 = this.worldToScreen(v2.x, v2.y);
+          const x1 = this._align(p1.x);
+          const y1 = this._align(p1.y);
+          const x2 = this._align(p2.x);
+          const y2 = this._align(p2.y);
+          this.ctx.beginPath();
+          this.ctx.moveTo(x1,y1);
+          this.ctx.lineTo(x2,y2);
+          this.ctx.stroke();
+        }
+      }
+    }
+    drawLines(){
+      if(!this.showLines) return;
+      this.ctx.lineWidth = 1 / this.dpr;
+      for(const line of this.mapData.lines){
+        const v1 = this.mapData.getVertex(line.v1);
+        const v2 = this.mapData.getVertex(line.v2);
+        if(!v1 || !v2) continue;
+        const p1 = this.worldToScreen(v1.x, v1.y);
+        const p2 = this.worldToScreen(v2.x, v2.y);
+        const x1 = this._align(p1.x);
+        const y1 = this._align(p1.y);
+        const x2 = this._align(p2.x);
+        const y2 = this._align(p2.y);
+        let color = this.colors.line;
+        if(this.hoveredElement?.type==='line' && this.hoveredElement?.id===line.id) color = this.colors.lineHovered;
+        if(this.selection.has(`line-${line.id}`)) color = this.colors.lineSelected;
+        this.ctx.strokeStyle = color;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x1,y1);
+        this.ctx.lineTo(x2,y2);
+        this.ctx.stroke();
+      }
+    }
+    drawVertices(){
+      if(!this.showVertices) return;
+      const size = Math.max(4, 6 * this.zoom);
+      for(const vertex of this.mapData.vertices){
+        const p = this.worldToScreen(vertex.x, vertex.y);
+        const cx = this._align(p.x);
+        const cy = this._align(p.y);
+        const half = size / 2;
+        const ax = this._align(cx - half);
+        const ay = this._align(cy - half);
+        let color = this.colors.vertex;
+        if(this.hoveredElement?.type === 'vertex' && this.hoveredElement?.id === vertex.id) color = this.colors.vertexHovered;
+        if(this.selection.has(`vertex-${vertex.id}`)) color = this.colors.vertexSelected;
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(ax, ay, Math.max(1, Math.round(size)), Math.max(1, Math.round(size)));
+      }
+    }
+    drawThings(){
+      if(!this.showThings) return;
+      const size = Math.max(6, 12 * this.zoom);
+      for(const thing of this.mapData.things){
+        const p = this.worldToScreen(thing.x, thing.y);
+        const cx = this._align(p.x);
+        const cy = this._align(p.y);
+        const r = Math.max(1, Math.round((size/2) * this.dpr)) / this.dpr;
+        const def = getThingDef(this.currentGame, thing.type);
+        let color = def ? getThingColor(def.category, thing.type) : this.colors.thing;
+        if(this.hoveredElement?.type === 'thing' && this.hoveredElement?.id === thing.id) color = this.colors.thingHovered;
+        if(this.selection.has(`thing-${thing.id}`)) color = this.colors.thingSelected;
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, r, 0, Math.PI*2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 1 / this.dpr;
+        const angle = (thing.angle * Math.PI) / 180;
+        this.ctx.beginPath();
+        this.ctx.moveTo(cx, cy);
+        this.ctx.lineTo(this._align(cx + Math.cos(angle) * size), this._align(cy + Math.sin(angle) * size));
+        this.ctx.stroke();
+      }
+    }
+    screenToWorld(screenX,screenY){ return { x:(screenX-this.panX)/this.zoom, y:-(screenY-this.panY)/this.zoom }; }
+    worldToScreen(worldX,worldY){ return { x:worldX*this.zoom+this.panX, y:-worldY*this.zoom+this.panY }; }
+    pan(dx,dy){ this.panX+=dx; this.panY+=dy; }
+    setZoom(zoom){ this.zoom=Math.max(0.25,Math.min(4,zoom)); }
+    fitToView(){ const dpr=this.dpr||1; const cw=this.canvas.width/dpr, ch=this.canvas.height/dpr; if(this.mapData.vertices.length===0){ this.panX=cw/2; this.panY=ch/2; this.zoom=1; return; } const xs=this.mapData.vertices.map(v=>v.x); const ys=this.mapData.vertices.map(v=>v.y); const minX=Math.min(...xs); const maxX=Math.max(...xs); const minY=Math.min(...ys); const maxY=Math.max(...ys); const width=maxX-minX||100; const height=maxY-minY||100; const zoomX=(cw*0.8)/width; const zoomY=(ch*0.8)/height; this.zoom=Math.min(zoomX,zoomY,4); const centerX=(minX+maxX)/2; const centerY=(minY+maxY)/2; this.panX=cw/2-centerX*this.zoom; this.panY=ch/2+centerY*this.zoom; }
+  }
+
+  class Tool { constructor(name, renderer, mapData){ this.name=name; this.renderer=renderer; this.mapData=mapData; } onMouseDown(x,y,ctrlKey){} onMouseMove(x,y){} onMouseUp(x,y){} onKeyPress(k){} }
+  class SelectTool extends Tool {
+    constructor(renderer,mapData){ super('select',renderer,mapData); this.isDragging=false; this.dragStartX=0; this.dragStartY=0; this.draggedItems=new Set(); this.boxSelecting=false; this.boxStartX=0; this.boxStartY=0; this.boxEndX=0; this.boxEndY=0; }
+    onMouseDown(x,y,ctrlKey){ 
+      const world=this.renderer.screenToWorld(x,y); 
+      const vertex=this.mapData.getVertexAt(world.x,world.y); 
+      const line=this.mapData.getLineAt(world.x,world.y); 
+      const thing=this.mapData.getThingAt(world.x,world.y); 
+      if(vertex){ if(ctrlKey) { const key=`vertex-${vertex.id}`; if(this.renderer.selection.has(key)) this.renderer.selection.delete(key); else this.renderer.selection.add(key); } else { if(!this.renderer.selection.has(`vertex-${vertex.id}`)){ this.renderer.selection.clear(); this.renderer.selection.add(`vertex-${vertex.id}`); } this.isDragging=true; this.dragStartX=world.x; this.dragStartY=world.y; this.draggedItems=new Set([...this.renderer.selection]); } }
+      else if(line){ if(ctrlKey) { const key=`line-${line.id}`; if(this.renderer.selection.has(key)) this.renderer.selection.delete(key); else this.renderer.selection.add(key); } else { if(!this.renderer.selection.has(`line-${line.id}`)){ this.renderer.selection.clear(); this.renderer.selection.add(`line-${line.id}`); } this.isDragging=true; this.dragStartX=world.x; this.dragStartY=world.y; this.draggedItems=new Set([...this.renderer.selection]); } }
+      else if(thing){ if(ctrlKey) { const key=`thing-${thing.id}`; if(this.renderer.selection.has(key)) this.renderer.selection.delete(key); else this.renderer.selection.add(key); } else { if(!this.renderer.selection.has(`thing-${thing.id}`)){ this.renderer.selection.clear(); this.renderer.selection.add(`thing-${thing.id}`); } this.isDragging=true; this.dragStartX=world.x; this.dragStartY=world.y; this.draggedItems=new Set([...this.renderer.selection]); } }
+      else { if(!ctrlKey) this.renderer.selection.clear(); this.boxSelecting = true; this.boxStartX = x; this.boxStartY = y; this.boxEndX = x; this.boxEndY = y; this.updateSelectionBox(); }
+    }
+    onMouseMove(x,y){ 
+      const world=this.renderer.screenToWorld(x,y); 
+      if(this.boxSelecting) { this.boxEndX = x; this.boxEndY = y; this.updateSelectionBox(); this.performBoxSelection(); } 
+      else if(this.isDragging&&this.draggedItems.size>0){ 
+        const dx=world.x-this.dragStartX; const dy=world.y-this.dragStartY; 
+        const verticesToMove = new Set(); const thingsToMove = new Set(); 
+        for(const item of this.draggedItems){ const [type,id]=item.split('-'); const numId = parseInt(id,10); if(type==='vertex') verticesToMove.add(numId); else if(type==='line'){ const line=this.mapData.getLine(numId); if(line){ verticesToMove.add(line.v1); verticesToMove.add(line.v2); } } else if(type==='thing') thingsToMove.add(numId); }
+        for(const vId of verticesToMove){ const vertex = this.mapData.getVertex(vId); if(vertex){ vertex.x += dx; vertex.y += dy; if(this.renderer.snapToGrid){ const snapped = this.renderer.snapWorld(vertex.x, vertex.y); vertex.x = snapped.x; vertex.y = snapped.y; } } }
+        for(const tId of thingsToMove){ const thing = this.mapData.getThing(tId); if(thing){ thing.x += dx; thing.y += dy; if(this.renderer.snapToGrid){ const snapped = this.renderer.snapWorld(thing.x, thing.y); thing.x = snapped.x; thing.y = snapped.y; } } }
+        this.dragStartX=world.x; this.dragStartY=world.y; 
+      } else { 
+        const vertex=this.mapData.getVertexAt(world.x,world.y); const line=this.mapData.getLineAt(world.x,world.y); const thing=this.mapData.getThingAt(world.x,world.y); 
+        if(vertex) this.renderer.hoveredElement={type:'vertex',id:vertex.id}; else if(line) this.renderer.hoveredElement={type:'line',id:line.id}; else if(thing) this.renderer.hoveredElement={type:'thing',id:thing.id}; else this.renderer.hoveredElement=null; 
+      }
+    }
+    onMouseUp(){ this.isDragging=false; this.draggedItems.clear(); if(this.boxSelecting) { this.boxSelecting = false; const box = document.getElementById('selection-box'); if(box) box.style.display = 'none'; } }
+    updateSelectionBox() { const box = document.getElementById('selection-box'); if(!box) return; const left = Math.min(this.boxStartX, this.boxEndX); const top = Math.min(this.boxStartY, this.boxEndY); const width = Math.abs(this.boxEndX - this.boxStartX); const height = Math.abs(this.boxEndY - this.boxStartY); box.style.left = left + 'px'; box.style.top = top + 'px'; box.style.width = width + 'px'; box.style.height = height + 'px'; box.style.display = 'block'; }
+    performBoxSelection() {
+      const topLeft = this.renderer.screenToWorld(Math.min(this.boxStartX, this.boxEndX), Math.min(this.boxStartY, this.boxEndY));
+      const bottomRight = this.renderer.screenToWorld(Math.max(this.boxStartX, this.boxEndX), Math.max(this.boxStartY, this.boxEndY));
+      const minX = Math.min(topLeft.x, bottomRight.x), maxX = Math.max(topLeft.x, bottomRight.x), minY = Math.min(topLeft.y, bottomRight.y), maxY = Math.max(topLeft.y, bottomRight.y);
+      for(const v of this.mapData.vertices) { if(v.x >= minX && v.x <= maxX && v.y >= minY && v.y <= maxY) this.renderer.selection.add(`vertex-${v.id}`); }
+      for(const t of this.mapData.things) { if(t.x >= minX && t.x <= maxX && t.y >= minY && t.y <= maxY) this.renderer.selection.add(`thing-${t.id}`); }
+      for(const l of this.mapData.lines) { const v1 = this.mapData.getVertex(l.v1); const v2 = this.mapData.getVertex(l.v2); if(v1 && v2 && v1.x >= minX && v1.x <= maxX && v1.y >= minY && v1.y <= maxY && v2.x >= minX && v2.x <= maxX && v2.y >= minY && v2.y <= maxY) this.renderer.selection.add(`line-${l.id}`); }
+    }
+    onKeyPress(key){ if(key==='Delete' || key==='Backspace'){ for(const item of this.renderer.selection){ const [type,id]=item.split('-'); if(type==='vertex') this.mapData.removeVertex(parseInt(id,10)); else if(type==='line') this.mapData.removeLine(parseInt(id,10)); else if(type==='thing') this.mapData.removeThing(parseInt(id,10)); } this.renderer.selection.clear(); } }
+  }
+  class VertexTool extends Tool { constructor(renderer,mapData){ super('vertex',renderer,mapData); this.autoMerge = true; } onMouseDown(x,y){ const world=this.renderer.screenToWorld(x,y); const snapped = this.renderer.snapWorld(world.x, world.y); const existing=this.mapData.getVertexAt(snapped.x,snapped.y, 12); if(existing && this.autoMerge){ this.renderer.selection.clear(); this.renderer.selection.add(`vertex-${existing.id}`); return; } const vertex=this.mapData.addVertex(snapped.x,snapped.y); this.renderer.selection.clear(); this.renderer.selection.add(`vertex-${vertex.id}`); } }
+  class LineTool extends Tool { constructor(renderer,mapData){ super('line',renderer,mapData); this.startVertex=null; } onMouseDown(x,y){ const world=this.renderer.screenToWorld(x,y); const vertex=this.mapData.getVertexAt(world.x,world.y); if(!vertex) return; if(!this.startVertex){ this.startVertex=vertex; this.renderer.selection.clear(); this.renderer.selection.add(`vertex-${vertex.id}`); } else if(vertex.id!==this.startVertex.id){ const line=this.mapData.addLine(this.startVertex.id,vertex.id); this.renderer.selection.clear(); this.renderer.selection.add(`line-${line.id}`); this.startVertex=null; } } onMouseMove(x,y){ if(this.startVertex){ const world=this.renderer.screenToWorld(x,y); const vertex=this.mapData.getVertexAt(world.x,world.y); this.renderer.hoveredElement = vertex?{type:'vertex',id:vertex.id}:null; } } onKeyPress(key){ if(key==='Escape') this.startVertex=null; } }
+  class SectorTool extends Tool { constructor(renderer,mapData){ super('sector',renderer,mapData); this.pendingLines=new Set(); } onMouseDown(x,y){ const world=this.renderer.screenToWorld(x,y); const line=this.mapData.getLineAt(world.x,world.y); if(!line) return; if(this.pendingLines.has(line.id)) this.pendingLines.delete(line.id); else this.pendingLines.add(line.id); this.renderer.selection.clear(); for(const lid of this.pendingLines) this.renderer.selection.add(`line-${lid}`); } onKeyPress(key){ if(key==='Escape'){ this.pendingLines.clear(); this.renderer.selection.clear(); return; } if(key==='Enter'){ if(this.pendingLines.size<3) return; const lineIds=Array.from(this.pendingLines); if(!this._validateClosedLoop(lineIds)) return; this.mapData.addSector(lineIds); this.pendingLines.clear(); this.renderer.selection.clear(); } } _validateClosedLoop(lineIds){ const adj=new Map(); for(const lid of lineIds){ const line=this.mapData.getLine(lid); if(!line) return false; const a=line.v1; const b=line.v2; if(!adj.has(a)) adj.set(a,new Set()); if(!adj.has(b)) adj.set(b,new Set()); adj.get(a).add(b); adj.get(b).add(a); } for(const [v,neighbours] of adj.entries()){ if(neighbours.size!==2) return false; } const verts=Array.from(adj.keys()); const visited=new Set(); let current=verts[0]; let prev=null; while(!visited.has(current)){ visited.add(current); const nbrs=Array.from(adj.get(current)); const next = nbrs[0]===prev?nbrs[1]:nbrs[0]; prev=current; current=next; } return visited.size===verts.length; } }
+  class ThingTool extends Tool { constructor(renderer,mapData){ super('thing',renderer,mapData); this.thingType=1; this.currentGame=1; } onMouseDown(x,y){ const world=this.renderer.screenToWorld(x,y); const snapped=this.renderer.snapWorld(world.x, world.y); const thing=this.mapData.addThing(snapped.x,snapped.y,this.thingType); this.renderer.selection.clear(); this.renderer.selection.add(`thing-${thing.id}`); } setThingType(type){ this.thingType=type; } setGame(game){ this.currentGame = game; } }
+  class PanTool extends Tool { constructor(renderer,mapData){ super('pan',renderer,mapData); this.isDragging=false; this.dragStartX=0; this.dragStartY=0; } onMouseDown(x,y){ this.isDragging=true; this.dragStartX=x; this.dragStartY=y; } onMouseMove(x,y){ if(this.isDragging){ const dx=x-this.dragStartX; const dy=y-this.dragStartY; this.renderer.pan(dx,dy); this.dragStartX=x; this.dragStartY=y; } } onMouseUp(){ this.isDragging=false; } }
+
+  class MapIO {
+    static exportJSON(mapData){ return JSON.stringify(mapData.toJSON(),null,2); }
+    static importJSON(jsonString){ return JSON.parse(jsonString); }
+    static exportWAD(mapData){ let udmf='namespace = "ZDoom";\n\n'; for(const v of mapData.vertices){ udmf+=`vertex ${v.id}\n{\n  x = ${v.x};\n  y = ${v.y};\n}\n\n`; } for(const line of mapData.lines){ udmf+=`linedef ${line.id}\n{\n  v1 = ${line.v1};\n  v2 = ${line.v2};\n  special = ${line.special};\n  tag = ${line.tag};\n  properties\n  {\n`; if(line.impassable) udmf+=`    impassable = true;\n`; if(line.blockMonsters) udmf+=`    blockmonsters = true;\n`; if(line.twoSided) udmf+=`    twosided = true;\n`; udmf+=`  }\n}\n\n`; } for(const s of mapData.sectors){ udmf+=`sector ${s.id}\n{\n  heightfloor = ${s.floorHeight};\n  heightceiling = ${s.ceilingHeight};\n  texturefloor = "${s.floorTex}";\n  textureceiling = "${s.ceilingTex}";\n  special = ${s.special};\n  tag = ${s.tag};\n  lightlevel = ${s.lightLevel};\n}\n\n`; } for(const t of mapData.things){ udmf+=`thing ${t.id}\n{\n  x = ${t.x};\n  y = ${t.y};\n  type = ${t.type};\n  angle = ${t.angle};\n`; if(t.easy) udmf+=`  skill1 = true;\n`; if(t.medium) udmf+=`  skill2 = true;\n`; if(t.hard) udmf+=`  skill3 = true;\n`; udmf+=`}\n\n`; } return udmf; }
+    static importUDMF(text) {
+      let src = text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
+      const out = { namespace: "ZDoom", vertices: [], lines: [], sectors: [], things: [] };
+      const nsm = src.match(/namespace\s*=\s*\"([^\"]*)\"\s*;/i); if(nsm) out.namespace = nsm[1];
+      const blockRe = /(vertex|linedef|sector|thing)\s*\{([\s\S]*?)\}/gi; let m, vId=0, lId=0, sId=0, tId=0;
+      while((m = blockRe.exec(src))) {
+        const kind = m[1].toLowerCase(); const body = m[2]; const kv = {};
+        const propRe = /([A-Za-z_]\w*)\s*=\s*(\"(?:[^\"\\]|\\.)*\"|[^;]+?)\s*;/g; let p;
+        while((p = propRe.exec(body))) { let val = p[2].trim(); if(val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1); else if(/^-?\d+(\.\d+)?$/.test(val)) val = parseFloat(val); else if(val === "true") val = true; else if(val === "false") val = false; kv[p[1].toLowerCase()] = val; }
+        if(kind === "vertex") out.vertices.push({ id: vId++, x: Math.round(Number(kv.x)||0), y: Math.round(Number(kv.y)||0) });
+        else if(kind === "linedef") out.lines.push({ id: lId++, v1: Number(kv.v1)|0, v2: Number(kv.v2)|0, special: Number(kv.special)|0, tag: Number(kv.arg0 ?? kv.id ?? 0)|0, impassable: !!kv.blocking, blockMonsters: !!kv.blockmonsters, twoSided: !!kv.twosided });
+        else if(kind === "sector") out.sectors.push({ id: sId++, lineIds: [], floorHeight: Number(kv.heightfloor)|0, ceilingHeight: Number(kv.heightceiling)|0, floorTex: String(kv.texturefloor||"FLAT23"), ceilingTex: String(kv.textureceiling||"F_SKY1"), lightLevel: Number(kv.lightlevel||160)|0, special: Number(kv.special)|0, tag: Number(kv.id||0)|0 });
+        else if(kind === "thing") out.things.push({ id: tId++, x: Math.round(Number(kv.x)||0), y: Math.round(Number(kv.y)||0), type: Number(kv.type)|0, angle: Number(kv.angle)|0, easy: !!(kv.skill1 || kv.skill2), medium: !!kv.skill3, hard: !!(kv.skill4 || kv.skill5) });
+      }
+      return out;
+    }
+    static exportDownloadAsJSON(mapData,filename='map.json'){ const json=this.exportJSON(mapData); this.downloadFile(json,filename,'application/json'); }
+    static exportDownloadAsUDMF(mapData,filename='map.txt'){ const udmf=this.exportWAD(mapData); this.downloadFile(udmf,filename,'text/plain'); }
+    static downloadFile(content,filename,mimeType){ const blob=new Blob([content],{type:mimeType}); const url=URL.createObjectURL(blob); const link=document.createElement('a'); link.href=url; link.download=filename; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url); }
+    static async loadFromFile(file){ return new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=(e)=>{ try{ const content=e.target.result; if(file.name.endsWith('.json')) resolve(this.importJSON(content)); else resolve(JSON.parse(content)); }catch(err){ reject(err); } }; reader.onerror=()=>reject(reader.error); reader.readAsText(file); }); }
+  }
+
+  class Clipboard { constructor() { this.data = null; } copy(mapData, selection) { if(selection.size===0) return false; const copied = { vertices:[], lines:[], things:[], sectors:[] }; const vertexIdMap = new Map(); for(const item of selection) { const [type, id] = item.split('-'); const numId = parseInt(id,10); if(type==='vertex'){ const v=mapData.getVertex(numId); if(v){ const newId=copied.vertices.length; vertexIdMap.set(v.id,newId); copied.vertices.push({...v,id:newId}); } } } for(const item of selection) { const [type, id] = item.split('-'); const numId = parseInt(id,10); if(type==='line'){ const l=mapData.getLine(numId); if(l){ const v1=mapData.getVertex(l.v1); const v2=mapData.getVertex(l.v2); if(v1&&!vertexIdMap.has(v1.id)){ const newId=copied.vertices.length; vertexIdMap.set(v1.id,newId); copied.vertices.push({...v1,id:newId}); } if(v2&&!vertexIdMap.has(v2.id)){ const newId=copied.vertices.length; vertexIdMap.set(v2.id,newId); copied.vertices.push({...v2,id:newId}); } copied.lines.push({...l, id:copied.lines.length, v1:vertexIdMap.get(l.v1), v2:vertexIdMap.get(l.v2)}); } } } for(const item of selection){ const [type,id]=item.split('-'); const numId=parseInt(id,10); if(type==='thing'){ const t=mapData.getThing(numId); if(t) copied.things.push({...t, id:copied.things.length}); } } if(copied.vertices.length>0 || copied.things.length>0){ const allX=[...copied.vertices.map(v=>v.x),...copied.things.map(t=>t.x)]; const allY=[...copied.vertices.map(v=>v.y),...copied.things.map(t=>t.y)]; copied.centerX=(Math.min(...allX)+Math.max(...allX))/2; copied.centerY=(Math.min(...allY)+Math.max(...allY))/2; } else { copied.centerX=0; copied.centerY=0; } this.data=copied; return true; }
+    paste(mapData, renderer, offsetX=64, offsetY=64){ if(!this.data) return false; const vertexIdMap=new Map(); const newSelection=new Set(); for(const v of this.data.vertices){ const newV=mapData.addVertex(v.x-this.data.centerX+offsetX, v.y-this.data.centerY+offsetY); vertexIdMap.set(v.id,newV.id); newSelection.add(`vertex-${newV.id}`); } for(const l of this.data.lines){ const newL=mapData.addLine(vertexIdMap.get(l.v1), vertexIdMap.get(l.v2)); newL.special=l.special; newL.tag=l.tag; newL.frontTex=l.frontTex; newL.backTex=l.backTex; newL.impassable=l.impassable; newL.blockMonsters=l.blockMonsters; newL.twoSided=l.twoSided; newSelection.add(`line-${newL.id}`); } for(const t of this.data.things){ const newT=mapData.addThing(t.x-this.data.centerX+offsetX, t.y-this.data.centerY+offsetY, t.type, t.angle); newT.easy=t.easy; newT.medium=t.medium; newT.hard=t.hard; newSelection.add(`thing-${newT.id}`); } renderer.selection=newSelection; return true; }
+  }
+
+  class UndoManager { constructor(){ this.history=[]; this.currentIndex=-1; } record(mapData){ this.history=this.history.slice(0,this.currentIndex+1); this.history.push(JSON.parse(JSON.stringify(mapData.toJSON()))); this.currentIndex++; if(this.history.length>100){ this.history.shift(); this.currentIndex--; } } undo(mapData){ if(this.currentIndex>0){ this.currentIndex--; mapData.fromJSON(this.history[this.currentIndex]); return true; } return false; } redo(mapData){ if(this.currentIndex<this.history.length-1){ this.currentIndex++; mapData.fromJSON(this.history[this.currentIndex]); return true; } return false; } }
+
+  class MapEditorApp {
+    constructor(){ this.mapData=new MapData(); this.renderer=null; this.tools={}; this.currentTool=null; this.undoManager=new UndoManager(); this.clipboard=new Clipboard(); this.autoMergeVertices=true; this.currentGame=1; this.init(); }
+    init(){ const canvas=document.getElementById('map-canvas'); if(!canvas){ console.error('Canvas not found'); return; } this.renderer=new MapRenderer(canvas,this.mapData); this.renderer.currentGame = this.currentGame; const resizeCanvas = () => { const dpr = (this.renderer && this.renderer.useDPR) ? (window.devicePixelRatio||1) : 1; const w = canvas.offsetWidth; const h = canvas.offsetHeight; if(w===0||h===0) return; canvas.width = Math.max(1, Math.floor(w*dpr)); canvas.height = Math.max(1, Math.floor(h*dpr)); canvas.style.width = w+'px'; canvas.style.height = h+'px'; const ctx = canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.imageSmoothingEnabled=false; ctx.lineJoin='miter'; ctx.lineCap='butt'; this.renderer.canvas=canvas; this.renderer.ctx=ctx; this.renderer.dpr=dpr; }; const ro = new ResizeObserver(()=>resizeCanvas()); ro.observe(canvas.parentElement||canvas); requestAnimationFrame(()=>{resizeCanvas();}); window.addEventListener('orientationchange',()=>requestAnimationFrame(resizeCanvas)); this.tools={ select:new SelectTool(this.renderer,this.mapData), vertex:new VertexTool(this.renderer,this.mapData), line:new LineTool(this.renderer,this.mapData), sector:new SectorTool(this.renderer,this.mapData), thing:new ThingTool(this.renderer,this.mapData), pan:new PanTool(this.renderer,this.mapData) }; this.setTool('select'); this.bindCanvasEvents(); this.bindToolbarEvents(); this.bindUIEvents(); this.bindKeyboardShortcuts(); this.animate(); this.createSampleMap(); }
+    setTool(toolName){ if(this.tools[toolName]){ this.currentTool=this.tools[toolName]; document.querySelectorAll('.tool-btn').forEach(btn=>{ btn.classList.remove('active'); if(btn.dataset.tool===toolName) btn.classList.add('active'); }); document.querySelectorAll('.next-menu-item').forEach(item=>{ item.classList.remove('active'); if(item.dataset.tool===toolName) item.classList.add('active'); }); } }
+    bindCanvasEvents(){ const canvas=document.getElementById('map-canvas'); if(!canvas) return; canvas.addEventListener('mousedown',(e)=>{ const rect=canvas.getBoundingClientRect(); const x=e.clientX-rect.left; const y=e.clientY-rect.top; if(this.currentTool){ this.undoManager.record(this.mapData); this.currentTool.onMouseDown(x,y,e.ctrlKey||e.metaKey); } }); canvas.addEventListener('mousemove',(e)=>{ const rect=canvas.getBoundingClientRect(); const x=e.clientX-rect.left; const y=e.clientY-rect.top; const world=this.renderer.screenToWorld(x,y); const coordsEl=document.getElementById('cursor-coords'); const zoomEl=document.getElementById('zoom-level'); if(coordsEl) coordsEl.textContent=`${Math.round(world.x)}, ${Math.round(world.y)}`; if(zoomEl) zoomEl.textContent=`${Math.round(this.renderer.zoom*100)}%`; if(this.currentTool) this.currentTool.onMouseMove(x,y); }); canvas.addEventListener('mouseup',(e)=>{ const rect=canvas.getBoundingClientRect(); const x=e.clientX-rect.left; const y=e.clientY-rect.top; if(this.currentTool) this.currentTool.onMouseUp(x,y); }); canvas.addEventListener('wheel',(e)=>{ e.preventDefault(); const zoomDelta=e.deltaY>0?0.9:1.1; this.renderer.setZoom(this.renderer.zoom*zoomDelta); }); canvas.addEventListener('contextmenu',(e)=>{ e.preventDefault(); this.setTool('pan'); }); }
+    bindToolbarEvents(){ document.querySelectorAll('.tool-btn').forEach(btn=>{ btn.addEventListener('click',()=>this.setTool(btn.dataset.tool)); }); document.querySelectorAll('.next-menu-item[data-tool]').forEach(item=>{ item.addEventListener('click',()=>this.setTool(item.dataset.tool)); }); const btnUndo=document.getElementById('btn-undo'); const btnRedo=document.getElementById('btn-redo'); if(btnUndo) btnUndo.addEventListener('click',()=>{ if(this.undoManager.undo(this.mapData)) this.updateUI(); }); if(btnRedo) btnRedo.addEventListener('click',()=>{ if(this.undoManager.redo(this.mapData)) this.updateUI(); }); const btnCopy = document.getElementById('btn-copy'); const btnPaste = document.getElementById('btn-paste'); const btnDelete = document.getElementById('btn-delete'); if(btnCopy) btnCopy.addEventListener('click',()=>this.copySelection()); if(btnPaste) btnPaste.addEventListener('click',()=>this.pasteClipboard()); if(btnDelete) btnDelete.addEventListener('click',()=>this.deleteSelection()); const btnSelectAll = document.getElementById('btn-select-all'); if(btnSelectAll) btnSelectAll.addEventListener('click',()=>this.selectAll()); const btnMerge = document.getElementById('btn-merge-vertices'); if(btnMerge) btnMerge.addEventListener('click',()=>this.mergeSelectedVertices()); const zoomSlider=document.getElementById('zoom-slider'); const zoomInput=document.getElementById('zoom-input'); const btnFit=document.getElementById('btn-fit'); if(zoomSlider) zoomSlider.addEventListener('input',(e)=>{ const z=parseFloat(e.target.value); this.renderer.setZoom(z); if(zoomInput) zoomInput.value=z; }); if(zoomInput) zoomInput.addEventListener('input',(e)=>{ const v=parseFloat(e.target.value); if(!isNaN(v)){ this.renderer.setZoom(v); if(zoomSlider) zoomSlider.value=this.renderer.zoom; } }); if(btnFit) btnFit.addEventListener('click',()=>{ this.renderer.fitToView(); if(zoomSlider) zoomSlider.value=this.renderer.zoom; if(zoomInput) zoomInput.value=this.renderer.zoom; }); const btnNew=document.getElementById('btn-new'); const btnOpen=document.getElementById('btn-open'); const btnSave=document.getElementById('btn-save'); const fileInput=document.getElementById('file-input'); if(btnNew) btnNew.addEventListener('click',()=>{ if(confirm('Create new map? Current map will be lost.')){ this.mapData.clear(); this.renderer.selection.clear(); this.undoManager.history=[]; this.undoManager.currentIndex=-1; } }); if(btnOpen) btnOpen.addEventListener('click',()=>{ if(fileInput) fileInput.click(); }); if(fileInput) fileInput.addEventListener('change',(e)=>{ const file=e.target.files[0]; if(file){ MapIO.loadFromFile(file).then(data=>{ this.mapData.fromJSON(data); this.renderer.selection.clear(); this.renderer.fitToView(); this.undoManager.record(this.mapData); }).catch(err=>{ alert('Error loading file: '+err.message); }); } }); if(btnSave) btnSave.addEventListener('click',()=>{ const format=document.getElementById('export-format')?.value||'json'; if(format==='json') MapIO.exportDownloadAsJSON(this.mapData); else MapIO.exportDownloadAsUDMF(this.mapData); }); const btnImportUdmf = document.getElementById('btn-import-udmf'); const udmfDialog = document.getElementById('udmf-dialog'); const btnUdmfCancel = document.getElementById('btn-udmf-cancel'); const btnUdmfConfirm = document.getElementById('btn-udmf-confirm'); const udmfTextarea = document.getElementById('udmf-textarea'); if(btnImportUdmf) btnImportUdmf.addEventListener('click',()=>{ udmfDialog.style.display='flex'; udmfTextarea.focus(); }); const btnImportSide = document.getElementById('btn-import-udmf-side'); if(btnImportSide) btnImportSide.addEventListener('click',()=>{ udmfDialog.style.display='flex'; udmfTextarea.focus(); }); const btnSaveSide = document.getElementById('btn-save-side'); if(btnSaveSide) btnSaveSide.addEventListener('click',()=>{ MapIO.exportDownloadAsUDMF(this.mapData); }); const btnUdmfClose = document.getElementById('btn-udmf-close'); if(btnUdmfClose) btnUdmfClose.addEventListener('click',()=>{ udmfDialog.style.display='none'; udmfTextarea.value=''; }); if(btnUdmfCancel) btnUdmfCancel.addEventListener('click',()=>{ udmfDialog.style.display='none'; udmfTextarea.value=''; }); if(btnUdmfConfirm) btnUdmfConfirm.addEventListener('click',()=>{ const text = udmfTextarea.value.trim(); if(!text){ alert('Please paste some UDMF text.'); return; } try{ const importedData = MapIO.importUDMF(text); this.undoManager.record(this.mapData); this.mapData.fromJSON(importedData); this.renderer.selection.clear(); this.renderer.fitToView(); this.updateUI(); udmfDialog.style.display='none'; udmfTextarea.value=''; } catch(err){ alert('Error parsing UDMF: '+err.message); } }); }
+    bindKeyboardShortcuts(){ document.addEventListener('keydown',(e)=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return; if(e.ctrlKey||e.metaKey){ switch(e.key.toLowerCase()){ case 'z': e.preventDefault(); if(e.shiftKey) this.undoManager.redo(this.mapData); else this.undoManager.undo(this.mapData); break; case 'y': e.preventDefault(); this.undoManager.redo(this.mapData); break; case 'c': e.preventDefault(); this.copySelection(); break; case 'v': e.preventDefault(); this.pasteClipboard(); break; case 'a': e.preventDefault(); this.selectAll(); break; case 'd': e.preventDefault(); this.renderer.selection.clear(); break; } } const toolKeys={'1':'select','2':'vertex','3':'line','4':'sector','5':'thing','6':'pan'}; if(toolKeys[e.key]) this.setTool(toolKeys[e.key]); if(this.currentTool) this.currentTool.onKeyPress(e.key); }); }
+    copySelection(){ if(this.clipboard.copy(this.mapData,this.renderer.selection)) console.log('Copied',this.renderer.selection.size,'items'); }
+    pasteClipboard(){ this.undoManager.record(this.mapData); if(this.clipboard.paste(this.mapData,this.renderer,64,64)) console.log('Pasted items'); }
+    deleteSelection(){ if(this.renderer.selection.size===0) return; this.undoManager.record(this.mapData); for(const item of this.renderer.selection){ const [type,id]=item.split('-'); const numId=parseInt(id,10); if(type==='vertex') this.mapData.removeVertex(numId); else if(type==='line') this.mapData.removeLine(numId); else if(type==='thing') this.mapData.removeThing(numId); } this.renderer.selection.clear(); }
+    selectAll(){ this.renderer.selection.clear(); for(const v of this.mapData.vertices) this.renderer.selection.add(`vertex-${v.id}`); for(const l of this.mapData.lines) this.renderer.selection.add(`line-${l.id}`); for(const t of this.mapData.things) this.renderer.selection.add(`thing-${t.id}`); }
+    mergeSelectedVertices(){ const selectedVertices=[]; for(const item of this.renderer.selection){ const [type,id]=item.split('-'); if(type==='vertex') selectedVertices.push(parseInt(id,10)); } if(selectedVertices.length<2){ alert('Select at least 2 vertices to merge'); return; } this.undoManager.record(this.mapData); let avgX=0,avgY=0; for(const vid of selectedVertices){ const v=this.mapData.getVertex(vid); if(v){ avgX+=v.x; avgY+=v.y; } } avgX/=selectedVertices.length; avgY/=selectedVertices.length; const snapped=this.renderer.snapWorld(avgX,avgY); const keepId=selectedVertices[0]; const keepVertex=this.mapData.getVertex(keepId); if(keepVertex){ keepVertex.x=snapped.x; keepVertex.y=snapped.y; } for(let i=1;i<selectedVertices.length;i++){ const removeId=selectedVertices[i]; for(const line of this.mapData.lines){ if(line.v1===removeId) line.v1=keepId; if(line.v2===removeId) line.v2=keepId; } this.mapData.removeVertex(removeId); } const lineMap=new Map(); const toRemove=[]; for(const line of this.mapData.lines){ const key=`${Math.min(line.v1,line.v2)}-${Math.max(line.v1,line.v2)}`; if(line.v1===line.v2){ toRemove.push(line.id); }else if(lineMap.has(key)){ toRemove.push(line.id); }else{ lineMap.set(key,line.id); } } for(const lid of toRemove) this.mapData.removeLine(lid); this.renderer.selection.clear(); this.renderer.selection.add(`vertex-${keepId}`); }
+    bindUIEvents(){ 
+      const layerToggles=['vertices','lines','sectors','things','grid']; 
+      for(const layer of layerToggles){ 
+        const checkbox=document.getElementById(`layer-${layer}`); 
+        if(checkbox){ 
+          checkbox.checked=this.renderer[`show${layer.charAt(0).toUpperCase()+layer.slice(1)}`]; 
+          checkbox.addEventListener('change',(e)=>{ 
+            this.renderer[`show${layer.charAt(0).toUpperCase()+layer.slice(1)}`]=e.target.checked; 
+          }); 
+        } 
+      } 
+      // Game selector
+      const gameSelector = document.getElementById('game-selector');
+      if(gameSelector){
+        gameSelector.addEventListener('change',(e)=>{
+          this.currentGame = parseInt(e.target.value,10);
+          this.renderer.currentGame = this.currentGame;
+          this.tools.thing.setGame(this.currentGame);
+          this.populateThingDropdown();
+          this.renderer.render();
+        });
+      }
+      // Thing type dropdown
+      const thingTypeSelect = document.getElementById('thing-type');
+      if(thingTypeSelect){
+        this.populateThingDropdown();
+        thingTypeSelect.addEventListener('change',(e)=>{
+          this.tools.thing.setThingType(parseInt(e.target.value,10));
+        });
+      }
+      const optSnap=document.getElementById('opt-snap'); if(optSnap){ optSnap.checked=!!this.renderer.snapToGrid; optSnap.addEventListener('change',(e)=>{ this.renderer.snapToGrid=e.target.checked; }); } 
+      const optAutoMerge=document.getElementById('opt-auto-merge'); if(optAutoMerge){ optAutoMerge.checked=this.autoMergeVertices; optAutoMerge.addEventListener('change',(e)=>{ this.autoMergeVertices=e.target.checked; this.tools.vertex.autoMerge=e.target.checked; }); } 
+      const optGridSize=document.getElementById('opt-grid-size'); if(optGridSize){ optGridSize.value=this.renderer.gridSnapSize||8; optGridSize.addEventListener('change',(e)=>{ const val=parseFloat(e.target.value); if(!isNaN(val)) this.renderer.gridSnapSize=val; }); } 
+      const optGridUnit=document.getElementById('opt-grid-unit'); if(optGridUnit){ optGridUnit.value=this.renderer.gridUnit||64; optGridUnit.addEventListener('change',(e)=>{ const val=parseFloat(e.target.value); if(!isNaN(val)) this.renderer.gridUnit=val; }); } 
+      // Line properties (unchanged)
+      const lineSpecial = document.getElementById('line-special'); if(lineSpecial){ lineSpecial.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.special=parseInt(e.target.value,10)||0; }); }
+      const lineTag = document.getElementById('line-tag'); if(lineTag){ lineTag.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.tag=parseInt(e.target.value,10)||0; }); }
+      const lineFront = document.getElementById('line-front-tex'); if(lineFront){ lineFront.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.frontTex=e.target.value; }); }
+      const lineBack = document.getElementById('line-back-tex'); if(lineBack){ lineBack.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.backTex=e.target.value; }); }
+      const lineImpass = document.getElementById('line-impassable'); if(lineImpass){ lineImpass.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.impassable=e.target.checked; }); }
+      const lineBlockMon = document.getElementById('line-block-monsters'); if(lineBlockMon){ lineBlockMon.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.blockMonsters=e.target.checked; }); }
+      const lineTwoSided = document.getElementById('line-two-sided'); if(lineTwoSided){ lineTwoSided.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='line') return; const ln=this.mapData.getLine(parseInt(id,10)); if(!ln) return; this.undoManager.record(this.mapData); ln.twoSided=e.target.checked; }); }
+      const sectorFloor = document.getElementById('sector-floor'); if(sectorFloor){ sectorFloor.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.floorHeight=parseInt(e.target.value,10)||0; }); }
+      const sectorCeil = document.getElementById('sector-ceiling'); if(sectorCeil){ sectorCeil.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.ceilingHeight=parseInt(e.target.value,10)||0; }); }
+      const sectorFloorTex = document.getElementById('sector-floor-tex'); if(sectorFloorTex){ sectorFloorTex.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.floorTex=e.target.value; }); }
+      const sectorCeilTex = document.getElementById('sector-ceil-tex'); if(sectorCeilTex){ sectorCeilTex.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.ceilingTex=e.target.value; }); }
+      const sectorSpecial = document.getElementById('sector-special'); if(sectorSpecial){ sectorSpecial.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.special=parseInt(e.target.value,10)||0; }); }
+      const sectorTag = document.getElementById('sector-tag'); if(sectorTag){ sectorTag.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='sector') return; const s=this.mapData.getSector(parseInt(id,10)); if(!s) return; this.undoManager.record(this.mapData); s.tag=parseInt(e.target.value,10)||0; }); }
+      const thingAngle = document.getElementById('thing-angle'); if(thingAngle){ thingAngle.addEventListener('input',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='thing') return; const t=this.mapData.getThing(parseInt(id,10)); if(!t) return; this.undoManager.record(this.mapData); t.angle=parseInt(e.target.value,10)||0; }); }
+      const thingEasy = document.getElementById('thing-easy'); if(thingEasy){ thingEasy.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='thing') return; const t=this.mapData.getThing(parseInt(id,10)); if(!t) return; this.undoManager.record(this.mapData); t.easy=e.target.checked; }); }
+      const thingMedium = document.getElementById('thing-medium'); if(thingMedium){ thingMedium.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='thing') return; const t=this.mapData.getThing(parseInt(id,10)); if(!t) return; this.undoManager.record(this.mapData); t.medium=e.target.checked; }); }
+      const thingHard = document.getElementById('thing-hard'); if(thingHard){ thingHard.addEventListener('change',(e)=>{ const sel=Array.from(this.renderer.selection)[0]; if(!sel) return; const [type,id]=sel.split('-'); if(type!=='thing') return; const t=this.mapData.getThing(parseInt(id,10)); if(!t) return; this.undoManager.record(this.mapData); t.hard=e.target.checked; }); }
+    }
+    populateThingDropdown(){
+      const select = document.getElementById('thing-type');
+      if(!select) return;
+      const list = thingRegistry[this.currentGame] || [];
+      select.innerHTML = '';
+      for(const thing of list){
+        const option = document.createElement('option');
+        option.value = thing.id;
+        option.textContent = `${thing.id}: ${thing.name}`;
+        select.appendChild(option);
+      }
+      const countSpan = document.getElementById('thing-type-count');
+      if(countSpan) countSpan.textContent = `Total: ${list.length} things`;
+    }
+    updateUI(){ 
+      const stats=this.mapData.getStats(); 
+      document.getElementById('stat-vertices').textContent=stats.vertices; 
+      document.getElementById('stat-lines').textContent=stats.lines; 
+      document.getElementById('stat-sectors').textContent=stats.sectors; 
+      document.getElementById('stat-things').textContent=stats.things; 
+      document.getElementById('stat-selected').textContent=this.renderer.selection.size; 
+      const propsPanel=document.getElementById('properties-panel'); if(!propsPanel) return; 
+      const thingPanel=document.getElementById('thing-properties'); 
+      const sectorPanel=document.getElementById('sector-properties'); 
+      const linePanel=document.getElementById('line-properties'); 
+      if(thingPanel) thingPanel.style.display='none'; 
+      if(sectorPanel) sectorPanel.style.display='none'; 
+      if(linePanel) linePanel.style.display='none'; 
+      if(this.renderer.selection.size===0){ propsPanel.innerHTML=`<p style="color: #999;">No selection</p>`; } 
+      else if(this.renderer.selection.size>1){ propsPanel.innerHTML=`<p><strong>${this.renderer.selection.size} items selected</strong></p>`; } 
+      else if(this.renderer.selection.size===1){ 
+        const selected=Array.from(this.renderer.selection)[0]; 
+        const [type,id]=selected.split('-'); 
+        const idNum=parseInt(id,10); 
+        if(type==='vertex'){ 
+          const v=this.mapData.getVertex(idNum); 
+          if(v) propsPanel.innerHTML=`<p><strong>Vertex ${idNum}</strong></p><p>X: ${v.x}</p><p>Y: ${v.y}</p>`; 
+        } else if(type==='line'){ 
+          const l=this.mapData.getLine(idNum); 
+          if(l){ 
+            propsPanel.innerHTML=`<p><strong>Line ${idNum}</strong></p><p>V1: ${l.v1} → V2: ${l.v2}</p><p>Special: ${l.special}</p>`; 
+            if(linePanel){ linePanel.style.display='block'; 
+              const front=document.getElementById('line-front-tex'); const back=document.getElementById('line-back-tex'); 
+              const lspecial=document.getElementById('line-special'); const ltag=document.getElementById('line-tag'); 
+              const limp=document.getElementById('line-impassable'); const lblock=document.getElementById('line-block-monsters'); 
+              const ltwo=document.getElementById('line-two-sided'); 
+              if(front) front.value=l.frontTex||''; if(back) back.value=l.backTex||''; 
+              if(lspecial) lspecial.value=l.special||0; if(ltag) ltag.value=l.tag||0; 
+              if(limp) limp.checked=!!l.impassable; if(lblock) lblock.checked=!!l.blockMonsters; 
+              if(ltwo) ltwo.checked=!!l.twoSided; 
+            } 
+          } 
+        } else if(type==='thing'){ 
+          const t=this.mapData.getThing(idNum); 
+          if(t){ 
+            const def = getThingDef(this.currentGame, t.type);
+            const typeName = def ? def.name : 'Unknown';
+            propsPanel.innerHTML=`<p><strong>Thing ${idNum}</strong></p><p>Type: ${t.type} (${typeName})</p><p>Position: (${t.x}, ${t.y})</p><p>Angle: ${t.angle}°</p>`; 
+            if(thingPanel){ thingPanel.style.display='block'; 
+              const ttype=document.getElementById('thing-type'); const tangle=document.getElementById('thing-angle'); 
+              const teasy=document.getElementById('thing-easy'); const tmed=document.getElementById('thing-medium'); 
+              const thard=document.getElementById('thing-hard'); 
+              if(ttype) ttype.value=t.type; if(tangle) tangle.value=t.angle||0; 
+              if(teasy) teasy.checked=!!t.easy; if(tmed) tmed.checked=!!t.medium; 
+              if(thard) thard.checked=!!t.hard; 
+            } 
+          } 
+        } else if(type==='sector'){ 
+          const s=this.mapData.getSector(idNum); 
+          if(s){ 
+            propsPanel.innerHTML=`<p><strong>Sector ${idNum}</strong></p><p>Lines: ${s.lineIds.length}</p><p>Floor: ${s.floorHeight}</p>`; 
+            if(sectorPanel){ sectorPanel.style.display='block'; 
+              const sfloor=document.getElementById('sector-floor'); const sceil=document.getElementById('sector-ceiling'); 
+              const sfloortex=document.getElementById('sector-floor-tex'); const sceiltex=document.getElementById('sector-ceil-tex'); 
+              const sspecial=document.getElementById('sector-special'); const stag=document.getElementById('sector-tag'); 
+              if(sfloor) sfloor.value=s.floorHeight||0; if(sceil) sceil.value=s.ceilingHeight||0; 
+              if(sfloortex) sfloortex.value=s.floorTex||''; if(sceiltex) sceiltex.value=s.ceilingTex||''; 
+              if(sspecial) sspecial.value=s.special||0; if(stag) stag.value=s.tag||0; 
+            } 
+          } 
+        } 
+      }
+    }
+    createSampleMap(){ 
+      const v1=this.mapData.addVertex(-256,-256); 
+      const v2=this.mapData.addVertex(256,-256); 
+      const v3=this.mapData.addVertex(256,256); 
+      const v4=this.mapData.addVertex(-256,256); 
+      const l1=this.mapData.addLine(v1.id,v2.id); 
+      const l2=this.mapData.addLine(v2.id,v3.id); 
+      const l3=this.mapData.addLine(v3.id,v4.id); 
+      const l4=this.mapData.addLine(v4.id,v1.id); 
+      this.mapData.addSector([l1.id,l2.id,l3.id,l4.id]); 
+      this.mapData.addThing(0,0,1,0); 
+      this.mapData.addThing(200,0,2004,0); 
+      this.renderer.fitToView(); 
+      const zoomSliderEl=document.getElementById('zoom-slider'); 
+      const zoomInputEl=document.getElementById('zoom-input'); 
+      if(zoomSliderEl) zoomSliderEl.value=this.renderer.zoom; 
+      if(zoomInputEl) zoomInputEl.value=this.renderer.zoom; 
+      this.undoManager.record(this.mapData); 
+      this.updateUI(); 
+    }
+    animate(){ this.renderer.render(); this.updateUI(); requestAnimationFrame(()=>this.animate()); }
+  }
+  document.addEventListener('DOMContentLoaded',()=>{ const app=new MapEditorApp(); window.mapEditorApp=app; });
+</script>
+</body>
+</html>

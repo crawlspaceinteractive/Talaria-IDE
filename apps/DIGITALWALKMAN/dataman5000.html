@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<meta name="theme-color" content="#7b8b9b">
+<title>DATAMAN 5000 — Winstep95 Workspace v2.0</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+
+<style>
+/* === WINSTEP95 HARDWARE THEME ARCHITECTURE === */
+:root {
+  --ws-bg: #7b8b9b;            /* Classic teal/slate desktop backing */
+  --win-face: #ced4da;         /* Standard metallic gray window body */
+  --win-light: #ffffff;        /* 3D highlights */
+  --win-shadow: #868e96;       /* 3D dark shadows */
+  --win-dark: #212529;         /* High-contrast borders */
+  --win-text: #050505;
+  --win-blue: #004e98;         /* Active Titlebar Gradient Start */
+  --win-blue-light: #0080ff;   /* Active Titlebar Gradient End */
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: var(--ws-bg);
+  color: var(--win-text);
+  font-family: "MS Sans Serif", "Segoe UI", Tahoma, Arial, sans-serif;
+  font-size: 12px;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#desktop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+/* === THE WINDOW FRAME (OUTWARD BEVEL) === */
+.ws95-window {
+  background: var(--win-face);
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-dark);
+  box-shadow: 
+    inset -1px -1px 0px var(--win-shadow), 
+    inset 1px 1px 0px var(--win-light),
+    4px 4px 10px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 840px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === RETRO TITLEBAR === */
+.ws95-titlebar {
+  background: linear-gradient(90deg, var(--win-blue), var(--win-blue-light));
+  color: #fff;
+  padding: 4px 6px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ws95-title-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.ws95-title-btn {
+  width: 16px;
+  height: 14px;
+  background: var(--win-face);
+  border-top: 1px solid var(--win-light);
+  border-left: 1px solid var(--win-light);
+  border-right: 1px solid var(--win-dark);
+  border-bottom: 1px solid var(--win-dark);
+  box-shadow: inset -1px -1px 0px var(--win-shadow);
+  text-align: center;
+  line-height: 11px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+}
+.ws95-title-btn:active {
+  border-top: 1px solid var(--win-dark);
+  border-left: 1px solid var(--win-dark);
+  border-right: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-light);
+  box-shadow: none;
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+/* === WINDOW BODY CONTENT === */
+.ws95-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* === INWARD BEVEL FIELDS (DECK / PAD / VU HOUSINGS) === */
+.ws95-inset-field {
+  border-top: 2px solid var(--win-shadow);
+  border-left: 2px solid var(--win-shadow);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  background-color: #000000;
+  position: relative;
+  overflow: hidden;
+}
+
+#deck-frame {
+  height: 32vh;
+  min-height: 160px;
+  background: radial-gradient(circle at 50% 30%, #181d22 0%, #080a0c 90%);
+}
+
+#tape {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 85%;
+  opacity: 0.9;
+  filter: contrast(1.4) brightness(1.2);
+}
+
+/* === HARDWARE REEL CHASSIS === */
+.reel {
+  position: absolute;
+  top: 50%;
+  width: 68px;
+  height: 68px;
+  margin-top: -34px;
+  border-radius: 50%;
+  border: 3px solid #7a8288;
+  background: radial-gradient(circle, #333333 12%, #111111 20%, #444444 45%, #050505 75%);
+  box-shadow: 
+    inset 0 0 8px rgba(0,255,255,0.2),
+    0 4px 6px rgba(0,0,0,0.6);
+  animation: spin 4s linear infinite paused;
+  z-index: 2;
+}
+.reel::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 16px; height: 16px;
+  margin: -8px;
+  background: #7a8288;
+  border-radius: 50%;
+  box-shadow: inset 0 0 3px #000;
+}
+.reel.left { left: 12%; }
+.reel.right { right: 12%; }
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* === WAVE SCRATCHPAD === */
+#scratchpad-frame {
+  height: 16vh;
+  min-height: 80px;
+  background: #111418;
+}
+#pad { width: 100%; height: 100%; display: block; }
+
+/* === VU MONITOR === */
+#vu-frame {
+  height: 4.5vh;
+  min-height: 32px;
+  background: #000;
+}
+#vu { width: 100%; height: 100%; display: block; }
+
+/* === HARDWARE STATUS BAR PANEL === */
+.ws95-status-bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+}
+.ws95-status-pane {
+  background: var(--win-face);
+  border-top: 1px solid var(--win-shadow);
+  border-left: 1px solid var(--win-shadow);
+  border-right: 1px solid var(--win-light);
+  border-bottom: 1px solid var(--win-light);
+  padding: 3px 6px;
+  font-family: monospace;
+  font-size: 11px;
+  color: #111;
+  display: flex;
+  align-items: center;
+}
+.ws95-status-pane.fill { flex-grow: 1; }
+
+/* === CONSOLIDATED CHISELED MECHANICAL BUTTONS === */
+#controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.ws95-btn {
+  height: 64px;
+  background: var(--win-face);
+  color: #111;
+  font-family: "MS Sans Serif", "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: bold;
+  
+  /* Hard 3D Outward Bevel Button Style */
+  border-top: 2px solid var(--win-light);
+  border-left: 2px solid var(--win-light);
+  border-right: 2px solid var(--win-dark);
+  border-bottom: 2px solid var(--win-dark);
+  box-shadow: inset -1px -1px 0px var(--win-shadow);
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  outline: none;
+}
+
+.ws95-btn:active {
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  box-shadow: none;
+  padding-top: 2px;
+  padding-left: 2px;
+}
+
+.ws95-btn .symbol {
+  font-size: 16px;
+  color: #333;
+  transition: text-shadow 0.2s, color 0.2s;
+}
+
+/* Dedicated Active States inside the Winstep Chassis */
+.ws95-btn.active-led {
+  background: #dee2e6;
+  border-top: 2px solid var(--win-dark);
+  border-left: 2px solid var(--win-dark);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+  box-shadow: inset 1px 1px 1px var(--win-shadow);
+}
+
+.ws95-btn.active-led .symbol {
+  animation: pulse var(--pulse-rate, 2s) ease-in-out infinite;
+}
+
+/* Color Mapping for Symbols */
+#rec.active-led .symbol  { color: #e60000; text-shadow: 0 0 8px #ff4d4d; }
+#play.active-led .symbol { color: #00cc66; text-shadow: 0 0 8px #33ff99; }
+#stop.active-led .symbol { color: #ffcc00; text-shadow: 0 0 8px #ffeb99; }
+#mode.active-led .symbol { color: #ff6600; text-shadow: 0 0 8px #ffa366; }
+#save.active-led .symbol { color: #9933ff; text-shadow: 0 0 8px #cc99ff; }
+#full.active-led .symbol { color: #0099ff; text-shadow: 0 0 8px #66c2ff; }
+
+@keyframes pulse {
+  0%, 100% { filter: brightness(1.0); opacity: 0.8; }
+  50%      { filter: brightness(1.5); opacity: 1; }
+}
+
+/* === INTEGRATED SYSTEM BUS LAMP === */
+.led {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3a0000;
+  border: 1px solid var(--win-shadow);
+  box-shadow: inset 1px 1px 1px #000;
+  margin-left: auto;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.led.red.on     { background: #ff2222; box-shadow: 0 0 6px #ff2222, inset 1px 1px 1px #fff; }
+.led.green.on   { background: #22ff22; box-shadow: 0 0 6px #22ff22, inset 1px 1px 1px #fff; }
+.led.yellow.on  { background: #ffff22; box-shadow: 0 0 6px #ffff22, inset 1px 1px 1px #fff; }
+.led.amber.on   { background: #ffaa22; box-shadow: 0 0 6px #ffaa22, inset 1px 1px 1px #fff; }
+.led.blink      { animation: ws-blink 0.4s steps(2, start) infinite; }
+
+@keyframes ws-blink { to { opacity: 0.2; } }
+
+/* === SYSTEM DIAGNOSTIC PANEL === */
+#engineerPanel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--win-face);
+  border-top: 2px solid var(--win-light);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+  max-height: 30vh;
+  transform: translateY(calc(100% - 24px));
+  transition: transform 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+  z-index: 9999;
+}
+#engineerPanel.open { transform: translateY(0); }
+#engHeader {
+  background: linear-gradient(90deg, #555, #888);
+  color: #fff;
+  padding: 4px 10px;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+}
+#engBody {
+  padding: 6px;
+  overflow-y: auto;
+  max-height: 24vh;
+  font-family: monospace;
+  font-size: 11px;
+  background: #fff;
+  color: #000;
+  margin: 4px;
+  border-top: 2px solid var(--win-shadow);
+  border-left: 2px solid var(--win-shadow);
+  border-right: 2px solid var(--win-light);
+  border-bottom: 2px solid var(--win-light);
+}
+#engBody .warn  { color: #b56b00; font-weight: bold; }
+#engBody .error { color: #cc0000; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div id="desktop">
+  <div class="ws95-window">
+    <div class="ws95-titlebar">
+      <div class="ws95-title-text">
+        <span>🖭</span>
+        <span>DATAMAN 5000 — Digital Magnetic Engine</span>
+      </div>
+      <div class="ws95-title-btn" id="win-close">×</div>
+    </div>
+    
+    <div class="ws95-body">
+      <div class="ws95-inset-field" id="deck-frame">
+        <canvas id="tape"></canvas>
+        <div class="reel left"></div>
+        <div class="reel right"></div>
+      </div>
+      
+      <div class="ws95-inset-field" id="scratchpad-frame">
+        <canvas id="pad"></canvas>
+      </div>
+      
+      <div class="ws95-inset-field" id="vu-frame">
+        <canvas id="vu"></canvas>
+      </div>
+      
+      <div class="ws95-status-bar">
+        <div class="ws95-status-pane fill" id="sys-msg">SYS READY: MOUNT RECORD SIGNAL</div>
+        <div class="ws95-status-pane" id="sys-rate">44100 HZ</div>
+        <div class="ws95-status-pane">
+          <span>BUS LAMP</span>
+          <div id="hw-lamp" class="led amber on"></div>
+        </div>
+      </div>
+      
+      <div id="controls">
+        <button id="rec" class="ws95-btn"><span class="symbol">●</span><span>REC</span></button>
+        <button id="play" class="ws95-btn"><span class="symbol">▶</span><span>PLAY</span></button>
+        <button id="stop" class="ws95-btn"><span class="symbol">■</span><span>STOP</span></button>
+        <button id="mode" class="ws95-btn"><span class="symbol">⚙</span><span>DECAY ON</span></button>
+        <button id="save" class="ws95-btn"><span class="symbol">💾</span><span>SAVE TRACK</span></button>
+        <button id="full" class="ws95-btn"><span class="symbol">🗖</span><span>MAXIMIZE</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="engineerPanel">
+  <div id="engHeader"><span>System Diagnostics Terminal</span><span id="engArrow">▲</span></div>
+  <div id="engBody"></div>
+</div>
+
+<script>
+// --- CORE INDUSTRIAL AUDIO DRIVER ENGINE ---
+
+class AudioEngine extends EventTarget {
+  constructor() {
+    super();
+    this.ctx = null;
+    this.analyser = null;
+    this.data = new Uint8Array(128);
+    this.buffer = null; this.source = null; this.stream = null; this.rec = null;
+    this.chunks = []; this.scrubRate = 1; this.playhead = 0;
+  }
+  _initContext() {
+    if (!this.ctx) {
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.analyser = this.ctx.createAnalyser();
+      this.analyser.fftSize = 256;
+      this.data = new Uint8Array(this.analyser.frequencyBinCount);
+      document.getElementById("sys-rate").textContent = `${this.ctx.sampleRate} HZ`;
+    }
+  }
+  async record(){
+    this._initContext();
+    try{
+      this.stream = await navigator.mediaDevices.getUserMedia({audio:true});
+      this.rec = new MediaRecorder(this.stream); this.chunks = [];
+      this.rec.ondataavailable = e => this.chunks.push(e.data);
+      this.rec.onstop = async () => {
+        const blob = new Blob(this.chunks, {type:"audio/webm"});
+        const arr = await blob.arrayBuffer();
+        this.buffer = await this.ctx.decodeAudioData(arr);
+        this.dispatchEvent(new Event("record-stop"));
+      };
+      this.rec.start(); this.dispatchEvent(new Event("record-start"));
+    } catch(err) {
+      console.error("AudioEngine record() instantiation failure:", err);
+      this.dispatchEvent(new Event("record-error"));
+      throw err;
+    }
+  }
+  stopRecord(){
+    if(this.rec && this.rec.state !== "inactive") this.rec.stop();
+    if(this.stream) this.stream.getTracks().forEach(t => t.stop());
+    this.dispatchEvent(new Event("record-stop"));
+  }
+  play(reverse=false){
+    if(!this.buffer) return;
+    this._initContext();
+    if(this.source) { try{this.source.stop();}catch(e){} }
+    this.source = this.ctx.createBufferSource();
+    const buf = reverse ? this._reverseBuffer() : this.buffer;
+    this.source.buffer = buf; this.source.playbackRate.value = Math.abs(this.scrubRate);
+    const lowpass = this.ctx.createBiquadFilter(); lowpass.type = "lowpass"; lowpass.frequency.value = 4200;
+    const master = this.ctx.createGain(); master.gain.value = 0.85;
+    this.source.connect(lowpass).connect(master).connect(this.analyser).connect(this.ctx.destination);
+    this.source.start(0, reverse ? (buf.duration - this.playhead) : this.playhead);
+    this.dispatchEvent(new Event("play-start"));
+  }
+  _reverseBuffer(){
+    const b = this.buffer, c = b.numberOfChannels;
+    const r = this.ctx.createBuffer(c, b.length, b.sampleRate);
+    for(let ch=0; ch<c; ch++){
+      const s = b.getChannelData(ch), d = r.getChannelData(ch);
+      for(let i=0, j=s.length-1; i<s.length; i++, j--) d[i] = s[j];
+    }
+    return r;
+  }
+  getWavBlob() {
+    if (!this.buffer) return null;
+    const buffer = this.buffer;
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const format = 1; 
+    const bitDepth = 16;
+    let result = (numChannels === 1) ? 
+      this._interleave(buffer.getChannelData(0)) : 
+      this._interleave(buffer.getChannelData(0), buffer.getChannelData(1));
+    const bufferLength = result.length * 2;
+    const headerBuffer = new ArrayBuffer(44);
+    const view = new DataView(headerBuffer);
+    this._writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + bufferLength, true);
+    this._writeString(view, 8, 'WAVE');
+    this._writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true);
+    view.setUint16(32, numChannels * (bitDepth / 8), true);
+    view.setUint16(34, bitDepth, true);
+    this._writeString(view, 36, 'data');
+    view.setUint32(40, bufferLength, true);
+    return new Blob([headerBuffer, result], { type: 'audio/wav' });
+  }
+  _interleave(inputL, inputR) {
+    if (!inputR) {
+      const buffer = new Int16Array(inputL.length);
+      for (let i=0; i<inputL.length; i++) {
+        let s = Math.max(-1, Math.min(1, inputL[i]));
+        buffer[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+      return buffer;
+    }
+    const length = inputL.length + inputR.length;
+    const buffer = new Int16Array(length);
+    let index = 0, inputIndex = 0;
+    while (index < length) {
+      let sL = Math.max(-1, Math.min(1, inputL[inputIndex]));
+      buffer[index++] = sL < 0 ? sL * 0x8000 : sL * 0x7FFF;
+      let sR = Math.max(-1, Math.min(1, inputR[inputIndex]));
+      buffer[index++] = sR < 0 ? sR * 0x8000 : sR * 0x7FFF;
+      inputIndex++;
+    }
+    return buffer;
+  }
+  _writeString(view, offset, string) {
+    for (let i=0; i<string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+  }
+}
+
+// --- WIDESCREEN VISUAL DISPLAY UNIT ---
+
+class UIDeck {
+  constructor(engine){
+    this.engine = engine;
+    this.canvas = document.getElementById('tape');
+    this.ctx = this.canvas.getContext('2d');
+    this.reels = [...document.querySelectorAll('.reel')];
+    this.burnMode = true;
+    this.scroll = null;
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+    this._loop();
+  }
+  _resize(){
+    this.canvas.width = this.canvas.clientWidth;
+    this.canvas.height = this.canvas.clientHeight;
+  }
+  _heatColor(v){
+    const hue = 240 - (v * 240 / 255);
+    return `hsl(${hue}, 100%, ${25 + v/3.5}%)`;
+  }
+  _loop(){
+    requestAnimationFrame(() => this._loop());
+    const a = this.engine.analyser;
+    if(!a) return;
+    this.engine.analyser.getByteFrequencyData(this.engine.data);
+    const fade = this.burnMode ? 0.02 : 0.25;
+    this.ctx.fillStyle = `rgba(0,0,0,${fade})`;
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    const img = this.ctx.getImageData(1, 0, this.canvas.width - 1, this.canvas.height);
+    this.ctx.putImageData(img, 0, 0);
+    for(let y=0; y<this.canvas.height; y++){
+      const idx = Math.floor(y / this.canvas.height * this.engine.data.length);
+      const val = this.engine.data[idx];
+      this.ctx.fillStyle = this._heatColor(val);
+      this.ctx.fillRect(this.canvas.width - 1, y, 1, 1);
+    }
+  }
+  playReels(run=true){
+    this.reels.forEach(r => r.style.animationPlayState = run ? "running" : "paused");
+    if(this.scroll) {
+      if(run) this.scroll.start(this.engine.scrubRate >= 0 ? 1 : -1, 2);
+      else this.scroll.stop();
+    }
+  }
+  toggleMode(){
+    this.burnMode = !this.burnMode;
+    return this.burnMode;
+  }
+}
+
+// --- ANALOG SCRATCHPAD SCUBLINE INTERFACE ---
+
+class UIScratchpad {
+  constructor(engine, deck){
+    this.engine = engine;
+    this.deck = deck;
+    this.canvas = document.getElementById('pad');
+    this.ctx = this.canvas.getContext('2d');
+    this.isScrubbing = false; this.lastX = 0; this.lastT = 0;
+    this._resize();
+    window.addEventListener('resize', () => this._resize());
+    this._bind();
+  }
+  _resize(){
+    this.canvas.width = this.canvas.clientWidth;
+    this.canvas.height = this.canvas.clientHeight;
+  }
+  _bind(){
+    this.canvas.addEventListener('pointerdown', e => {
+      if(!this.engine.buffer) return;
+      this.isScrubbing = true;
+      this.lastX = e.clientX; this.lastT = performance.now();
+      if(this.engine.source) { try{this.engine.source.stop();}catch(err){} }
+      this.deck.playReels(false);
+    });
+    this.canvas.addEventListener('pointermove', e => {
+      if(!this.isScrubbing || !this.engine.buffer) return;
+      const now = performance.now();
+      const dx = e.clientX - this.lastX;
+      const dt = now - this.lastT;
+      this.lastX = e.clientX; this.lastT = now;
+      const secPerPixel = this.engine.buffer.duration / this.canvas.width;
+      const velocity = dx / Math.max(dt, 1);
+      this.engine.scrubRate = 1 + velocity * 0.1;
+      this.engine.playhead = Math.max(0, Math.min(this.engine.buffer.duration, this.engine.playhead + dx * secPerPixel));
+      
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.ctx.fillStyle = 'rgba(0, 255, 159, 0.4)';
+      this.ctx.fillRect(this.engine.playhead / this.engine.buffer.duration * this.canvas.width, 0, 3, this.canvas.height);
+    });
+    this.canvas.addEventListener('pointerup', () => {
+      if(!this.engine.buffer) return;
+      this.isScrubbing = false;
+      const reverse = this.engine.scrubRate < 0;
+      this.engine.play(reverse);
+      this.deck.playReels(true);
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    });
+  }
+}
+
+// --- MAGNETIC TAPE FLOW TRANSIT ---
+
+class UITapeScroll {
+  constructor(canvasId = 'tape') {
+    this.canvas = document.getElementById(canvasId);
+    this.ctx = this.canvas.getContext('2d');
+    this.offset = 0; this.speed = 2; this.running = false; this.stateColor = "amber";
+    requestAnimationFrame(() => this._loop());
+  }
+  setState(color) { this.stateColor = color; }
+  _loop() {
+    requestAnimationFrame(() => this._loop());
+    if (!this.running) return;
+    const w = this.canvas.width, h = this.canvas.height;
+    this.offset = (this.offset + this.speed) % w;
+    const grad = this.ctx.createLinearGradient(this.offset, 0, this.offset + 90, 0);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.06)');
+    grad.addColorStop(1, 'rgba(255,255,255,0)');
+    this.ctx.fillStyle = grad;
+    this.ctx.fillRect(0, 0, w, h);
+  }
+  getSpeed() { return Math.abs(this.speed); }
+  start(direction = 1, speed = 2) { this.speed = direction * speed; this.running = true; }
+  stop() { this.running = false; }
+}
+
+// --- HARDWARE CONTROL LAYOUT WIRING ---
+
+class UIControls {
+  constructor(engine, deck) {
+    this.engine = engine;
+    this.deck = deck;
+
+    this.rec = document.getElementById("rec");
+    this.playBtn = document.getElementById("play");
+    this.stopBtn = document.getElementById("stop");
+    this.mode = document.getElementById("mode");
+    this.saveBtn = document.getElementById("save");
+    this.full = document.getElementById("full");
+    this.msg = document.getElementById("sys-msg");
+    this.lamp = document.getElementById("hw-lamp");
+
+    this.active = null;
+    this._bind();
+    console.log("[BOOT] UIControls mapped cleanly onto WS95 physical panel matrix.");
+  }
+  _activate(btn, color = "amber", blink = false) {
+    if (this.active) this.active.classList.remove("active-led");
+    this.active = btn;
+    if (btn) btn.classList.add("active-led");
+    this._led(blink ? "blink" : "on", color);
+  }
+  _led(state, color = "amber") {
+    this.lamp.className = `led ${color}`;
+    this.lamp.classList.toggle("on", state === "on");
+    this.lamp.classList.toggle("blink", state === "blink");
+  }
+  _syncTape(color) {
+    if (this.deck.scroll && typeof this.deck.scroll.setState === "function") {
+      this.deck.scroll.setState(color);
+    }
+  }
+  _setStatus(text) {
+    this.ws95Status = text.toUpperCase();
+    this.msg.textContent = `SYS: ${this.ws95Status}`;
+  }
+  _bind() {
+    this.rec.onclick = async () => {
+      try {
+        await this.engine.record();
+        this.deck.playReels(false);
+        this._activate(this.rec, "red", true);
+        this._syncTape("red");
+        this._setStatus("MAGNETIC WRITING SENSOR ACTIVE");
+      } catch (err) {
+        this._led("blink", "amber");
+        this._syncTape("amber");
+        console.error(`Recording track allocation exception: ${err.message}`);
+      }
+    };
+    this.stopBtn.onclick = () => {
+      try {
+        this.engine.stopRecord();
+        if (this.engine.source) { try{this.engine.source.stop();}catch(e){} }
+        this.deck.playReels(false);
+        this._activate(this.stopBtn, "yellow");
+        this._syncTape("amber");
+        this._setStatus("TRANSPORT ENGAGED STABLE STOP");
+      } catch (err) {
+        this._led("blink", "amber");
+        this._syncTape("amber");
+        console.error(`Deck brake exception: ${err.message}`);
+      }
+    };
+    this.playBtn.onclick = () => {
+      if (!this.engine.buffer) {
+        this._led("blink", "amber");
+        this._syncTape("amber");
+        this._setStatus("EMPTY BUFFER ERROR: SECTOR TRACK UNALLOCATED");
+        console.warn("Blank Tape Error: Capture input data stream first.");
+        return;
+      }
+      this.engine.play();
+      this.deck.playReels(true);
+      this._activate(this.playBtn, "green");
+      this._syncTape("green");
+      this._setStatus("OUTPUT CONSOLE PIPELINE MONITOR STREAMING");
+    };
+    this.mode.onclick = () => {
+      const burn = this.deck.toggleMode();
+      this.mode.querySelector('span:not(.symbol)').textContent = burn ? "DECAY ON" : "CLEAN REF";
+      this._activate(this.mode, "amber");
+      this._setStatus(`TRANSIT RENDERING CONFIGURED: ${burn ? 'PHOSPHOR BURN' : 'STANDARD REWIND'}`);
+    };
+    this.saveBtn.onclick = () => {
+      const blob = this.engine.getWavBlob();
+      if (!blob) {
+        this._led("blink", "amber");
+        this._setStatus("COMPILE FAULT: ZERO DATA ARRAY READ");
+        console.warn("Export Fault: Tape vector allocation empty.");
+        return;
+      }
+      this._activate(this.saveBtn, "purple");
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+      link.href = url;
+      link.download = `DATAMAN-TRACK-${stamp}.wav`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      this._setStatus(`SUCCESSFULLY WRITTEN TO TARGET FILE STORAGE`);
+      console.log(`Track written to host disk interface: ${link.download}`);
+    };
+    this.full.onclick = () => {
+      const el = document.documentElement;
+      if (!document.fullscreenElement) {
+        el.requestFullscreen().catch(()=>{});
+        this._activate(this.full, "cyan");
+        this.full.querySelector('span:not(.symbol)').textContent = "MINIMIZE";
+      } else {
+        document.exitFullscreen();
+        this._activate(this.full, "amber");
+        this.full.querySelector('span:not(.symbol)').textContent = "MAXIMIZE";
+      }
+    };
+  }
+}
+
+// --- ANALOG LED VU MONITOR METER ---
+
+class UI_VU {
+  constructor(engine) {
+    this.engine = engine;
+    this.canvas = document.getElementById("vu");
+    this.ctx = this.canvas.getContext("2d");
+    this._resize();
+    window.addEventListener("resize", () => this._resize());
+    this._loop();
+  }
+  _resize() {
+    this.canvas.width = this.canvas.clientWidth;
+    this.canvas.height = this.canvas.clientHeight;
+  }
+  _loop() {
+    requestAnimationFrame(() => this._loop());
+    this.ctx.fillStyle = "#000000";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    if (!this.engine.analyser) return;
+    
+    let sum = 0;
+    for (let i = 0; i < this.engine.data.length; i++) sum += this.engine.data[i];
+    const rms = sum / this.engine.data.length;
+    const peakSegments = Math.min(24, Math.floor((rms / 120) * 24));
+    
+    const wSeg = (this.canvas.width - 50) / 24;
+    const hSeg = this.canvas.height - 10;
+    
+    for (let i = 0; i < 24; i++) {
+      if (i < peakSegments) {
+        if (i < 14) this.ctx.fillStyle = "#00cc33";       // Clean Green Range
+        else if (i < 20) this.ctx.fillStyle = "#ffaa00";  // Headroom Warning Amber
+        else this.ctx.fillStyle = "#ff2222";              // Saturation Saturation Peak Red
+      } else {
+        this.ctx.fillStyle = "#222222";                   // Off state Segment Chassis
+      }
+      this.ctx.fillRect(25 + (i * wSeg) + 2, 5, wSeg - 3, hSeg);
+    }
+  }
+}
+
+// --- MASTER RUNTIME INITIALIZATION SYSTEM ---
+
+window.addEventListener('DOMContentLoaded', () => {
+  const eng = {
+    panel: document.getElementById('engineerPanel'),
+    body: document.getElementById('engBody'),
+    arrow: document.getElementById('engArrow'),
+    log: (msg, type = 'info') => {
+      const e = document.createElement('div');
+      e.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      e.className = type;
+      eng.body.appendChild(e);
+      eng.body.scrollTop = eng.body.scrollHeight;
+    }
+  };
+  
+  document.getElementById('engHeader').onclick = () => {
+    const open = eng.panel.classList.toggle('open');
+    eng.arrow.textContent = open ? "▼" : "▲";
+  };
+  
+  ['log', 'warn', 'error'].forEach(fn => {
+    const orig = console[fn];
+    console[fn] = (...args) => {
+      orig.apply(console, args);
+      eng.log(args.join(' '), fn);
+    };
+  });
+
+  console.log("Winstep95 Diagnostic Stack Hook Active.");
+
+  // Spin up component architectures
+  const engine = new AudioEngine();
+  const deck = new UIDeck(engine);
+  const pad = new UIScratchpad(engine, deck);
+  const vuMeter = new UI_VU(engine);
+  const scroll = new UITapeScroll('tape');
+  
+  deck.scroll = scroll;
+  const controls = new UIControls(engine, deck);
+
+  scroll.start(1, 2);
+  console.log("[BOOT] Complete Walkman execution array successful.");
+
+  const root = document.documentElement;
+  function updatePulse() {
+    const s = scroll.getSpeed ? scroll.getSpeed() : 1;
+    const period = Math.max(0.3, 3.8 / s).toFixed(2) + 's';
+    root.style.setProperty('--pulse-rate', period);
+    requestAnimationFrame(updatePulse);
+  }
+  updatePulse();
+  
+  document.getElementById("win-close").onclick = () => {
+    console.warn("System shutdown instruction issued via user UI window event context.");
+    alert("Dataman System Core cannot be closed from this environment.");
+  };
+});
+</script>
+</body>
+</html>

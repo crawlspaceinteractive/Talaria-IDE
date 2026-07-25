@@ -1,0 +1,105 @@
+{
+  "id": "phase8",
+  "icon": "⚙️",
+  "title": "Phase 8 – Titans in the Dirt",
+  "systems": [
+    {
+      "name": "8.1 Titan Location & Excavation State",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 28,
+      "dependencies": ["phase7_0", "phase2_0", "phase1_0"],
+      "notes": "Buried titans are placed via world seed using TitanManager. Excavation is a multi‑session co‑op puzzle with hazard triggers. Requires the Ancient Goblin Lexicon from the Chieftain's quests (Phase 7) to locate. Each titan is a massive structure covered by blocks that must be carefully removed.",
+      "tasks": [
+        {
+          "text": "TitanManager places buried structures via seed",
+          "priority": "high",
+          "notes": "Uses world seed for deterministic placement; multiple titans across biomes."
+        },
+        {
+          "text": "Model segments covered by blocks; excavation reveals",
+          "priority": "high",
+          "notes": "Titan model split into parts (head, torso, limbs); digging away cover blocks exposes them."
+        },
+        {
+          "text": "Hazard triggers during digging (fuel pipe, collapse)",
+          "priority": "high",
+          "notes": "Disturbing certain blocks triggers events from Phase 2 hazard system. Co‑op: one scans with Lexicon while other braces."
+        }
+      ]
+    },
+    {
+      "name": "8.2 Restoration at Camp",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 22,
+      "dependencies": ["phase4_1", "phase4_2", "phase7_0", "phase1_3"],
+      "notes": "After excavation, the titan can be claimed (requires Lexicon). Restoration happens at Tub's forge: each component (limbs, boiler, drill‑arm, cockpit) is a separate resource‑intensive project. The hangar appears as a camp expansion, visually showing progress.",
+      "tasks": [
+        {
+          "text": "Claim titan via Lexicon after excavation",
+          "priority": "high"
+        },
+        {
+          "text": "Spend resources at Tub's forge per component",
+          "priority": "high",
+          "notes": "Titan Bone, Core Crystals, Boiler Glands — rare materials from excavation and other phases."
+        },
+        {
+          "text": "Visual: repaired parts on hangar skeleton",
+          "priority": "medium",
+          "notes": "Gradual assembly; each completed part appears on the titan frame."
+        },
+        {
+          "text": "Progress saved in world data",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "name": "8.3 Two-Player Vehicle Control",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase8_0", "phase1_0", "phase2_2"],
+      "notes": "The restored titan is a two‑player vehicle: Pilot (movement, colossal drill) and Engineer (boiler, repairs, special abilities). Both roles must be seated. Host authoritatively destroys blocks in a large area — clients see synchronized terrain changes. Input mapping must work for both keyboard and controller per role.",
+      "tasks": [
+        {
+          "text": "Pilot: move, drill, primary actions",
+          "priority": "high",
+          "notes": "Direct control; drill destroys 5×5 area per swing."
+        },
+        {
+          "text": "Engineer: boiler management, repairs, abilities",
+          "priority": "high",
+          "notes": "Manages fuel/steam pressure; can activate speed boost or horn."
+        },
+        {
+          "text": "Input mapping per role (keyboard/controller)",
+          "priority": "high",
+          "notes": "Use existing gamepad.js; split controls clearly."
+        },
+        {
+          "text": "Host authoritatively destroys blocks in large area",
+          "priority": "high",
+          "notes": "Block removal batch‑synced via message; clients update chunks accordingly."
+        }
+      ]
+    },
+    {
+      "name": "8.4 Endgame Biome Access",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase8_3", "phase8_0"],
+      "notes": "Vaults of the Forgotten Sun are sealed by unbreakable barriers that only a titan drill can destroy. This provides the ultimate exploration goal — no boss fight, just pure digging freedom.",
+      "tasks": [
+        {
+          "text": "Titan-drill-only breakable barriers to Vaults of the Forgotten Sun",
+          "priority": "high",
+          "notes": "Barrier blocks check for titan drill flag; normal drills do nothing."
+        }
+      ]
+    }
+  ]
+}

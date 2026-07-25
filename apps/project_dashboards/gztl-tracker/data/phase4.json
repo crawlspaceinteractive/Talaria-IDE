@@ -1,0 +1,62 @@
+{
+  "id": "phase4",
+  "icon": "🔊",
+  "title": "Phase 4 – Audio, Spawn & Inventory",
+  "systems": [
+    {
+      "name": "4.1 Sound System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_3"],
+      "notes": "Full SNDINFO implementation with positional audio, random sounds, and ambient sounds. Map sound sequences to Godot's AudioStreamPlayer nodes.",
+      "tasks": [
+        "Load and play sounds via SNDINFO aliases",
+        "Positional audio for world sounds",
+        "Ambient sound entities (thing type 14001, etc.)",
+        "Sound sequences for moving sectors"
+      ]
+    },
+    {
+      "name": "4.2 Spawn System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_1", "phase1_4"],
+      "notes": "Implement random spawners, boss spawn triggers, and thing special handling. Support ACS SpawnSpot functions.",
+      "tasks": [
+        "Random spawner logic (pick from list, chance)",
+        "Boss spawn triggers (death of all cybies, etc.)",
+        "ACS SpawnSpot / SpawnSpotFacing support",
+        "Thing special activation on spawn"
+      ]
+    },
+    {
+      "name": "4.3 Inventory & Items",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_1"],
+      "notes": "Parse DECORATE inventory definitions. Implement player inventory with pickups, use, and drop.",
+      "tasks": [
+        "Inventory item classes (ammo, weapons, keys, powerups)",
+        "Pickup logic and inventory limits",
+        "Use / activate inventory items",
+        "Player weapon slots and selection"
+      ]
+    },
+    {
+      "name": "4.4 Player Classes & Weapons",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": ["phase4_2", "phase3_1"],
+      "notes": "Support player class definitions with custom weapons and abilities.",
+      "tasks": [
+        "Multiple player classes via MAPINFO/KEYCONF",
+        "Weapon firing states and codepointers",
+        "Powerup effects (invulnerability, berserk, etc.)"
+      ]
+    }
+  ]
+}

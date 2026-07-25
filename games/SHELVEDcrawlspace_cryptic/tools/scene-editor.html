@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Custom Render Pipeline</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oswald:wght@400;600&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0820; --win-bg: #160d26; --win-border: #0a0516; --win-inset: #6a5a8a;
+  --titlebar-grad: linear-gradient(#3d2d72 0%, #1c1040 100%);
+  --btn-bg: #2e2050; --btn-border-lt: #8a7aaa; --btn-border-rb: #080312; --btn-close-bg: #4a1030;
+  --section-bg: #0f0820; --section-hdr: linear-gradient(90deg, #2a1e50 0%, #1a1038 100%);
+  --section-border-lt: #080312; --section-border-rb: #5a4a7a;
+  --text-main: #fff; --text-dim: #6a5a7a; --text-label: #6a5a8a; --text-accent: #a08ace; --text-body: #d0c0e8;
+  --input-bg: #080616; --input-border: #3a2a5a;
+  --font: 'Share Tech Mono', 'Tahoma', monospace; --font-ui: 'Oswald', sans-serif;
+}
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: var(--font); font-size: 11px; color: var(--text-main); }
+body { display: flex; flex-direction: column; gap: 4px; padding: 6px; }
+.winbox { display: flex; flex-direction: column; background: var(--win-bg); border: 1px solid var(--win-border); box-shadow: inset 1px 1px 0 var(--win-inset), 2px 2px 10px rgba(0,0,0,.8); overflow: hidden; min-height: 0; }
+.titlebar { display: flex; align-items: center; gap: 4px; padding: 3px 4px 3px 6px; background: var(--titlebar-grad); border-bottom: 1px solid var(--win-border); flex-shrink: 0; user-select: none; }
+.titlebar-icon { font-size: 9px; opacity: .7; margin-right: 2px; }
+.titlebar-title { flex: 1; font-size: 11px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.win-btns { display: flex; gap: 2px; }
+.win-btn { width: 16px; height: 14px; background: var(--btn-bg); border-top: 1px solid var(--btn-border-lt); border-left: 1px solid var(--btn-border-lt); border-right: 1px solid var(--btn-border-rb); border-bottom: 1px solid var(--btn-border-rb); color: #ccc; font-size: 8px; display: flex; align-items: center; justify-content: center; cursor: default; font-family: var(--font); }
+.win-btn.close { background: var(--btn-close-bg); color: #ff8888; }
+.win-content { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+.row { display: flex; gap: 4px; min-height: 0; }
+#stage-wrap { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+#three-canvas { width: 100% !important; flex: 1; min-height: 0; display: block; }
+#stage-controls-bar { flex-shrink: 0; background: #0c0818; border-top: 1px solid #1a1030; padding: 3px 8px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: var(--text-accent); min-height: 22px; }
+#stage-controls-bar .kb { color: #c0a0ff; font-weight: bold; margin-right: 2px; }
+#stage-controls-bar .sep { color: var(--text-dim); margin: 0 4px; }
+#stage-controls-bar #status-text { margin-left: auto; color: var(--text-dim); font-size: 9px; }
+#drop-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); color: var(--text-dim); font-size: 12px; pointer-events: none; text-align: center; opacity: .6; }
+#drop-hint.hidden { display: none; }
+#scene-controls { overflow-y: auto; padding: 5px; display: flex; flex-direction: column; gap: 5px; }
+#scene-controls::-webkit-scrollbar { width: 6px; background: #0c0818; }
+#scene-controls::-webkit-scrollbar-thumb { background: #3a2a5a; }
+.section { border: 1px solid; border-color: var(--section-border-lt) var(--section-border-rb) var(--section-border-rb) var(--section-border-lt); background: var(--section-bg); }
+.section-hdr { background: var(--section-hdr); border-bottom: 1px solid var(--section-border-lt); padding: 2px 6px; font-size: 9px; font-weight: bold; color: #7a6a9a; letter-spacing: .12em; text-transform: uppercase; font-family: var(--font-ui); display: flex; align-items: center; gap: 5px; }
+.section-hdr .model-badge { font-size: 8px; color: #a090d0; font-style: italic; font-family: var(--font); text-transform: none; letter-spacing: 0; margin-left: auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
+.section-body { padding: 5px 6px; display: flex; flex-direction: column; gap: 5px; }
+.field-row { display: flex; align-items: center; gap: 5px; }
+.field-label { color: var(--text-label); width: 72px; flex-shrink: 0; font-size: 10px; }
+.field-val { flex: 1; }
+.model-item { display: flex; align-items: center; gap: 5px; background: #1a0e30; border: 1px solid #2a1a40; padding: 3px 5px; cursor: default; }
+.model-item.selected { border-color: #7060a0; background: #1e1240; }
+.glb-badge { background: #2a5a8a; color: #80c8ff; font-size: 8px; padding: 1px 4px; font-weight: bold; font-family: var(--font-ui); flex-shrink: 0; border: 1px solid #3a6a9a; }
+.glb-badge.prim { background: #2a5a3a; color: #80e8a0; border-color: #3a8a5a; }
+.model-name { flex: 1; color: var(--text-body); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.model-remove { color: #884455; font-size: 10px; cursor: pointer; padding: 0 3px; }
+.model-remove:hover { color: #ff8899; }
+/* no-selection state for shading panel */
+#shading-section.no-sel .section-body { opacity: 0.38; pointer-events: none; }
+#shading-section.no-sel .section-hdr .model-badge { color: var(--text-dim); }
+select.wb-select { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-body); font-family: var(--font); font-size: 10px; padding: 2px 4px; width: 100%; outline: none; }
+select.wb-select:focus { border-color: #6a5a9a; }
+input[type=text].wb-input { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-body); font-family: var(--font); font-size: 10px; padding: 2px 4px; width: 100%; outline: none; }
+input[type=text].wb-input:focus { border-color: #6a5a9a; }
+input[type=range].wb-range { width: 100%; accent-color: #7060b0; height: 14px; }
+input[type=color].wb-color { width: 28px; height: 20px; border: 1px solid var(--input-border); background: #000; cursor: pointer; padding: 0; }
+.toggle-wrap { display: flex; align-items: center; gap: 5px; }
+.toggle-btn { display: flex; background: var(--input-bg); border: 1px solid var(--input-border); cursor: pointer; overflow: hidden; }
+.toggle-opt { padding: 2px 7px; font-size: 10px; color: var(--text-dim); transition: background .1s; }
+.toggle-opt.active { background: #5040a0; color: #fff; }
+.wb-btn { display: block; width: 100%; padding: 3px 6px; background: var(--btn-bg); border-top: 1px solid var(--btn-border-lt); border-left: 1px solid var(--btn-border-lt); border-right: 1px solid var(--btn-border-rb); border-bottom: 1px solid var(--btn-border-rb); color: var(--text-body); font-family: var(--font); font-size: 10px; cursor: pointer; text-align: center; margin-bottom: 2px; }
+.wb-btn:active { border-color: var(--btn-border-rb) var(--btn-border-lt) var(--btn-border-lt) var(--btn-border-rb); }
+.wb-btn.active { background: #5040a0; border-color: #9080c0; color: #fff; }
+.wb-btn-sm { padding: 2px 6px; font-size: 10px; }
+#output-row { display: flex; flex: 1; padding: 6px; gap: 8px; min-height: 0; overflow: hidden; }
+#render-wrap { flex: 1; min-width: 0; min-height: 0; position: relative; border: 1px solid #000; box-shadow: inset 1px 1px 0 #3a2a5a; background: #fff; overflow: hidden; }
+#render-canvas { image-rendering: pixelated; display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+#title-overlay { position: absolute; pointer-events: all; cursor: move; user-select: none; font-family: 'Oswald', 'Arial Black', sans-serif; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,.8), -1px -1px 0 rgba(0,0,0,.5); letter-spacing: .06em; }
+#output-controls { width: 148px; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; }
+.output-section-hdr { font-size: 9px; font-weight: bold; color: #7a6a9a; letter-spacing: .12em; text-transform: uppercase; border-bottom: 1px solid #2a1a40; padding-bottom: 2px; margin-bottom: 3px; font-family: var(--font-ui); }
+.hint-text { color: var(--text-dim); font-size: 9px; line-height: 1.5; margin-top: 4px; }
+#drag-overlay { position: fixed; inset: 0; background: rgba(80,40,160,.25); border: 3px dashed #8060d0; z-index: 1000; display: none; pointer-events: none; align-items: center; justify-content: center; }
+#drag-overlay.active { display: flex; }
+#drag-overlay span { color: #c0a0ff; font-size: 18px; font-family: var(--font-ui); text-shadow: 0 0 20px rgba(160,100,255,.8); }
+
+/* Missing models popup */
+#missing-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 2000; display: none; align-items: center; justify-content: center; }
+#missing-modal-backdrop.open { display: flex; }
+#missing-modal {
+  background: var(--win-bg);
+  border: 1px solid var(--win-border);
+  box-shadow: inset 1px 1px 0 var(--win-inset), 0 8px 40px rgba(0,0,0,.9);
+  width: 340px; max-width: 94vw;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+#missing-modal .modal-titlebar {
+  background: var(--titlebar-grad);
+  border-bottom: 1px solid var(--win-border);
+  padding: 3px 6px; display: flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: bold; color: #fff;
+  text-shadow: 1px 1px 0 rgba(0,0,0,.6);
+}
+#missing-modal .modal-body { padding: 10px 10px 6px; display: flex; flex-direction: column; gap: 6px; }
+#missing-modal .modal-desc { color: var(--text-body); font-size: 10px; line-height: 1.6; }
+#missing-modal .missing-list { display: flex; flex-direction: column; gap: 4px; max-height: 240px; overflow-y: auto; }
+#missing-modal .missing-row {
+  display: flex; align-items: center; gap: 6px;
+  background: #1a0e30; border: 1px solid #2a1a40; padding: 4px 6px;
+}
+#missing-modal .missing-row.resolved { border-color: #2a5a3a; background: #0e1e14; }
+#missing-modal .missing-name { flex: 1; color: var(--text-body); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#missing-modal .missing-status { font-size: 9px; color: var(--text-dim); flex-shrink: 0; }
+#missing-modal .missing-status.ok { color: #60c878; }
+#missing-modal .missing-load-btn { font-size: 9px; padding: 2px 7px; flex-shrink: 0; }
+#missing-modal .modal-footer { padding: 6px 10px 8px; display: flex; justify-content: flex-end; gap: 5px; border-top: 1px solid #1a1030; }
+</style>
+</head>
+<body>
+
+<div id="drag-overlay"><span>Drop GLB / OBJ file to load</span></div>
+
+<!-- Missing models modal -->
+<div id="missing-modal-backdrop">
+  <div id="missing-modal">
+    <div class="modal-titlebar">⚠ Missing Models</div>
+    <div class="modal-body">
+      <div class="modal-desc">
+        This scene references models that aren't loaded yet.<br>
+        Locate each file below to restore the full scene.
+      </div>
+      <div class="missing-list" id="missing-list"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="wb-btn wb-btn-sm" id="missing-skip-btn">Skip remaining</button>
+      <button class="wb-btn wb-btn-sm" id="missing-done-btn" style="background:#2a4a2a;border-color:#3a6a3a;color:#80e8a0;">Apply Scene</button>
+    </div>
+  </div>
+</div>
+
+<div class="row" style="flex: 1; min-height: 0;">
+  <!-- 3D Stage -->
+  <div class="winbox" style="flex:1; min-width:0;">
+    <div class="titlebar">
+      <span class="titlebar-icon">⬛</span>
+      <span class="titlebar-title">3D Stage</span>
+      <div class="win-btns"><div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn close">✕</div></div>
+    </div>
+    <div class="win-content">
+
+<div id="stage-wrap">
+        <canvas id="three-canvas" style="flex:1;width:100%;height:100%;display:block;"></canvas>
+        <div id="stage-controls-bar">
+          <span class="kb">LMB</span> — Select
+          <span class="sep">|</span>
+          <span class="kb">RMB</span> — Orbit
+          <span id="status-text">No model loaded</span>
+        </div>
+        <div id="drop-hint">Drop a .glb or .obj file here<br>or use Scene Controls to add objects</div>
+      </div>
+    </div>
+  </div>
+  <div class="winbox" style="width:256px; flex-shrink:0;">
+    <div class="titlebar">
+      <span class="titlebar-icon">⚙</span>
+      <span class="titlebar-title">Scene Controls</span>
+      <div class="win-btns"><div class="win-btn">_</div><div class="win-btn">□</div><div class="win-btn close">✕</div></div>
+    </div>
+    <div class="win-content" id="scene-controls">
+
+      <div class="section">
+        <div class="section-hdr">History</div>
+        <div class="section-body" style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="wb-btn wb-btn-sm" id="undo-btn" style="flex:1;min-width:100px;">Undo</button>
+          <button class="wb-btn wb-btn-sm" id="redo-btn" style="flex:1;min-width:100px;">Redo</button>
+        </div>
+      </div>
+
+      <!-- MODELS -->
+      <div class="section">
+        <div class="section-hdr">Models</div>
+        <div class="section-body">
+          <label class="wb-btn" style="cursor:pointer;">+ Load GLB / OBJ
+            <input type="file" id="file-input" accept=".glb,.obj,.gltf" style="display:none">
+          </label>
+          <div class="field-row" style="gap:6px;align-items:center;">
+            <select class="wb-select" id="primitive-select" style="flex:1;">
+              <option>Box</option>
+              <option>Sphere</option>
+              <option>Plane</option>
+              <option>Cylinder</option>
+              <option>Cone</option>
+              <option>Torus</option>
+              <option>TorusKnot</option>
+            </select>
+            <button class="wb-btn wb-btn-sm" id="btn-add-primitive" style="width:auto;padding:2px 8px;white-space:nowrap;">+ Add</button>
+          </div>
+          <div id="model-list" style="margin-top:6px;display:flex;flex-direction:column;gap:4px;max-height:120px;overflow:auto;"></div>
+        </div>
+      </div>
+
+  <!-- EXPORT / SHARING -->
+        <div class="section" id="export-section">
+          <div class="section-hdr">Export</div>
+          <div class="section-body">
+            <button class="wb-btn" onclick="saveScene()">📄 Export Scene JSON</button>
+            <label class="wb-btn" style="cursor:pointer;">📂 Import Scene JSON
+              <input type="file" id="scene-load-input" accept=".json" style="display:none;" onchange="loadScene(this)">
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+              <input type="checkbox" id="embed-toggle" checked style="transform:scale(1.1);margin-right:6px;"> Embed geometry (binary)
+            </label>
+            <div id="embed-size" style="color:var(--text-dim);font-size:11px;white-space:nowrap;margin-top:6px;">Size: —</div>
+          </div>
+        </div>
+
+  <!-- SHADING — per selected model -->
+        <div class="section no-sel" id="shading-section">
+          <div class="section-hdr">
+            Shading
+            <span class="model-badge" id="shading-model-badge">— no selection —</span>
+          </div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Mode</span>
+              <select class="wb-select field-val" id="shade-mode">
+                <option value="base">Vertex / Base</option>
+                <option value="flat">Flat Shaded</option>
+                <option value="gouraud">Gouraud</option>
+                <option value="gradient">Gradient</option>
+                <option value="texture">PNG Texture</option>
+                <option value="wireframe">Wireframe</option>
+                <option value="normals">Normals</option>
+                <option value="depth">Depth</option>
+              </select>
+            </div>
+            <div class="field-row" id="base-color-row">
+              <span class="field-label">Base color</span>
+              <input type="color" class="wb-color" id="base-color" value="#888888">
+            </div>
+            <div id="gradient-color-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Grad A</span>
+                <input type="color" class="wb-color" id="grad-color-a" value="#ff4488">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:5px;">→ B</span>
+                <input type="color" class="wb-color" id="grad-color-b" value="#44aaff" style="margin-left:4px;">
+              </div>
+              <div class="field-row">
+                <span class="field-label">Direction</span>
+                <div class="toggle-btn" id="grad-dir-toggle">
+                  <span class="toggle-opt active" data-val="y">↕ Y</span>
+                  <span class="toggle-opt" data-val="x">↔ X</span>
+                  <span class="toggle-opt" data-val="z">↗ Z</span>
+                </div>
+              </div>
+            </div>
+            <!-- Gouraud controls -->
+            <div id="gouraud-color-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Diffuse</span>
+                <input type="color" class="wb-color" id="gouraud-diffuse" value="#88aaff">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:5px;">object color</span>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Specular</span>
+                <input type="color" class="wb-color" id="gouraud-specular" value="#ffffff">
+                <input type="range" class="wb-range" id="gouraud-shininess" min="1" max="200" value="40" style="flex:1;margin-left:4px;">
+                <span id="gouraud-shine-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">40</span>
+              </div>
+            </div>
+            <!-- Texture controls -->
+            <div id="texture-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">PNG File</span>
+                <label class="wb-btn wb-btn-sm" style="cursor:pointer;flex:1;text-align:center;margin:0;">
+                  Load PNG…
+                  <input type="file" id="tex-file-input" accept="image/png,image/*" style="display:none;">
+                </label>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Tiling</span>
+                <input type="range" class="wb-range field-val" id="tex-repeat" min="1" max="32" value="1">
+                <span id="tex-repeat-val" style="color:var(--text-dim);width:24px;text-align:right;font-size:9px;">1×</span>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Auto rotate</span>
+              <div class="toggle-wrap">
+                <div class="toggle-btn" id="autorotate-toggle">
+                  <span class="toggle-opt" data-val="on">On</span>
+                  <span class="toggle-opt active" data-val="off">Off</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TEXTURE TAGS -->
+        <div class="section no-sel" id="texture-tags-section">
+          <div class="section-hdr">
+            Texture Tags
+            <span class="model-badge" id="texture-model-badge">— no selection —</span>
+          </div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Biome</span>
+              <select class="wb-select field-val" id="biome-tag">
+                <option value="grass">Grass</option>
+                <option value="ice">Ice</option>
+                <option value="sand">Sand</option>
+                <option value="bubblegum">Bubblegum</option>
+                <option value="volcanic">Volcanic</option>
+              </select>
+            </div>
+
+            <div class="field-row">
+              <span class="field-label">Tex Mode</span>
+              <select class="wb-select field-val" id="texture-mode">
+                <option value="inherit">Inherit</option>
+                <option value="biomeZones">Biome Zones</option>
+                <option value="customZones">Custom Zones</option>
+              </select>
+            </div>
+
+            <div class="field-row">
+              <span class="field-label">Top</span>
+              <input type="text" class="wb-input field-val" id="zone-top" placeholder="grass / snow / sand">
+            </div>
+
+            <div class="field-row">
+              <span class="field-label">Side</span>
+              <input type="text" class="wb-input field-val" id="zone-side" placeholder="dirt / rock / ice">
+            </div>
+
+            <div class="field-row">
+              <span class="field-label">Under</span>
+              <input type="text" class="wb-input field-val" id="zone-under" placeholder="rock">
+            </div>
+          </div>
+        </div>
+
+        <!-- TITLE -->
+        <div class="section">
+          <div class="section-hdr">Title</div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Text</span>
+              <input type="text" class="wb-input field-val" id="title-text" placeholder="(none)" value="">
+            </div>
+            <div class="field-row">
+              <span class="field-label">Color</span>
+              <div class="toggle-btn" id="color-mode-toggle" style="flex-shrink:0;">
+                <span class="toggle-opt active" data-val="flat">Flat</span>
+                <span class="toggle-opt" data-val="gradient">Gradient</span>
+              </div>
+              <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">drag to reposition</span>
+            </div>
+            <!-- Flat color row -->
+            <div class="field-row" id="color-flat-row">
+              <span class="field-label"></span>
+              <input type="color" class="wb-color" id="title-color" value="#ffffff">
+            </div>
+            <!-- Gradient rows (hidden by default) -->
+            <div class="field-row" id="color-grad-row" style="display:none;">
+              <span class="field-label"></span>
+              <input type="color" class="wb-color" id="title-grad-a" value="#ff4488">
+              <span style="color:var(--text-dim);font-size:9px;margin:0 4px;">→</span>
+              <input type="color" class="wb-color" id="title-grad-b" value="#44aaff">
+              <select class="wb-select" id="title-grad-dir" style="margin-left:4px;width:auto;font-size:9px;padding:1px 2px;">
+                <option value="90deg">→ H</option>
+                <option value="135deg">↘ D</option>
+                <option value="180deg">↓ V</option>
+                <option value="45deg">↗ D</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Size</span>
+              <input type="range" class="wb-range field-val" id="title-size" min="12" max="96" value="40">
+              <span id="title-size-val" style="color:var(--text-dim);width:28px;text-align:right;">40px</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Depth (Z)</span>
+              <input type="range" class="wb-range field-val" id="title-depth" min="-10" max="10" step="0.1" value="2">
+              <span id="title-depth-val" style="color:var(--text-dim);width:28px;text-align:right;">2</span>
+            </div>
+            <div class="field-row" style="align-items:flex-start;">
+              <span class="field-label" style="padding-top:3px;">Font Style</span>
+              <div class="field-val" style="display:flex;flex-direction:column;gap:3px;">
+                <input type="text" class="wb-input" id="title-font" placeholder="Paste @import or font-family…" style="font-size:9px;">
+                <span id="title-font-status" style="color:var(--text-dim);font-size:9px;line-height:1.4;">Paste a Google Fonts <code style="color:var(--text-accent);">@import</code> URL or a CSS <code style="color:var(--text-accent);">font-family</code> value, then press <code style="color:var(--text-accent);">Enter</code>.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIGHTING -->
+        <div class="section">
+          <div class="section-hdr">Lighting</div>
+          <div class="section-body">
+            <div class="field-row">
+              <span class="field-label">Ambient</span>
+              <input type="range" class="wb-range field-val" id="light-ambient" min="0" max="200" value="60">
+              <span id="ambient-val" style="color:var(--text-dim);width:28px;text-align:right;">60%</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">Sun</span>
+              <input type="range" class="wb-range field-val" id="light-sun" min="0" max="300" value="120">
+              <span id="sun-val" style="color:var(--text-dim);width:28px;text-align:right;">120%</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label">BG Type</span>
+              <div class="toggle-btn" id="bg-type-toggle">
+                <span class="toggle-opt active" data-val="solid">Solid</span>
+                <span class="toggle-opt" data-val="gradient">Gradient</span>
+                <span class="toggle-opt" data-val="image">Image</span>
+              </div>
+            </div>
+            <!-- Solid BG -->
+            <div class="field-row" id="bg-solid-row">
+              <span class="field-label">BG Color</span>
+              <input type="color" class="wb-color" id="bg-color" value="#ffffff">
+              <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">output bg</span>
+            </div>
+            <!-- Gradient BG -->
+            <div id="bg-gradient-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">Color A</span>
+                <input type="color" class="wb-color" id="bg-grad-a" value="#1a0040">
+                <span style="color:var(--text-dim);font-size:9px;margin-left:4px;">→</span>
+                <input type="color" class="wb-color" id="bg-grad-b" value="#004080" style="margin-left:4px;">
+              </div>
+              <div class="field-row">
+                <span class="field-label">Direction</span>
+                <select class="wb-select field-val" id="bg-grad-dir">
+                  <option value="to bottom">↓ Top→Bot</option>
+                  <option value="to right">→ L→R</option>
+                  <option value="135deg">↘ Diagonal</option>
+                  <option value="to top right">↗ D2</option>
+                </select>
+              </div>
+            </div>
+            <!-- Image BG -->
+            <div id="bg-image-rows" style="display:none;">
+              <div class="field-row">
+                <span class="field-label">BG Image</span>
+                <label class="wb-btn wb-btn-sm" style="cursor:pointer;flex:1;text-align:center;margin:0;">
+                  Load Image…
+                  <input type="file" id="bg-img-input" accept="image/*" style="display:none;">
+                </label>
+              </div>
+              <div class="field-row">
+                <span class="field-label">Fit</span>
+                <div class="toggle-btn" id="bg-img-fit-toggle">
+                  <span class="toggle-opt active" data-val="cover">Cover</span>
+                  <span class="toggle-opt" data-val="contain">Contain</span>
+                  <span class="toggle-opt" data-val="stretch">Stretch</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GAMEPAD -->
+        <div class="section" id="gamepad-section">
+          <div class="section-hdr">Gamepad</div>
+          <div class="section-body" style="gap:3px;">
+            <div id="gp-disconnected" style="color:var(--text-dim);font-size:9px;line-height:1.6;">No controller detected.<br>Connect a gamepad and press any button.</div>
+            <div id="gp-connected-info" style="display:none;font-size:9px;color:var(--text-body);line-height:1.7;">
+              <div style="color:#60c878;margin-bottom:3px;" id="gp-full-name">—</div>
+              <div style="color:var(--text-dim);border-top:1px solid #1a1030;padding-top:3px;margin-top:2px;">
+                <b style="color:var(--text-label);">L Stick</b> — Orbit camera<br>
+                <b style="color:var(--text-label);">R Stick</b> — Zoom / truck<br>
+                <b style="color:var(--text-label);">D-Pad ▲▼</b> — Zoom in/out<br>
+                <b style="color:var(--text-label);">LB / RB</b> — Prev / next model<br>
+                <b style="color:var(--text-label);">A</b> — Toggle auto-rotate<br>
+                <b style="color:var(--text-label);">Y</b> — Reset camera<br>
+                <b style="color:var(--text-label);">B</b> — Deselect<br>
+                <b style="color:var(--text-label);">Start</b> — Save PNG
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LAUNCH -->
+        <div style="padding:6px;border-top:1px solid #1a1030;">
+          <a id="launch-game-btn" href="../index.html" class="wb-btn" style="display:block;text-align:center;">▶ Launch Game</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden engine output (kept for export/internal use) -->
+<div id="render-wrap" style="display:none;position:relative;">
+  <canvas id="render-canvas" width="320" height="200"></canvas>
+  <div id="title-drag-handle" style="position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;"></div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+
+// ─── RENDERERS ────────────────────────────────────────────────────
+const stageCanvas = document.getElementById('three-canvas');
+const stageRenderer = new THREE.WebGLRenderer({ canvas: stageCanvas, antialias: true, alpha: true });
+stageRenderer.setPixelRatio(window.devicePixelRatio);
+stageRenderer.shadowMap.enabled = true;
+stageRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const offRenderer = new THREE.WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+offRenderer.shadowMap.enabled = true;
+
+// ─── SCENE ──────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+const gridHelper = new THREE.GridHelper(20, 20, 0x3a2a6a, 0x221540);
+scene.add(gridHelper);
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+sunLight.position.set(5, 10, 5);
+sunLight.castShadow = true;
+scene.add(sunLight);
+const fillLight = new THREE.DirectionalLight(0x8080ff, 0.3);
+fillLight.position.set(-5, 2, -5);
+scene.add(fillLight);
+
+// ─── CAMERAS ──────────────────────────────────────────────────────
+const stageCamera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+stageCamera.position.set(0, 2, 5);
+const offCamera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
+
+// ─── CONTROLS ─────────────────────────────────────────────────────
+const orbitControls = new OrbitControls(stageCamera, stageCanvas);
+orbitControls.enableDamping = true;
+orbitControls.dampingFactor = 0.08;
+
+const transformControls = new TransformControls(stageCamera, stageCanvas);
+transformControls.addEventListener('dragging-changed', e => {
+  orbitControls.enabled = !e.value;
+  if (e.value) pushUndo(); // capture state before drag begins
+});
+scene.add(transformControls);
+
+// ─── GLOBAL STATE ─────────────────────────────────────────────────
+let renderW = 320, renderH = 200;
+let outputBgColor = '#ffffff';
+let outputBgType = 'solid'; // 'solid' | 'gradient' | 'image'
+let outputBgGradA = '#1a0040', outputBgGradB = '#004080', outputBgGradDir = 'to bottom';
+let outputBgImage = null; // HTMLImageElement or null
+let outputBgImageFit = 'cover';
+let titleText = '', titleColor = '#ffffff', titleSize = 40, titleFont = '', titleFontRaw = '', titleDepth = 2;
+let titleColorMode = 'flat'; // 'flat' | 'gradient'
+let titleGradA = '#ff4488', titleGradB = '#44aaff', titleGradDir = '90deg';
+let titlePos = { x: 0, y: 0 }; // world-space X/Y offset for sprite
+// Embed geometry by default (user preference)
+let embedGeometry = true;
+
+// objects array — each entry carries its own shading state:
+// { mesh, name, triCount, type, shadeMode, baseColor, autoRotate }
+let objects = [];
+let selectedObject = null; // reference to the mesh/group
+let _pendingSceneObjects = []; // for missing models modal
+
+// ─── DIRTY TRACKING (stubs — full impl in auto-save section) ──────
+let _dirty = false;
+let _autosaveTimer = null;
+function markDirty() {
+  _dirty = true;
+  const dot = document.getElementById('dirty-dot');
+  if (dot) dot.style.display = '';
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(() => {
+    if (typeof commitAutosave === 'function') commitAutosave();
+  }, 2000);
+}
+function markClean() {
+  _dirty = false;
+  const dot = document.getElementById('dirty-dot');
+  if (dot) dot.style.display = 'none';
+}
+
+// ─── UNDO / REDO ──────────────────────────────────────────────────
+// A snapshot captures: per-object transform + shading state.
+// Geometry is not cloned — only transforms and material parameters.
+let _undoStack = [];
+let _redoStack = [];
+
+function snapshotScene() {
+  return objects.map(o => ({
+    uuid: o.mesh.uuid,
+    position: o.mesh.position.toArray(),
+    rotation: o.mesh.rotation.toArray().slice(0, 3),
+    scale: o.mesh.scale.toArray(),
+    shadeMode:  o.shadeMode,
+    baseColor:  o.baseColor,
+    gradColorA: o.gradColorA,
+    gradColorB: o.gradColorB,
+    gradAxis:   o.gradAxis,
+    autoRotate: o.autoRotate,
+  }));
+}
+
+function applySnapshot(snap) {
+  snap.forEach(s => {
+    const entry = objects.find(o => o.mesh.uuid === s.uuid);
+    if (!entry) return;
+    entry.mesh.position.fromArray(s.position);
+    entry.mesh.rotation.set(...s.rotation);
+    entry.mesh.scale.fromArray(s.scale);
+    entry.shadeMode  = s.shadeMode;
+    entry.baseColor  = s.baseColor;
+    entry.gradColorA = s.gradColorA;
+    entry.gradColorB = s.gradColorB;
+    entry.gradAxis   = s.gradAxis;
+    entry.autoRotate = s.autoRotate;
+    applyShading(entry);
+  });
+  syncShadingPanel();
+  markDirty();
+}
+
+function _syncUndoButtons() {
+  document.getElementById('undo-btn').disabled = _undoStack.length === 0;
+  document.getElementById('redo-btn').disabled = _redoStack.length === 0;
+}
+
+function pushUndo() {
+  _undoStack.push(snapshotScene());
+  if (_undoStack.length > 64) _undoStack.shift(); // cap at 64 steps
+  _redoStack.length = 0;
+  _syncUndoButtons();
+}
+
+function undoStep() {
+  if (!_undoStack.length) return;
+  _redoStack.push(snapshotScene());
+  applySnapshot(_undoStack.pop());
+  _syncUndoButtons();
+}
+
+function redoStep() {
+  if (!_redoStack.length) return;
+  _undoStack.push(snapshotScene());
+  applySnapshot(_redoStack.pop());
+  _syncUndoButtons();
+}
+
+document.getElementById('undo-btn').addEventListener('click', undoStep);
+document.getElementById('redo-btn').addEventListener('click', redoStep);
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  if (e.ctrlKey && !e.shiftKey && e.key === 'z') { e.preventDefault(); undoStep(); }
+  if ((e.ctrlKey && e.shiftKey && e.key === 'z') || (e.ctrlKey && e.key === 'y')) { e.preventDefault(); redoStep(); }
+});
+
+function resizeStage() {
+  const canvas = document.getElementById('three-canvas');
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if (w === 0 || h === 0) return;
+  stageRenderer.setSize(w, h);
+  stageCamera.aspect = w / h;
+  stageCamera.updateProjectionMatrix();
+}
+new ResizeObserver(resizeStage).observe(document.getElementById('stage-wrap'));
+resizeStage();
+
+// ─── RESOLUTION ───────────────────────────────────────────────────
+window.setRes = function(w, h) {
+  renderW = w; renderH = h;
+  offRenderer.setSize(w, h);
+  const rc = document.getElementById('render-canvas');
+  if (rc) { rc.width = w; rc.height = h; }
+  const titleEl = document.getElementById('output-title');
+  if (titleEl) titleEl.textContent = `Engine Output · ${w}×${h}`;
+  ['res-320','res-640','res-960'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.classList.remove('active');
+  });
+  const activeBtn = document.getElementById(w===320?'res-320':w===640?'res-640':'res-960');
+  if (activeBtn) activeBtn.classList.add('active');
+};
+setRes(320, 200);
+
+// ─── SHADING ──────────────────────────────────────────────────────
+function hexToVec3(hex) {
+  const r = parseInt(hex.slice(1,3),16)/255;
+  const g = parseInt(hex.slice(3,5),16)/255;
+  const b = parseInt(hex.slice(5,7),16)/255;
+  return new THREE.Vector3(r,g,b);
+}
+
+// ─── GOURAUD SHADING ──────────────────────────────────────────────
+// Classic per-vertex Phong/Gouraud: compute lighting in vertex shader,
+// interpolate result across the triangle, giving smooth color bands.
+function buildGouraudMaterial(diffuseHex, specularHex, shininess) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      diffuseColor:  { value: hexToVec3(diffuseHex) },
+      specularColor: { value: hexToVec3(specularHex) },
+      shininess:     { value: shininess },
+      lightDir:      { value: new THREE.Vector3(0.6, 0.8, 0.5).normalize() },
+      lightColor:    { value: new THREE.Vector3(1.0, 1.0, 1.0) },
+      ambientColor:  { value: new THREE.Vector3(0.18, 0.18, 0.22) },
+    },
+    vertexShader: `
+      uniform vec3 diffuseColor;
+      uniform vec3 specularColor;
+      uniform float shininess;
+      uniform vec3 lightDir;
+      uniform vec3 lightColor;
+      uniform vec3 ambientColor;
+      varying vec3 vColor;
+      void main() {
+        // Transform normal to world space
+        vec3 N = normalize(normalMatrix * normal);
+        vec3 L = normalize(lightDir);
+        vec3 pos = (modelViewMatrix * vec4(position, 1.0)).xyz;
+        vec3 V = normalize(-pos);
+        vec3 R = reflect(-L, N);
+
+        // Gouraud: compute full Phong lighting per vertex
+        float diff = max(dot(N, L), 0.0);
+        float spec = pow(max(dot(R, V), 0.0), shininess);
+
+        vColor = ambientColor * diffuseColor
+               + diff * lightColor * diffuseColor
+               + spec * lightColor * specularColor;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec3 vColor;
+      void main() {
+        gl_FragColor = vec4(vColor, 1.0);
+      }
+    `,
+    side: THREE.FrontSide,
+  });
+}
+
+function buildGradientMaterial(colorA, colorB, axis) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      colorA:  { value: hexToVec3(colorA) },
+      colorB:  { value: hexToVec3(colorB) },
+      bboxMin: { value: new THREE.Vector3() },
+      bboxMax: { value: new THREE.Vector3() },
+      axis:    { value: axis === 'x' ? 0 : axis === 'z' ? 2 : 1 }, // 0=X,1=Y,2=Z
+    },
+    vertexShader: `
+      uniform vec3 bboxMin;
+      uniform vec3 bboxMax;
+      uniform int axis;
+      varying float vT;
+      void main() {
+        vec3 world = (modelMatrix * vec4(position, 1.0)).xyz;
+        float lo, hi, val;
+        if (axis == 0)      { lo = bboxMin.x; hi = bboxMax.x; val = world.x; }
+        else if (axis == 2) { lo = bboxMin.z; hi = bboxMax.z; val = world.z; }
+        else                { lo = bboxMin.y; hi = bboxMax.y; val = world.y; }
+        vT = clamp((val - lo) / max(hi - lo, 0.001), 0.0, 1.0);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform vec3 colorA;
+      uniform vec3 colorB;
+      varying float vT;
+      void main() {
+        gl_FragColor = vec4(mix(colorA, colorB, vT), 1.0);
+      }
+    `,
+    side: THREE.FrontSide,
+  });
+}
+
+function buildMaterial(shadeMode, baseColor, gradA, gradB, gradAxis, gouraudDiffuse, gouraudSpecular, gouraudShininess, textureTex, textureRepeat) {
+  switch(shadeMode) {
+    case 'flat':      return new THREE.MeshLambertMaterial({ color: new THREE.Color(baseColor), flatShading: true });
+    case 'wireframe': return new THREE.MeshBasicMaterial({ color: 0x88ffaa, wireframe: true });
+    case 'normals':   return new THREE.MeshNormalMaterial();
+    case 'depth':     return new THREE.MeshDepthMaterial();
+    case 'gradient':  return buildGradientMaterial(gradA || '#ff4488', gradB || '#44aaff', gradAxis || 'y');
+    case 'gouraud':   return buildGouraudMaterial(gouraudDiffuse || '#88aaff', gouraudSpecular || '#ffffff', gouraudShininess !== undefined ? gouraudShininess : 40);
+    case 'texture': {
+      if (!textureTex) return new THREE.MeshStandardMaterial({ color: 0x888888 });
+      const mat = new THREE.MeshStandardMaterial({ map: textureTex });
+      return mat;
+    }
+    default:          return null;
+  }
+}
+
+function applyShading(obj) {
+  const mat = buildMaterial(
+    obj.shadeMode, obj.baseColor,
+    obj.gradColorA, obj.gradColorB, obj.gradAxis,
+    obj.gouraudDiffuse, obj.gouraudSpecular, obj.gouraudShininess,
+    obj.textureTex, obj.textureRepeat
+  );
+  let bbox = null;
+  if (obj.shadeMode === 'gradient') {
+    bbox = new THREE.Box3().setFromObject(obj.mesh);
+  }
+  if (obj.shadeMode === 'texture' && obj.textureTex && obj.textureRepeat) {
+    obj.textureTex.wrapS = obj.textureTex.wrapT = THREE.RepeatWrapping;
+    obj.textureTex.repeat.set(obj.textureRepeat, obj.textureRepeat);
+    obj.textureTex.needsUpdate = true;
+  }
+  obj.mesh.traverse(child => {
+    if (!child.isMesh) return;
+    if (!child._origMat) child._origMat = child.material;
+    if (mat) {
+      child.material = mat.clone ? mat.clone() : mat;
+      if (obj.shadeMode === 'gradient' && bbox && child.material.uniforms) {
+        child.material.uniforms.bboxMin.value.copy(bbox.min);
+        child.material.uniforms.bboxMax.value.copy(bbox.max);
+      }
+      if (obj.shadeMode === 'texture' && obj.textureTex) {
+        child.material.map = obj.textureTex;
+        child.material.needsUpdate = true;
+      }
+    } else {
+      child.material = child._origMat || new THREE.MeshStandardMaterial({ color: new THREE.Color(obj.baseColor) });
+    }
+  });
+}
+
+function getSelectedEntry() {
+  return objects.find(o => o.mesh === selectedObject) || null;
+}
+
+function syncShadingPanel() {
+  const entry = getSelectedEntry();
+  const section = document.getElementById('shading-section');
+  const badge = document.getElementById('shading-model-badge');
+
+  if (!entry) {
+    section.classList.add('no-sel');
+    badge.textContent = '— no selection —';
+    return;
+  }
+
+  section.classList.remove('no-sel');
+  badge.textContent = entry.name;
+
+  _syncingPanel = true;
+  document.getElementById('shade-mode').value = entry.shadeMode;
+  document.getElementById('base-color').value = entry.baseColor;
+  document.getElementById('grad-color-a').value = entry.gradColorA || '#ff4488';
+  document.getElementById('grad-color-b').value = entry.gradColorB || '#44aaff';
+  const gradAxis = entry.gradAxis || 'y';
+  document.querySelectorAll('#grad-dir-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === gradAxis));
+  document.getElementById('gouraud-diffuse').value = entry.gouraudDiffuse || '#88aaff';
+  document.getElementById('gouraud-specular').value = entry.gouraudSpecular || '#ffffff';
+  const shine = entry.gouraudShininess !== undefined ? entry.gouraudShininess : 40;
+  document.getElementById('gouraud-shininess').value = shine;
+  document.getElementById('gouraud-shine-val').textContent = shine;
+  const rep = entry.textureRepeat || 1;
+  document.getElementById('tex-repeat').value = rep;
+  document.getElementById('tex-repeat-val').textContent = rep + '×';
+
+  const isGrad    = entry.shadeMode === 'gradient';
+  const isGouraud = entry.shadeMode === 'gouraud';
+  const isTex     = entry.shadeMode === 'texture';
+  const showBase  = !isGrad && !isGouraud && !isTex;
+  document.getElementById('base-color-row').style.display      = showBase    ? '' : 'none';
+  document.getElementById('gradient-color-rows').style.display = isGrad      ? '' : 'none';
+  document.getElementById('gouraud-color-rows').style.display  = isGouraud   ? '' : 'none';
+  document.getElementById('texture-rows').style.display        = isTex       ? '' : 'none';
+  const arToggle = document.getElementById('autorotate-toggle');
+  arToggle.querySelectorAll('.toggle-opt').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.val === (entry.autoRotate ? 'on' : 'off'));
+  });
+  syncTextureTagsPanel(entry);
+  _syncingPanel = false;
+}
+let _syncingPanel = false;
+
+function syncTextureTagsPanel(entry) {
+  const section = document.getElementById("texture-tags-section");
+  const badge = document.getElementById("texture-model-badge");
+
+  if (!entry) {
+    section.classList.add("no-sel");
+    badge.textContent = "— no selection —";
+    return;
+  }
+
+  section.classList.remove("no-sel");
+  badge.textContent = entry.name;
+
+  entry.textureTags ||= {
+    biome: "grass",
+    textureMode: "inherit",
+    zoneTextures: { top: "", side: "", under: "" }
+  };
+
+  document.getElementById("biome-tag").value = entry.textureTags.biome || "grass";
+  document.getElementById("texture-mode").value = entry.textureTags.textureMode || "inherit";
+  document.getElementById("zone-top").value = entry.textureTags.zoneTextures?.top || "";
+  document.getElementById("zone-side").value = entry.textureTags.zoneTextures?.side || "";
+  document.getElementById("zone-under").value = entry.textureTags.zoneTextures?.under || "";
+}
+
+document.getElementById('shade-mode').addEventListener('change', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.shadeMode = e.target.value;
+  const isGrad    = entry.shadeMode === 'gradient';
+  const isGouraud = entry.shadeMode === 'gouraud';
+  const isTex     = entry.shadeMode === 'texture';
+  const showBase  = !isGrad && !isGouraud && !isTex;
+  document.getElementById('base-color-row').style.display      = showBase  ? '' : 'none';
+  document.getElementById('gradient-color-rows').style.display = isGrad    ? '' : 'none';
+  document.getElementById('gouraud-color-rows').style.display  = isGouraud ? '' : 'none';
+  document.getElementById('texture-rows').style.display        = isTex     ? '' : 'none';
+  applyShading(entry);
+});
+
+document.getElementById('grad-color-a').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+document.getElementById('grad-color-b').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+document.getElementById('base-color').addEventListener('change', e => { if (!_syncingPanel && getSelectedEntry()) pushUndo(); });
+
+document.getElementById('grad-color-a').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.gradColorA = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('grad-color-b').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.gradColorB = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('grad-dir-toggle').addEventListener('click', e => {
+  if (_syncingPanel) return;
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.gradAxis = opt.dataset.val;
+  document.querySelectorAll('#grad-dir-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === opt.dataset.val));
+  applyShading(entry);
+});
+
+document.getElementById('base-color').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  entry.baseColor = e.target.value;
+  applyShading(entry);
+});
+
+document.getElementById('autorotate-toggle').addEventListener('click', e => {
+  if (_syncingPanel) return;
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+  pushUndo();
+  entry.autoRotate = opt.dataset.val === 'on';
+  document.querySelectorAll('#autorotate-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === opt.dataset.val));
+});
+
+document.getElementById('gouraud-diffuse').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudDiffuse = e.target.value; applyShading(entry);
+});
+document.getElementById('gouraud-diffuse').addEventListener('change', e => {
+  if (!_syncingPanel && getSelectedEntry()) pushUndo();
+});
+document.getElementById('gouraud-specular').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudSpecular = e.target.value; applyShading(entry);
+});
+document.getElementById('gouraud-shininess').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.gouraudShininess = parseInt(e.target.value);
+  document.getElementById('gouraud-shine-val').textContent = e.target.value;
+  applyShading(entry);
+});
+
+const texLoader = new THREE.TextureLoader();
+document.getElementById('tex-file-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  const entry = getSelectedEntry(); if (!entry) return;
+  const tex = new THREE.TextureLoader().load(url, () => { URL.revokeObjectURL(url); });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  const rep = entry.textureRepeat || 1;
+  tex.repeat.set(rep, rep);
+  entry.textureTex = tex;
+  applyShading(entry);
+});
+document.getElementById('tex-repeat').addEventListener('input', e => {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry(); if (!entry) return;
+  entry.textureRepeat = parseInt(e.target.value);
+  document.getElementById('tex-repeat-val').textContent = e.target.value + '×';
+  if (entry.textureTex) {
+    entry.textureTex.repeat.set(entry.textureRepeat, entry.textureRepeat);
+    entry.textureTex.needsUpdate = true;
+  }
+});
+
+function updateSelectedTextureTags() {
+  if (_syncingPanel) return;
+  const entry = getSelectedEntry();
+  if (!entry) return;
+
+  entry.textureTags ||= {
+    biome: "grass",
+    textureMode: "inherit",
+    zoneTextures: { top: "", side: "", under: "" }
+  };
+
+  entry.textureTags.biome = document.getElementById("biome-tag").value;
+  entry.textureTags.textureMode = document.getElementById("texture-mode").value;
+  entry.textureTags.zoneTextures.top = document.getElementById("zone-top").value.trim();
+  entry.textureTags.zoneTextures.side = document.getElementById("zone-side").value.trim();
+  entry.textureTags.zoneTextures.under = document.getElementById("zone-under").value.trim();
+
+  markDirty();
+}
+
+["biome-tag", "texture-mode", "zone-top", "zone-side", "zone-under"].forEach(id => {
+  document.getElementById(id).addEventListener("change", updateSelectedTextureTags);
+  document.getElementById(id).addEventListener("input", updateSelectedTextureTags);
+});
+
+document.getElementById('bg-type-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  outputBgType = opt.dataset.val;
+  document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === outputBgType));
+  document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+  document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+  document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+});
+document.getElementById('bg-grad-a').addEventListener('input', e => { outputBgGradA = e.target.value; });
+document.getElementById('bg-grad-b').addEventListener('input', e => { outputBgGradB = e.target.value; });
+document.getElementById('bg-grad-dir').addEventListener('change', e => { outputBgGradDir = e.target.value; });
+document.getElementById('bg-img-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => { outputBgImage = img; };
+  img.src = url;
+});
+document.getElementById('bg-img-fit-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt'); if (!opt) return;
+  outputBgImageFit = opt.dataset.val;
+  document.querySelectorAll('#bg-img-fit-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === outputBgImageFit));
+});
+
+document.getElementById('title-text').addEventListener('input', e => { titleText = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-color').addEventListener('input', e => { titleColor = e.target.value; updateTitleOverlay(); });
+
+document.getElementById('color-mode-toggle').addEventListener('click', e => {
+  const opt = e.target.closest('.toggle-opt');
+  if (!opt) return;
+  titleColorMode = opt.dataset.val;
+  document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+    o.classList.toggle('active', o.dataset.val === titleColorMode));
+  document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+  document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+  updateTitleOverlay();
+});
+
+document.getElementById('title-grad-a').addEventListener('input', e => { titleGradA = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-grad-b').addEventListener('input', e => { titleGradB = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-grad-dir').addEventListener('change', e => { titleGradDir = e.target.value; updateTitleOverlay(); });
+document.getElementById('title-size').addEventListener('input', e => {
+  titleSize = parseInt(e.target.value);
+  document.getElementById('title-size-val').textContent = titleSize + 'px';
+  updateTitleOverlay();
+});
+
+document.getElementById('title-depth').addEventListener('input', e => {
+  titleDepth = parseFloat(e.target.value);
+  document.getElementById('title-depth-val').textContent = titleDepth;
+  if (titleSprite.visible) titleSprite.position.setZ(titleDepth);
+});
+
+document.getElementById('title-font').addEventListener('input', e => {
+  const raw = e.target.value.trim();
+  const statusEl = document.getElementById('title-font-status');
+  if (!raw) {
+    titleFont = '';
+    statusEl.textContent = 'Paste a Google Fonts @import URL or a CSS font-family value.';
+    statusEl.style.color = 'var(--text-dim)';
+    updateTitleOverlay();
+  } else {
+    statusEl.textContent = 'Press Enter or click away to apply…';
+    statusEl.style.color = 'var(--text-dim)';
+  }
+});
+
+async function loadGoogleFont(family, cssHref) {
+  let css;
+  try {
+    const res = await fetch(cssHref);
+    css = await res.text();
+  } catch (e) {
+    return false;
+  }
+
+  const urlRe = /src:\s*[^;]*url\((['"]?)([^'\")\s]+\.woff2)\1\)[^;]*;/gi;
+  const blockRe = /@font-face\s*\{([^}]+)\}/gi;
+  const promises = [];
+  let block;
+  while ((block = blockRe.exec(css)) !== null) {
+    const body = block[1];
+    const srcMatch = /url\((['"]?)([^'\")\s]+\.woff2)\1\)/.exec(body);
+    const weightMatch = /font-weight:\s*(\d+)/.exec(body);
+    const styleMatch = /font-style:\s*(\w+)/.exec(body);
+    if (!srcMatch) continue;
+    const src = srcMatch[2];
+    const weight = weightMatch ? weightMatch[1] : '400';
+    const style = styleMatch ? styleMatch[1] : 'normal';
+    const ff = new FontFace(family, `url(${src})`, { weight, style });
+    promises.push(ff.load().then(loaded => { document.fonts.add(loaded); }));
+  }
+
+  if (!promises.length) return false;
+  try { await Promise.all(promises); return true; }
+  catch (e) { return false; }
+}
+
+async function applyTitleFont(raw) {
+  titleFontRaw = raw;
+  const statusEl = document.getElementById('title-font-status');
+
+  if (!raw) {
+    titleFont = '';
+    statusEl.textContent = 'Paste a Google Fonts @import URL or a CSS font-family value.';
+    statusEl.style.color = 'var(--text-dim)';
+    updateTitleOverlay();
+    return;
+  }
+
+  const importMatch = raw.match(/@import\s+url\(['"]?([^'\")\s]+)['"]?\)/i)
+                   || raw.match(/@import\s+['"]([^'"]+)['"]/i);
+  const href = importMatch ? importMatch[1] : (raw.match(/^https?:\/\//i) ? raw : null);
+
+  if (href) {
+    const familyParam = href.match(/[?&]family=([^&]+)/i);
+    const family = familyParam
+      ? decodeURIComponent(familyParam[1]).split(':')[0].replace(/\+/g, ' ').trim()
+      : null;
+
+    titleFont = family ? `'${family}', sans-serif` : 'sans-serif';
+    statusEl.textContent = family ? `⏳ Loading "${family}"…` : '⏳ Loading font…';
+    statusEl.style.color = 'var(--text-accent)';
+
+    const ok = await loadGoogleFont(family || 'CustomFont', href);
+    statusEl.textContent = ok
+      ? `✓ "${family || 'font'}" ready`
+      : `⚠ Could not load font (check URL)`;
+    statusEl.style.color = ok ? '#80e8a0' : '#e08080';
+    updateTitleOverlay();
+    return;
+  }
+
+  titleFont = raw;
+  statusEl.textContent = '✓ font-family applied';
+  statusEl.style.color = '#80e8a0';
+  updateTitleOverlay();
+}
+
+document.getElementById('title-font').addEventListener('change', e => applyTitleFont(e.target.value.trim()));
+document.getElementById('title-font').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); applyTitleFont(e.target.value.trim()); }
+});
+
+document.getElementById('light-ambient').addEventListener('input', e => {
+  ambientLight.intensity = parseInt(e.target.value) / 100;
+  document.getElementById('ambient-val').textContent = e.target.value + '%';
+});
+document.getElementById('light-sun').addEventListener('input', e => {
+  sunLight.intensity = parseInt(e.target.value) / 100;
+  document.getElementById('sun-val').textContent = e.target.value + '%';
+});
+document.getElementById('bg-color').addEventListener('input', e => { outputBgColor = e.target.value; });
+
+const gltfLoader = new GLTFLoader();
+const objLoader  = new OBJLoader();
+
+function countTris(obj) {
+  let t = 0;
+  obj.traverse(c => {
+    if (c.isMesh && c.geometry) {
+      const idx = c.geometry.index;
+      t += idx ? idx.count / 3 : c.geometry.attributes.position.count / 3;
+    }
+  });
+  return Math.round(t);
+}
+
+function addModelToScene(mesh, name, type) {
+  const box = new THREE.Box3().setFromObject(mesh);
+  const center = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const scale = 2 / Math.max(size.x, size.y, size.z);
+  mesh.position.sub(center.multiplyScalar(scale));
+  mesh.scale.setScalar(scale);
+  mesh.traverse(c => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; } });
+
+  const entry = {
+    mesh, name,
+    type: type || 'GLB',
+    triCount: countTris(mesh),
+    shadeMode: 'base',
+    baseColor: '#888888',
+    gradColorA: '#ff4488',
+    gradColorB: '#44aaff',
+    gradAxis: 'y',
+    gouraudDiffuse: '#88aaff',
+    gouraudSpecular: '#ffffff',
+    gouraudShininess: 40,
+    textureTex: null,
+    textureRepeat: 1,
+    autoRotate: false,
+    textureTags: {
+      biome: "grass",
+      textureMode: "inherit",
+      zoneTextures: {
+        top: "",
+        side: "",
+        under: ""
+      }
+    }
+  };
+  objects.push(entry);
+  scene.add(mesh);
+  applyShading(entry);
+  updateModelList();
+  selectObject(mesh);
+  document.getElementById('drop-hint').classList.add('hidden');
+  document.getElementById('status-text').textContent = `${name} loaded (${entry.triCount.toLocaleString()} tris)`;
+  _undoStack.length = 0; _redoStack.length = 0; _syncUndoButtons();
+  markDirty();
+}
+
+function loadFile(file) {
+  const url = URL.createObjectURL(file);
+  const name = file.name.replace(/\.[^.]+$/, '');
+  const ext  = file.name.split('.').pop().toLowerCase();
+  if (ext === 'glb' || ext === 'gltf') {
+    gltfLoader.load(url, gltf => { addModelToScene(gltf.scene, name, 'GLB'); URL.revokeObjectURL(url); });
+  } else if (ext === 'obj') {
+    objLoader.load(url, obj => { addModelToScene(obj, name, 'OBJ'); URL.revokeObjectURL(url); });
+  }
+}
+
+document.getElementById('file-input').addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+
+const dragOverlay = document.getElementById('drag-overlay');
+document.addEventListener('dragover', e => { e.preventDefault(); dragOverlay.classList.add('active'); });
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) dragOverlay.classList.remove('active'); });
+document.addEventListener('drop', e => { e.preventDefault(); dragOverlay.classList.remove('active'); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+document.getElementById('btn-add-primitive').addEventListener('click', () => {
+  const choice = document.getElementById('primitive-select').value;
+
+  if (choice === 'Sprite') {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = () => {
+      if (!inp.files[0]) return;
+      const url = URL.createObjectURL(inp.files[0]);
+      const tex = new THREE.TextureLoader().load(url, () => URL.revokeObjectURL(url));
+      const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+      const sprite = new THREE.Sprite(mat);
+      sprite.scale.set(2, 2, 1);
+      const group = new THREE.Group();
+      group.add(sprite);
+      group._isSprite = true;
+      addModelToScene(group, inp.files[0].name.replace(/\.[^.]+$/, ''), 'SPR');
+    };
+    inp.click();
+    return;
+  }
+
+  let geo;
+  if      (choice === 'Box')       geo = new THREE.BoxGeometry(1,1,1);
+  else if (choice === 'Sphere')    geo = new THREE.SphereGeometry(0.7,24,16);
+  else if (choice === 'Plane')     geo = new THREE.PlaneGeometry(1.5,1.5);
+  else if (choice === 'Cylinder')  geo = new THREE.CylinderGeometry(0.5,0.5,1.5,24);
+  else if (choice === 'Cone')      geo = new THREE.ConeGeometry(0.7,1.5,24);
+  else if (choice === 'Torus')     geo = new THREE.TorusGeometry(0.6,0.25,16,48);
+  else                             geo = new THREE.TorusKnotGeometry(0.5,0.18,100,16);
+
+  const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.DoubleSide }));
+  mesh.castShadow = true;
+  const group = new THREE.Group();
+  group.add(mesh);
+  addModelToScene(group, choice, 'PRIM');
+});
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+stageCanvas.addEventListener('click', e => {
+  if (transformControls.dragging) return;
+  const rect = stageCanvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, stageCamera);
+  const meshes = [];
+  objects.forEach(o => o.mesh.traverse(c => { if (c.isMesh) meshes.push(c); }));
+  const hits = raycaster.intersectObjects(meshes);
+  if (hits.length > 0) {
+    const hit = hits[0].object;
+    const found = objects.find(o => { let f=false; o.mesh.traverse(c => { if(c===hit) f=true; }); return f; });
+    if (found) selectObject(found.mesh);
+  } else {
+    deselectObject();
+  }
+});
+
+function selectObject(mesh) {
+  selectedObject = mesh;
+  transformControls.attach(mesh);
+  updateModelList();
+  syncShadingPanel();
+}
+
+function deselectObject() {
+  selectedObject = null;
+  transformControls.detach();
+  updateModelList();
+  syncShadingPanel();
+}
+
+window.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'w' || e.key === 'W') transformControls.setMode('translate');
+  if (e.key === 'e' || e.key === 'E') transformControls.setMode('rotate');
+  if (e.key === 'r' || e.key === 'R') transformControls.setMode('scale');
+  if (e.key === 'Escape') deselectObject();
+  if (e.key === 'Delete' && selectedObject) removeSelected();
+});
+
+function removeSelected() {
+  if (!selectedObject) return;
+  transformControls.detach();
+  scene.remove(selectedObject);
+  objects = objects.filter(o => o.mesh !== selectedObject);
+  selectedObject = null;
+  updateModelList();
+  syncShadingPanel();
+  if (objects.length === 0) {
+    document.getElementById('drop-hint').classList.remove('hidden');
+    document.getElementById('status-text').textContent = 'No model loaded';
+  }
+  markDirty();
+}
+
+function updateModelList() {
+  const list = document.getElementById('model-list');
+  list.innerHTML = '';
+  objects.forEach((o, i) => {
+    const item = document.createElement('div');
+    item.className = 'model-item' + (o.mesh === selectedObject ? ' selected' : '');
+    const badgeClass = o.type === 'PRIM' ? 'glb-badge prim' : 'glb-badge';
+    // per-model size estimate
+    let sizeText = '—';
+    try {
+      if (o.mesh) sizeText = humanBytes(estimateMeshByteSize(o.mesh));
+    } catch (e) { sizeText = '—'; }
+    const warn = (o.mesh && estimateMeshByteSize(o.mesh) > 1024*1024) ? '<span style="color:#f0b0a0;margin-left:6px;font-size:11px;">⚠</span>' : '';
+    item.innerHTML = `<span class="${badgeClass}">${o.type}</span><span class="model-name">${o.name}</span><span style="color:var(--text-dim);font-size:11px;margin-left:6px;">${sizeText}</span>${warn}<span class="model-remove" title="Remove (Del)">✕</span>`;
+    item.querySelector('.model-remove').addEventListener('click', ev => { ev.stopPropagation(); removeByIndex(i); });
+    item.addEventListener('click', () => selectObject(o.mesh));
+    list.appendChild(item);
+  });
+}
+
+function removeByIndex(i) {
+  const o = objects[i];
+  if (o.mesh === selectedObject) { transformControls.detach(); selectedObject = null; }
+  scene.remove(o.mesh);
+  objects.splice(i, 1);
+  updateModelList();
+  syncShadingPanel();
+  if (objects.length === 0) {
+    document.getElementById('drop-hint').classList.remove('hidden');
+    document.getElementById('status-text').textContent = 'No model loaded';
+  }
+  markDirty();
+}
+
+const titleCanvas = document.createElement('canvas');
+titleCanvas.width = 1024; titleCanvas.height = 256;
+const titleCtx = titleCanvas.getContext('2d');
+const titleTex = new THREE.CanvasTexture(titleCanvas);
+const titleSpriteMat = new THREE.SpriteMaterial({ map: titleTex, transparent: true, depthTest: false });
+const titleSprite = new THREE.Sprite(titleSpriteMat);
+titleSprite.renderOrder = 999;
+scene.add(titleSprite);
+titleSprite.visible = false;
+
+function buildTitleFont() {
+  if (!titleFont) return "'Oswald', 'Arial Black', sans-serif";
+  if (titleFont.includes(',') || titleFont.startsWith("'") || titleFont.startsWith('"')) return titleFont;
+  return `'${titleFont}', sans-serif`;
+}
+
+function updateTitleOverlay() {
+  if (!titleText) { titleSprite.visible = false; return; }
+
+  const cw = titleCanvas.width, ch = titleCanvas.height;
+  titleCtx.clearRect(0, 0, cw, ch);
+
+  const fontPx = Math.round(titleSize * 3);
+  const fontStr = `bold ${fontPx}px ${buildTitleFont()}`;
+  titleCtx.font = fontStr;
+  titleCtx.textAlign = 'center';
+  titleCtx.textBaseline = 'middle';
+
+  titleCtx.shadowColor = 'rgba(0,0,0,0.85)';
+  titleCtx.shadowBlur = fontPx * 0.12;
+  titleCtx.shadowOffsetX = fontPx * 0.04;
+  titleCtx.shadowOffsetY = fontPx * 0.04;
+
+  if (titleColorMode === 'gradient') {
+    const dirMap = { '90deg': [0,0,cw,0], '180deg': [0,0,0,ch], '135deg': [0,0,cw,ch], '45deg': [cw,0,0,ch] };
+    const pts = dirMap[titleGradDir] || dirMap['90deg'];
+    const grad = titleCtx.createLinearGradient(...pts);
+    grad.addColorStop(0, titleGradA);
+    grad.addColorStop(1, titleGradB);
+    titleCtx.fillStyle = grad;
+  } else {
+    titleCtx.fillStyle = titleColor;
+  }
+
+  titleCtx.fillText(titleText, cw / 2, ch / 2);
+  titleTex.needsUpdate = true;
+
+  const aspect = cw / ch;
+  const worldH = titleSize / 40;
+  titleSprite.scale.set(worldH * aspect * 2, worldH * 2, 1);
+  titleSprite.position.set(titlePos.x, titlePos.y, titleDepth);
+  titleSprite.visible = true;
+}
+
+(function() {
+  const wrap = document.getElementById('render-wrap');
+  let dragging = false, startMx, startMy, startPx, startPy;
+
+  wrap.addEventListener('mousedown', e => {
+    const rect = wrap.getBoundingClientRect();
+    const ndcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    if (!titleSprite.visible) return;
+    const proj = titleSprite.position.clone().project(offCamera);
+    const dist = Math.hypot(proj.x - ndcX, proj.y - ndcY);
+    if (dist > 0.25) return;
+    dragging = true;
+    startMx = e.clientX; startMy = e.clientY;
+    startPx = titlePos.x; startPy = titlePos.y;
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const rect = wrap.getBoundingClientRect();
+    const fovRad = offCamera.fov * Math.PI / 180;
+    const dist = Math.abs(offCamera.position.z - titleDepth) || 5;
+    const worldH = 2 * dist * Math.tan(fovRad / 2);
+    const worldW = worldH * (rect.width / rect.height);
+    titlePos.x = startPx + (e.clientX - startMx) / rect.width * worldW;
+    titlePos.y = startPy - (e.clientY - startMy) / rect.height * worldH;
+    titleSprite.position.set(titlePos.x, titlePos.y, titleDepth);
+  });
+
+  window.addEventListener('mouseup', () => { dragging = false; });
+})();
+
+const clock = new THREE.Clock();
+
+function drawBackground(ctx, w, h) {
+  if (outputBgType === 'image' && outputBgImage) {
+    ctx.save();
+    if (outputBgImageFit === 'cover') {
+      const scale = Math.max(w / outputBgImage.width, h / outputBgImage.height);
+      const sw = outputBgImage.width * scale, sh = outputBgImage.height * scale;
+      ctx.drawImage(outputBgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else if (outputBgImageFit === 'contain') {
+      const scale = Math.min(w / outputBgImage.width, h / outputBgImage.height);
+      const sw = outputBgImage.width * scale, sh = outputBgImage.height * scale;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(outputBgImage, (w - sw) / 2, (h - sh) / 2, sw, sh);
+    } else {
+      ctx.drawImage(outputBgImage, 0, 0, w, h);
+    }
+    ctx.restore();
+  } else if (outputBgType === 'gradient') {
+    let grad;
+    const d = outputBgGradDir;
+    if (d === 'to bottom')      grad = ctx.createLinearGradient(0,0,0,h);
+    else if (d === 'to right')  grad = ctx.createLinearGradient(0,0,w,0);
+    else if (d === '135deg')    grad = ctx.createLinearGradient(0,0,w,h);
+    else                        grad = ctx.createLinearGradient(w,0,0,h);
+    grad.addColorStop(0, outputBgGradA);
+    grad.addColorStop(1, outputBgGradB);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.fillStyle = outputBgColor;
+    ctx.fillRect(0, 0, w, h);
+  }
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  orbitControls.update();
+
+  objects.forEach(o => { if (o.autoRotate) o.mesh.rotation.y += dt * 0.6; });
+
+  scene.background = new THREE.Color(0x0e0820);
+  stageRenderer.render(scene, stageCamera);
+
+  gridHelper.visible = false;
+  transformControls.visible = false;
+  scene.background = null;
+  offRenderer.setClearColor(0x000000, 0);
+  offCamera.copy(stageCamera);
+  offCamera.aspect = renderW / renderH;
+  offCamera.updateProjectionMatrix();
+  offRenderer.render(scene, offCamera);
+
+  const rc = document.getElementById('render-canvas');
+  const ctx = rc.getContext('2d');
+  drawBackground(ctx, renderW, renderH);
+  ctx.drawImage(offRenderer.domElement, 0, 0);
+
+  gridHelper.visible = true;
+  transformControls.visible = true;
+  scene.background = new THREE.Color(0x0e0820);
+}
+animate();
+
+window.savePNG = function() {
+  const rc = document.getElementById('render-canvas');
+  const out = document.createElement('canvas');
+  out.width = rc.width; out.height = rc.height;
+  out.getContext('2d').drawImage(rc, 0, 0);
+  const a = document.createElement('a');
+  a.href = out.toDataURL('image/png');
+  a.download = `render_${renderW}x${renderH}.png`;
+  a.click();
+};
+
+window.copyFrame = function() {
+  document.getElementById('render-canvas').toBlob(blob =>
+    navigator.clipboard.write([new ClipboardItem({'image/png': blob})]));
+};
+
+window.saveScene = function() {
+  const sceneData = getSceneData();
+
+  const blob = new Blob([JSON.stringify(sceneData, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `scene_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+window.loadScene = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data._version) throw new Error('Not a valid sceneREND JSON');
+      if (data.render) {
+        window.setRes(data.render.width || 320, data.render.height || 200);
+        outputBgColor = data.render.bgColor || '#ffffff';
+        document.getElementById('bg-color').value = outputBgColor;
+        if (data.render.bgType) {
+          outputBgType = data.render.bgType;
+          outputBgGradA = data.render.bgGradA || '#1a0040';
+          outputBgGradB = data.render.bgGradB || '#004080';
+          outputBgGradDir = data.render.bgGradDir || 'to bottom';
+          outputBgImageFit = data.render.bgImageFit || 'cover';
+          document.getElementById('bg-grad-a').value = outputBgGradA;
+          document.getElementById('bg-grad-b').value = outputBgGradB;
+          document.getElementById('bg-grad-dir').value = outputBgGradDir;
+          document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+            o.classList.toggle('active', o.dataset.val === outputBgType));
+          document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+          document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+          document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+        }
+      }
+      if (data.lighting) {
+        const a = document.getElementById('light-ambient');
+        const s = document.getElementById('light-sun');
+        a.value = data.lighting.ambient;
+        s.value = data.lighting.sun;
+        ambientLight.intensity = data.lighting.ambient / 100;
+        sunLight.intensity = data.lighting.sun / 100;
+        document.getElementById('ambient-val').textContent = data.lighting.ambient + '%';
+        document.getElementById('sun-val').textContent = data.lighting.sun + '%';
+      }
+      if (data.camera) {
+        stageCamera.position.fromArray(data.camera.position);
+        orbitControls.target.fromArray(data.camera.target);
+        orbitControls.update();
+      }
+      if (data.title) {
+        const t = data.title;
+        titleText = t.text || '';
+        titleColorMode = t.colorMode || 'flat';
+        titleColor = t.color || '#ffffff';
+        titleGradA = t.gradA || '#ff4488';
+        titleGradB = t.gradB || '#44aaff';
+        titleGradDir = t.gradDir || '90deg';
+        titleSize = t.size || 40;
+        titleDepth = t.depth !== undefined ? t.depth : 2;
+        titleFont = t.font || '';
+        titleFontRaw = t.fontRaw || t.font || '';
+        titlePos = t.pos || { x: 0, y: 0 };
+
+        document.getElementById('title-text').value = titleText;
+        document.getElementById('title-color').value = titleColor;
+        document.getElementById('title-grad-a').value = titleGradA;
+        document.getElementById('title-grad-b').value = titleGradB;
+        document.getElementById('title-grad-dir').value = titleGradDir;
+        document.getElementById('title-size').value = titleSize;
+        document.getElementById('title-size-val').textContent = titleSize + 'px';
+        document.getElementById('title-depth').value = titleDepth;
+        document.getElementById('title-depth-val').textContent = titleDepth;
+        document.getElementById('title-font').value = titleFontRaw;
+
+        if (titleFontRaw) applyTitleFont(titleFontRaw);
+        document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+          o.classList.toggle('active', o.dataset.val === titleColorMode));
+        document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+        document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+        updateTitleOverlay();
+      }
+      if (data.objects && data.objects.length > 0) {
+        applySceneObjects(data.objects);
+      } else {
+        document.getElementById('status-text').textContent = 'Scene loaded (no models)';
+      }
+    } catch (err) {
+      alert('Failed to load scene: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+};
+
+const AUTOSAVE_KEY = 'sceneREND_autosave';
+
+function getSceneData() {
+  return {
+    _version: 1,
+    meta: { savedAt: new Date().toISOString(), renderer: 'sceneREND' },
+    render: { width: renderW, height: renderH, bgColor: outputBgColor,
+              bgType: outputBgType, bgGradA: outputBgGradA, bgGradB: outputBgGradB, bgGradDir: outputBgGradDir,
+              bgImageFit: outputBgImageFit },
+    lighting: {
+      ambient: parseFloat(document.getElementById('light-ambient').value),
+      sun: parseFloat(document.getElementById('light-sun').value),
+    },
+    camera: {
+      position: stageCamera.position.toArray(),
+      target: orbitControls.target.toArray(),
+    },
+    title: {
+      text: titleText, colorMode: titleColorMode,
+      color: titleColor, gradA: titleGradA, gradB: titleGradB, gradDir: titleGradDir,
+      size: titleSize, depth: titleDepth, font: titleFont, fontRaw: titleFontRaw,
+      pos: { x: titlePos.x, y: titlePos.y },
+    },
+    objects: objects.map(o => {
+      const base = {
+        name: o.name, type: o.type, triCount: o.triCount,
+        shadeMode: o.shadeMode, baseColor: o.baseColor,
+        gradColorA: o.gradColorA, gradColorB: o.gradColorB, gradAxis: o.gradAxis,
+        gouraudDiffuse: o.gouraudDiffuse, gouraudSpecular: o.gouraudSpecular, gouraudShininess: o.gouraudShininess,
+        textureRepeat: o.textureRepeat,
+        autoRotate: o.autoRotate,
+        transform: {
+          position: o.mesh.position.toArray(),
+          rotation: o.mesh.rotation.toArray().slice(0, 3),
+          scale: o.mesh.scale.toArray(),
+        },
+      };
+
+      // For GLB objects include inline mesh arrays so the engine can use
+      // the exact vertex/triangle data for rendering + physics. Controlled
+      // by the Embed Geometry toggle to avoid huge exports.
+      if (o.type === 'GLB' && o.mesh && embedGeometry) {
+        const serialize = (mesh) => {
+          // Gather counts then pack binary: [MAGIC(4)][vCount][nCount][iCount][cCount]
+          const verts = [];
+          const normals = [];
+          const colors = [];
+          const indices = [];
+          let vOff = 0;
+          mesh.traverse(c => {
+            if (!c.isMesh || !c.geometry) return;
+            const geom = c.geometry;
+            const pos = geom.attributes.position;
+            const nor = geom.attributes.normal;
+            const col = geom.attributes.color;
+            const idx = geom.index;
+            for (let i = 0; i < pos.count; i++) {
+              verts.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+              if (nor) normals.push(nor.getX(i), nor.getY(i), nor.getZ(i));
+              if (col) colors.push(Math.round(col.getX(i) * 255), Math.round(col.getY(i) * 255), Math.round(col.getZ(i) * 255));
+            }
+            if (idx) {
+              for (let i = 0; i < idx.count; i += 3) {
+                indices.push(idx.getX(i) + vOff, idx.getX(i+1) + vOff, idx.getX(i+2) + vOff);
+              }
+            } else {
+              for (let i = 0; i < pos.count; i += 3) indices.push(vOff + i, vOff + i + 1, vOff + i + 2);
+            }
+            vOff += pos.count;
+          });
+
+          const vCount = verts.length; // number of floats
+          const nCount = normals.length;
+          const iCount = indices.length;
+          const cCount = colors.length;
+
+          const headerBytes = 4 + 4 * 4; // magic + 4 counts
+          const vertsBytes = vCount * 4;
+          const normalsBytes = nCount * 4;
+          const indicesBytes = iCount * 4;
+          const colorsBytes = cCount; // bytes
+
+          const total = headerBytes + vertsBytes + normalsBytes + indicesBytes + colorsBytes;
+          const buf = new ArrayBuffer(total);
+          const dv = new DataView(buf);
+          // magic 'IMSH'
+          dv.setUint8(0, 0x49); dv.setUint8(1, 0x4d); dv.setUint8(2, 0x53); dv.setUint8(3, 0x48);
+          let off = 4;
+          dv.setUint32(off, vCount, true); off += 4;
+          dv.setUint32(off, nCount, true); off += 4;
+          dv.setUint32(off, iCount, true); off += 4;
+          dv.setUint32(off, cCount, true); off += 4;
+
+          // Write float32 verts
+          const f32 = new Float32Array(buf, off, vCount);
+          for (let i = 0; i < vCount; i++) f32[i] = verts[i];
+          off += vertsBytes;
+
+          if (nCount > 0) {
+            const f32n = new Float32Array(buf, off, nCount);
+            for (let i = 0; i < nCount; i++) f32n[i] = normals[i];
+            off += normalsBytes;
+          }
+
+          // Indices as uint32
+          const u32 = new Uint32Array(buf, off, iCount);
+          for (let i = 0; i < iCount; i++) u32[i] = indices[i];
+          off += indicesBytes;
+
+          if (cCount > 0) {
+            const u8 = new Uint8Array(buf, off, cCount);
+            for (let i = 0; i < cCount; i++) u8[i] = colors[i];
+            off += colorsBytes;
+          }
+
+          // Base64 helper (chunked)
+          const base64ArrayBuffer = (arrayBuffer) => {
+            const bytes = new Uint8Array(arrayBuffer);
+            const chunkSize = 0x8000;
+            let binary = '';
+            for (let i = 0; i < bytes.length; i += chunkSize) {
+              const sub = bytes.subarray(i, i + chunkSize);
+              binary += String.fromCharCode.apply(null, sub);
+            }
+            return btoa(binary);
+          };
+
+          return { bin: base64ArrayBuffer(buf), vCount, nCount, iCount, cCount };
+        };
+        try {
+          base.mapgen = base.mapgen || {};
+          base.mapgen.inlineMesh = serialize(o.mesh);
+        } catch (e) {
+          console.warn('serialize inline mesh failed', e);
+        }
+      }
+
+      if (o.textureTags) {
+        base.mapgen = base.mapgen || {};
+        base.mapgen.biome = o.textureTags.biome || "grass";
+        base.mapgen.textureMode = o.textureTags.textureMode || "inherit";
+        base.mapgen.zoneTextures = {
+          top: o.textureTags.zoneTextures?.top || "",
+          side: o.textureTags.zoneTextures?.side || "",
+          under: o.textureTags.zoneTextures?.under || ""
+        };
+      }
+
+      return base;
+    }),
+  };
+}
+
+function commitAutosave() {
+  try {
+    const data = getSceneData();
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+    const statusEl = document.getElementById('autosave-status');
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    if (statusEl) statusEl.textContent = `Auto-saved ${time}`;
+    markClean();
+  } catch (e) {
+  }
+}
+
+function humanBytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+  return (n/(1024*1024)).toFixed(2) + ' MB';
+}
+
+function estimateMeshByteSize(mesh) {
+  const counts = { verts: 0, normals: 0, colors: 0, indices: 0 };
+  let vOff = 0;
+  mesh.traverse(c => {
+    if (!c.isMesh || !c.geometry) return;
+    const geom = c.geometry;
+    const pos = geom.attributes.position;
+    const nor = geom.attributes.normal;
+    const col = geom.attributes.color;
+    const idx = geom.index;
+    counts.verts += pos.count * 3; // float components
+    if (nor) counts.normals += nor.count * 3;
+    if (col) counts.colors += col.count * 3; // bytes later
+    if (idx) counts.indices += idx.count; else counts.indices += pos.count;
+    vOff += pos.count;
+  });
+  const header = 4 + 4*4;
+  const vertsBytes = counts.verts * 4;
+  const normalsBytes = counts.normals * 4;
+  const indicesBytes = counts.indices * 4;
+  const colorsBytes = counts.colors; // already bytes
+  return header + vertsBytes + normalsBytes + indicesBytes + colorsBytes;
+}
+
+function estimateSceneEmbedSize() {
+  let total = 0;
+  for (const o of objects) {
+    if (o.type === 'GLB' && o.mesh) {
+      total += estimateMeshByteSize(o.mesh);
+    }
+  }
+  return total;
+}
+
+function updateEmbedUI() {
+  const cb = document.getElementById('embed-toggle');
+  embedGeometry = !!(cb && cb.checked);
+  const el = document.getElementById('embed-size');
+  if (!el) return;
+  const warnEl = document.getElementById('embed-warning');
+  const warnThreshold = 1 * 1024 * 1024; // 1 MB
+  if (!embedGeometry) { el.textContent = 'Size: (disabled)'; if (warnEl) warnEl.style.display = 'none'; return; }
+  const bytes = estimateSceneEmbedSize();
+  el.textContent = 'Size: ' + humanBytes(bytes);
+  if (warnEl) {
+    if (bytes > warnThreshold) warnEl.style.display = 'block'; else warnEl.style.display = 'none';
+  }
+}
+
+document.getElementById('embed-toggle').addEventListener('change', () => { updateEmbedUI(); markDirty(); });
+
+// Recompute size when scene changes
+const _origPushUndo = pushUndo;
+pushUndo = function() { _origPushUndo(); updateEmbedUI(); };
+// run initial update
+updateEmbedUI();
+
+const _origSaveScene = window.saveScene;
+window.saveScene = function() {
+  _origSaveScene();
+  commitAutosave();
+  const statusEl = document.getElementById('autosave-status');
+  if (statusEl) statusEl.textContent = `Saved ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  markClean();
+};
+
+const sceneControlsEl = document.getElementById('scene-controls');
+if (sceneControlsEl) {
+  sceneControlsEl.addEventListener('input', markDirty);
+  sceneControlsEl.addEventListener('change', markDirty);
+}
+const outputControlsEl = document.getElementById('output-controls');
+if (outputControlsEl) {
+  outputControlsEl.addEventListener('input', markDirty);
+  outputControlsEl.addEventListener('change', markDirty);
+}
+transformControls.addEventListener('objectChange', markDirty);
+
+(function restoreAutosave() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(AUTOSAVE_KEY)); } catch (_) {}
+  if (!saved) return;
+
+  const statusEl = document.getElementById('autosave-status');
+  const age = saved.meta?.savedAt
+    ? Math.round((Date.now() - new Date(saved.meta.savedAt)) / 60000)
+    : null;
+  const ageStr = age !== null ? (age < 1 ? 'just now' : `${age}m ago`) : '';
+  if (statusEl) statusEl.innerHTML = `<span style="color:var(--text-accent);">↩ Session restored ${ageStr}</span>`;
+
+  try {
+    if (saved.render) {
+      window.setRes(saved.render.width || 320, saved.render.height || 200);
+      outputBgColor = saved.render.bgColor || '#ffffff';
+      document.getElementById('bg-color').value = outputBgColor;
+      if (saved.render.bgType) {
+        outputBgType = saved.render.bgType;
+        outputBgGradA = saved.render.bgGradA || '#1a0040';
+        outputBgGradB = saved.render.bgGradB || '#004080';
+        outputBgGradDir = saved.render.bgGradDir || 'to bottom';
+        outputBgImageFit = saved.render.bgImageFit || 'cover';
+        document.getElementById('bg-grad-a').value = outputBgGradA;
+        document.getElementById('bg-grad-b').value = outputBgGradB;
+        document.getElementById('bg-grad-dir').value = outputBgGradDir;
+        document.querySelectorAll('#bg-type-toggle .toggle-opt').forEach(o =>
+          o.classList.toggle('active', o.dataset.val === outputBgType));
+        document.getElementById('bg-solid-row').style.display    = outputBgType === 'solid'    ? '' : 'none';
+        document.getElementById('bg-gradient-rows').style.display = outputBgType === 'gradient' ? '' : 'none';
+        document.getElementById('bg-image-rows').style.display   = outputBgType === 'image'    ? '' : 'none';
+      }
+    }
+    if (saved.lighting) {
+      document.getElementById('light-ambient').value = saved.lighting.ambient;
+      document.getElementById('light-sun').value = saved.lighting.sun;
+      ambientLight.intensity = saved.lighting.ambient / 100;
+      sunLight.intensity = saved.lighting.sun / 100;
+      document.getElementById('ambient-val').textContent = saved.lighting.ambient + '%';
+      document.getElementById('sun-val').textContent = saved.lighting.sun + '%';
+    }
+    if (saved.camera) {
+      stageCamera.position.fromArray(saved.camera.position);
+      orbitControls.target.fromArray(saved.camera.target);
+      orbitControls.update();
+    }
+    if (saved.title) {
+      const t = saved.title;
+      titleText = t.text || '';
+      titleColorMode = t.colorMode || 'flat';
+      titleColor = t.color || '#ffffff';
+      titleGradA = t.gradA || '#ff4488';
+      titleGradB = t.gradB || '#44aaff';
+      titleGradDir = t.gradDir || '90deg';
+      titleSize = t.size || 40;
+      titleDepth = t.depth !== undefined ? t.depth : 2;
+      titleFont = t.font || '';
+      titleFontRaw = t.fontRaw || t.font || '';
+      titlePos = t.pos || { x: 0, y: 0 };
+      document.getElementById('title-text').value = titleText;
+      document.getElementById('title-color').value = titleColor;
+      document.getElementById('title-grad-a').value = titleGradA;
+      document.getElementById('title-grad-b').value = titleGradB;
+      document.getElementById('title-grad-dir').value = titleGradDir;
+      document.getElementById('title-size').value = titleSize;
+      document.getElementById('title-size-val').textContent = titleSize + 'px';
+      document.getElementById('title-depth').value = titleDepth;
+      document.getElementById('title-depth-val').textContent = titleDepth;
+      document.getElementById('title-font').value = titleFontRaw;
+      document.querySelectorAll('#color-mode-toggle .toggle-opt').forEach(o =>
+        o.classList.toggle('active', o.dataset.val === titleColorMode));
+      document.getElementById('color-flat-row').style.display = titleColorMode === 'flat' ? '' : 'none';
+      document.getElementById('color-grad-row').style.display = titleColorMode === 'gradient' ? '' : 'none';
+      if (titleFontRaw) applyTitleFont(titleFontRaw);
+      else updateTitleOverlay();
+    }
+    if (saved.objects && saved.objects.length > 0) {
+      const primitiveTypes = ['PRIM'];
+      const prims = saved.objects.filter(o => primitiveTypes.includes(o.type));
+      if (prims.length > 0) {
+        prims.forEach(saved => {
+          const name = saved.name;
+          let geo;
+          if      (name === 'Box')       geo = new THREE.BoxGeometry(1,1,1);
+          else if (name === 'Sphere')    geo = new THREE.SphereGeometry(0.7,24,16);
+          else if (name === 'Plane')     geo = new THREE.PlaneGeometry(1.5,1.5);
+          else if (name === 'Cylinder')  geo = new THREE.CylinderGeometry(0.5,0.5,1.5,24);
+          else if (name === 'Cone')      geo = new THREE.ConeGeometry(0.7,1.5,24);
+          else if (name === 'Torus')     geo = new THREE.TorusGeometry(0.6,0.25,16,48);
+          else if (name === 'TorusKnot') geo = new THREE.TorusKnotGeometry(0.5,0.18,100,16);
+          if (!geo) return;
+          const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x888888, side: THREE.DoubleSide }));
+          mesh.castShadow = true;
+          const group = new THREE.Group();
+          group.add(mesh);
+          const entry = {
+            mesh: group, name, type: 'PRIM',
+            triCount: 0,
+            shadeMode: saved.shadeMode || 'base', baseColor: saved.baseColor || '#888888',
+            gradColorA: saved.gradColorA || '#ff4488', gradColorB: saved.gradColorB || '#44aaff',
+            gradAxis: saved.gradAxis || 'y',
+            gouraudDiffuse: saved.gouraudDiffuse || '#88aaff',
+            gouraudSpecular: saved.gouraudSpecular || '#ffffff',
+            gouraudShininess: saved.gouraudShininess !== undefined ? saved.gouraudShininess : 40,
+            textureTex: null, textureRepeat: saved.textureRepeat || 1,
+            autoRotate: saved.autoRotate || false,
+          };
+          objects.push(entry);
+          scene.add(group);
+          if (saved.transform) {
+            group.position.fromArray(saved.transform.position);
+            group.rotation.set(...saved.transform.rotation);
+            group.scale.fromArray(saved.transform.scale);
+          }
+          applyShading(entry);
+        });
+        updateModelList();
+        document.getElementById('drop-hint').classList.add('hidden');
+        document.getElementById('status-text').textContent = `${prims.length} primitive(s) restored`;
+      }
+      const external = saved.objects.filter(o => !primitiveTypes.includes(o.type));
+      if (external.length > 0) {
+        applySceneObjects(saved.objects);
+      }
+    }
+  } catch (e) {
+    console.warn('Auto-restore failed:', e);
+  }
+  markClean();
+})();
+
+function applySceneObjects(savedObjects) {
+  savedObjects.forEach(saved => {
+    const entry = objects.find(o => o.name === saved.name);
+    if (!entry) return;
+    applyEntrySettings(entry, saved);
+  });
+
+  const missing = savedObjects.filter(s =>
+    s.type !== 'PRIM' && !objects.some(o => o.name === s.name));
+
+  if (missing.length === 0) {
+    finaliseSceneLoad(savedObjects);
+    return;
+  }
+
+  _pendingSceneObjects = savedObjects;
+  const list = document.getElementById('missing-list');
+  list.innerHTML = '';
+
+  missing.forEach(saved => {
+    const row = document.createElement('div');
+    row.className = 'missing-row';
+    row.dataset.name = saved.name;
+    row.innerHTML = `
+      <span class="glb-badge">${saved.type || 'GLB'}</span>
+      <span class="missing-name" title="${saved.name}">${saved.name}</span>
+      <span class="missing-status" id="mstatus-${CSS.escape(saved.name)}">missing</span>
+      <label class="wb-btn wb-btn-sm missing-load-btn" style="cursor:pointer;">
+        Locate ${saved.name}…
+        <input type="file" accept=".glb,.gltf,.obj" style="display:none;"
+          data-target="${saved.name}">
+      </label>`;
+    list.appendChild(row);
+    
+    // Attach change listener dynamically
+    const fileInput = row.querySelector('input[type="file"]');
+    fileInput.addEventListener('change', function() {
+      window.handleMissingFile(this, saved.name);
+    });
+  });
+
+  document.getElementById('missing-modal-backdrop').classList.add('open');
+}
+
+window.handleMissingFile = function(input, targetName) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const ext = file.name.split('.').pop().toLowerCase();
+  const statusEl = document.getElementById('mstatus-' + CSS.escape(targetName));
+
+  function onLoaded(mesh) {
+    URL.revokeObjectURL(url);
+    const saved = _pendingSceneObjects.find(s => s.name === targetName);
+    const entry = {
+      mesh, name: targetName,
+      type: saved?.type || 'GLB',
+      triCount: countTris(mesh),
+      shadeMode: 'base', baseColor: '#888888',
+      gradColorA: '#ff4488', gradColorB: '#44aaff', gradAxis: 'y',
+      autoRotate: false,
+    };
+    objects.push(entry);
+    scene.add(mesh);
+    if (saved) applyEntrySettings(entry, saved);
+    updateModelList();
+
+    const row = input.closest('.missing-row');
+    if (row) row.classList.add('resolved');
+    if (statusEl) { statusEl.textContent = '✓ loaded'; statusEl.className = 'missing-status ok'; }
+    input.closest('label').remove();
+
+    const allDone = !document.querySelector('.missing-row:not(.resolved)');
+    if (allDone) finaliseSceneLoad(_pendingSceneObjects);
+  }
+
+  if (ext === 'glb' || ext === 'gltf') {
+    gltfLoader.load(url, gltf => onLoaded(gltf.scene));
+  } else if (ext === 'obj') {
+    objLoader.load(url, obj => onLoaded(obj));
+  }
+  if (statusEl) { statusEl.textContent = 'loading…'; statusEl.className = 'missing-status'; }
+};
+
+function applyEntrySettings(entry, saved) {
+  entry.shadeMode       = saved.shadeMode       || 'base';
+  entry.baseColor       = saved.baseColor       || '#888888';
+  entry.gradColorA      = saved.gradColorA      || '#ff4488';
+  entry.gradColorB      = saved.gradColorB      || '#44aaff';
+  entry.gradAxis        = saved.gradAxis        || 'y';
+  entry.gouraudDiffuse  = saved.gouraudDiffuse  || '#88aaff';
+  entry.gouraudSpecular = saved.gouraudSpecular || '#ffffff';
+  entry.gouraudShininess= saved.gouraudShininess !== undefined ? saved.gouraudShininess : 40;
+  entry.textureRepeat   = saved.textureRepeat   || 1;
+  entry.autoRotate      = saved.autoRotate !== false;
+  if (saved.transform) {
+    entry.mesh.position.fromArray(saved.transform.position);
+    entry.mesh.rotation.set(...saved.transform.rotation);
+    entry.mesh.scale.fromArray(saved.transform.scale);
+  }
+  applyShading(entry);
+}
+
+function finaliseSceneLoad(savedObjects) {
+  document.getElementById('missing-modal-backdrop').classList.remove('open');
+  syncShadingPanel();
+  updateModelList();
+  const matched = savedObjects.filter(s => objects.some(o => o.name === s.name)).length;
+  document.getElementById('status-text').textContent =
+    `Scene loaded · ${matched}/${savedObjects.length} models`;
+  _pendingSceneObjects = [];
+}
+
+document.getElementById('missing-done-btn').addEventListener('click', () =>
+  finaliseSceneLoad(_pendingSceneObjects));
+document.getElementById('missing-skip-btn').addEventListener('click', () =>
+  finaliseSceneLoad(_pendingSceneObjects));
+
+class GamepadManager {
+  constructor({ deadzone = 0.1 } = {}) {
+    this._deadzone = deadzone;
+    this._handlers = { connected: [], disconnected: [], update: [], chord: [] };
+    this._rafId = null; this._running = false;
+    this._prevButtons = {}; this._currButtons = {}; this._buttonMaps = {};
+    this._chords = new Map();
+    this._chordFiredThisFrame = new Map();
+    this._chordHandlers = new Map();
+    this._onConnected = this._onConnected.bind(this);
+    this._onDisconnected = this._onDisconnected.bind(this);
+    this._poll = this._poll.bind(this);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gamepadconnected', this._onConnected);
+      window.addEventListener('gamepaddisconnected', this._onDisconnected);
+    }
+  }
+  on(event, fn) { if (this._handlers[event]) this._handlers[event].push(fn); return this; }
+  off(event, fn) { if (this._handlers[event]) this._handlers[event] = this._handlers[event].filter(h => h !== fn); return this; }
+  start() {
+    if (this._running) return this;
+    this._running = true;
+    this.safeGetGamepads().forEach(pad => { if (pad) this._emit('connected', pad); });
+    this._rafId = requestAnimationFrame(this._poll);
+    return this;
+  }
+  stop() { this._running = false; if (this._rafId !== null) { cancelAnimationFrame(this._rafId); this._rafId = null; } return this; }
+  destroy() { this.stop(); if (typeof window !== 'undefined') { window.removeEventListener('gamepadconnected', this._onConnected); window.removeEventListener('gamepaddisconnected', this._onDisconnected); } return this; }
+  setButtonMap(i, map) { this._buttonMaps[i] = { ...map }; return this; }
+  clearButtonMap(i) { delete this._buttonMaps[i]; return this; }
+  getButtonMap(i) { return this._buttonMaps[i] ? { ...this._buttonMaps[i] } : {}; }
+  defineChord(name, buttons, { exclusive = true } = {}) {
+    if (!Array.isArray(buttons) || buttons.length < 1) return this;
+    this._chords.set(name, { buttons: [...buttons], exclusive });
+    if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []);
+    return this;
+  }
+  removeChord(name) { this._chords.delete(name); this._chordHandlers.delete(name); this._chordFiredThisFrame.delete(name); return this; }
+  onChord(name, fn) { if (!this._chordHandlers.has(name)) this._chordHandlers.set(name, []); this._chordHandlers.get(name).push(fn); return this; }
+  offChord(name, fn) { if (this._chordHandlers.has(name)) this._chordHandlers.set(name, this._chordHandlers.get(name).filter(h => h !== fn)); return this; }
+  isChordActive(padIndex, name) { const c = this._chords.get(name); return c ? this._chordHeld(padIndex, c) : false; }
+  chordJustFired(padIndex, name) { return this._chordFiredThisFrame.get(name)?.has(padIndex) ?? false; }
+  get chordNames() { return [...this._chords.keys()]; }
+  isPressed(i, b) { return !!this._currButtons[i]?.[this._resolve(i, b)]; }
+  justPressed(i, b) { const p = this._resolve(i, b); return !!this._currButtons[i]?.[p] && !this._prevButtons[i]?.[p]; }
+  justReleased(i, b) { const p = this._resolve(i, b); return !this._currButtons[i]?.[p] && !!this._prevButtons[i]?.[p]; }
+  axisValue(i, ax) { const pad = this.safeGetGamepads()[i]; if (!pad) return 0; const v = pad.axes[ax] ?? 0; return Math.abs(v) < this._deadzone ? 0 : v; }
+  getStick(i, x = 0, y = 1) { const pad = this.safeGetGamepads()[i]; if (!pad) return { x: 0, y: 0 }; const rx = pad.axes[x] ?? 0, ry = pad.axes[y] ?? 0; return Math.sqrt(rx*rx+ry*ry) < this._deadzone ? { x: 0, y: 0 } : { x: rx, y: ry }; }
+  vibrate(i, { duration=200, strongMagnitude=1, weakMagnitude=1, startDelay=0 } = {}) { const pad = this.safeGetGamepads()[i]; if (pad?.vibrationActuator) return pad.vibrationActuator.playEffect('dual-rumble', { startDelay, duration, strongMagnitude, weakMagnitude }).catch(() => null); return null; }
+  get count() { return this.safeGetGamepads().filter(Boolean).length; }
+  _resolve(i, l) { const m = this._buttonMaps[i]; return m ? (m[l] ?? l) : l; }
+  _chordHeld(i, chord) {
+    const curr = this._currButtons[i]; if (!curr) return false;
+    const allHeld = chord.buttons.every(b => curr[this._resolve(i, b)]);
+    if (!allHeld) return false;
+    if (chord.exclusive) { const s = new Set(chord.buttons.map(b => this._resolve(i, b))); for (let j = 0; j < curr.length; j++) { if (curr[j] && !s.has(j)) return false; } }
+    return true;
+  }
+  _evalChords(i) {
+    for (const [name, chord] of this._chords) {
+      if (!this._chordHeld(i, chord)) continue;
+      const prev = this._prevButtons[i];
+      const justCompleted = chord.buttons.some(b => { const p = this._resolve(i,b); return !!this._currButtons[i][p] && !prev?.[p]; });
+      if (!justCompleted) continue;
+      if (!this._chordFiredThisFrame.has(name)) this._chordFiredThisFrame.set(name, new Set());
+      this._chordFiredThisFrame.get(name).add(i);
+      const payload = { name, padIndex: i };
+      for (const fn of (this._chordHandlers.get(name) || [])) { try { fn(payload); } catch(_){} }
+      this._emit('chord', payload);
+    }
+  }
+  safeGetGamepads() { try { return navigator.getGamepads ? Array.from(navigator.getGamepads()) : []; } catch(_) { return []; } }
+  _onConnected(e) { this._emit('connected', e.gamepad); }
+  _onDisconnected(e) { const g = e.gamepad; delete this._prevButtons[g.index]; delete this._currButtons[g.index]; this._emit('disconnected', g); }
+  _poll() {
+    if (!this._running) return;
+    this._chordFiredThisFrame.clear();
+    const rawPads = this.safeGetGamepads();
+    const pads = [];
+    for (const pad of rawPads) {
+      if (!pad) continue;
+      if (!this._prevButtons[pad.index]) this._prevButtons[pad.index] = new Array(pad.buttons.length).fill(false);
+      this._prevButtons[pad.index] = this._currButtons[pad.index] || this._prevButtons[pad.index];
+      this._currButtons[pad.index] = pad.buttons.map(b => b.pressed);
+      this._evalChords(pad.index);
+      pads.push({ index: pad.index, id: pad.id, mapping: pad.mapping, buttons: pad.buttons.map(b => ({ pressed: b.pressed, touched: b.touched, value: b.value })), axes: Array.from(pad.axes), hasVibration: !!pad.vibrationActuator });
+    }
+    this._emit('update', pads);
+    this._rafId = requestAnimationFrame(this._poll);
+  }
+  _emit(event, data) { for (const fn of this._handlers[event] || []) { try { fn(data); } catch(_){} } }
+}
+const BTN = { A:0, B:1, X:2, Y:3, LB:4, RB:5, LT:6, RT:7, SELECT:8, START:9, L3:10, R3:11, UP:12, DOWN:13, LEFT:14, RIGHT:15, HOME:16 };
+const AXIS = { LEFT_X:0, LEFT_Y:1, RIGHT_X:2, RIGHT_Y:3 };
+
+const gp = new GamepadManager({ deadzone: 0.12 });
+
+const gpStatus    = document.getElementById('gp-status');
+const gpName      = document.getElementById('gp-name');
+const gpFullName  = document.getElementById('gp-full-name');
+const gpDisc      = document.getElementById('gp-disconnected');
+const gpConn      = document.getElementById('gp-connected-info');
+
+gp.on('connected', pad => {
+  const shortName = pad.id.length > 28 ? pad.id.slice(0, 26) + '…' : pad.id;
+  gpStatus.style.display = '';
+  gpName.textContent = shortName;
+  gpFullName.textContent = pad.id;
+  gpDisc.style.display = 'none';
+  gpConn.style.display = '';
+});
+
+gp.on('disconnected', () => {
+  if (gp.count === 0) {
+    gpStatus.style.display = 'none';
+    gpDisc.style.display = '';
+    gpConn.style.display = 'none';
+  }
+});
+
+gp.on('update', pads => {
+  if (!pads.length) return;
+  const pad = pads[0];
+  const idx = pad.index;
+  const lx = gp.axisValue(idx, AXIS.LEFT_X);
+  const ly = gp.axisValue(idx, AXIS.LEFT_Y);
+  const rx = gp.axisValue(idx, AXIS.RIGHT_X);
+  const ry = gp.axisValue(idx, AXIS.RIGHT_Y);
+
+  if (Math.abs(lx) > 0.01 || Math.abs(ly) > 0.01) {
+    const offset = new THREE.Vector3().subVectors(stageCamera.position, orbitControls.target);
+    const spherical = new THREE.Spherical().setFromVector3(offset);
+    spherical.theta -= lx * 0.03;
+    spherical.phi = Math.max(0.05, Math.min(Math.PI - 0.05, spherical.phi + ly * 0.03));
+    offset.setFromSpherical(spherical);
+    stageCamera.position.copy(orbitControls.target).add(offset);
+    orbitControls.update();
+  }
+  if (Math.abs(rx) > 0.01 || Math.abs(ry) > 0.01) {
+    const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+    if (Math.abs(ry) > 0.01) {
+      stageCamera.position.addScaledVector(toTarget, ry * 0.6);
+      orbitControls.target.addScaledVector(toTarget, ry * 0.6);
+    }
+    if (Math.abs(rx) > 0.01) {
+      const rightVec = new THREE.Vector3(1, 0, 0).applyQuaternion(stageCamera.quaternion);
+      stageCamera.position.addScaledVector(rightVec, rx * 0.03);
+      orbitControls.target.addScaledVector(rightVec, rx * 0.03);
+    }
+    orbitControls.update();
+  }
+});
+
+gp.start();
+
+gp.defineChord('UP',    [BTN.UP],    { exclusive: true });
+gp.defineChord('DOWN',  [BTN.DOWN],  { exclusive: true });
+gp.defineChord('LB',    [BTN.LB],    { exclusive: true });
+gp.defineChord('RB',    [BTN.RB],    { exclusive: true });
+gp.defineChord('A',     [BTN.A],     { exclusive: true });
+gp.defineChord('B',     [BTN.B],     { exclusive: true });
+gp.defineChord('Y',     [BTN.Y],     { exclusive: true });
+gp.defineChord('START', [BTN.START], { exclusive: true });
+
+gp.on('update', pads => {
+  if (!pads.length) return;
+  const idx = pads[0].index;
+  if (gp.chordJustFired(idx, 'UP')) {
+    setTimeout(() => {
+      const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+      stageCamera.position.addScaledVector(toTarget, 0.5);
+      orbitControls.update();
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'DOWN')) {
+    setTimeout(() => {
+      const toTarget = new THREE.Vector3().subVectors(orbitControls.target, stageCamera.position).normalize();
+      stageCamera.position.addScaledVector(toTarget, -0.5);
+      orbitControls.update();
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'LB')) {
+    setTimeout(() => {
+      if (objects.length > 1) {
+        const i = objects.findIndex(o => o.mesh === selectedObject);
+        selectObject(objects[(i - 1 + objects.length) % objects.length].mesh);
+      }
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'RB')) {
+    setTimeout(() => {
+      if (objects.length > 1) {
+        const i = objects.findIndex(o => o.mesh === selectedObject);
+        selectObject(objects[(i + 1) % objects.length].mesh);
+      }
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'A')) {
+    setTimeout(() => {
+      const entry = getSelectedEntry();
+      if (entry) { entry.autoRotate = !entry.autoRotate; syncShadingPanel(); }
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'B'))
+    setTimeout(() => deselectObject(), 1);
+  if (gp.chordJustFired(idx, 'Y')) {
+    setTimeout(() => {
+      stageCamera.position.set(0, 2, 5);
+      orbitControls.target.set(0, 0, 0);
+      orbitControls.update();
+    }, 1);
+  }
+  if (gp.chordJustFired(idx, 'START'))
+    setTimeout(() => savePNG(), 1);
+});
+
+syncShadingPanel();
+updateTitleOverlay();
+</script>
+</body>
+</html>

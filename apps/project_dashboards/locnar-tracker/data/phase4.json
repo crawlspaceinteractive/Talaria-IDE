@@ -1,0 +1,46 @@
+{
+  "id": "phase4",
+  "icon": "🔊",
+  "title": "Phase 4 – Audio & Atmosphere",
+  "systems": [
+    {
+      "name": "4.1 Procedural Sound FX Integration",
+      "status": "in‑progress",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Expand sfx.js with more varied sounds: enemy growls, ambient creaks, weapon pick‑up jingles, and UI beeps.",
+      "tasks": [
+        "Add synth presets for each enemy type and action",
+        "Implement 3D positional audio for gunfire and zombie sounds",
+        "Add sound priorities and polyphony limits"
+      ]
+    },
+    {
+      "name": "4.2 Dynamic Music System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Add a music manager that fades between calm exploration, intense combat, and boss themes based on current wave state.",
+      "tasks": [
+        "Compose or source three looping music layers",
+        "Implement crossfade logic triggered by wave/event",
+        "Volume ducking during important SFX"
+      ]
+    },
+    {
+      "name": "4.3 Environmental Ambience",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase4_0"],
+      "notes": "Add wind, machinery hum, distant screams, and reverb zones to make the arena feel alive.",
+      "tasks": [
+        "Place ambient sound emitters around the arena",
+        "Implement simple reverb zones (cave, open area)",
+        "Dynamic ambient layer that intensifies with wave"
+      ]
+    }
+  ]
+}

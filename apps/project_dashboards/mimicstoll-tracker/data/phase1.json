@@ -1,0 +1,64 @@
+{
+  "id": "phase1",
+  "icon": "⚙️",
+  "title": "Phase 1 – Core Engine & State Management",
+  "systems": [
+    {
+      "name": "1.1 Game State Machine",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Define and implement the core state machine: Lobby → Descent → Chapter Play → Chapter End → Campfire. Must track PlayerStatus (Alive, Ghost, Mimic-Disguised) and DungeonState per chapter.",
+      "tasks": [
+        "Implement game phase transitions (Campfire → Descent → Play → End)",
+        "Track PlayerStatus enum per player (Alive, Ghost, Mimic-Disguised)",
+        "Track DungeonState (rooms cleared, objectives, chapter progress)",
+        "Synchronise state across all clients (host-authoritative)"
+      ]
+    },
+    {
+      "name": "1.2 Top-Down Grid & LOS System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Build the top-down grid map with dynamic lighting and line-of-sight. Party members have limited LOS; the Mimic has global map visibility.",
+      "tasks": [
+        "Implement grid-based map rendering (tile-based or canvas)",
+        "Build LOS system: raycasting or shadow-casting per player",
+        "Party LOS: limited radius, blocked by walls and doors",
+        "Mimic LOS: full map visibility toggle",
+        "Dynamic lighting: torches, darkness, flickering effects"
+      ]
+    },
+    {
+      "name": "1.3 Proximity-Based Communication System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Implement proximity voice/text chat. Living players hear each other based on distance. Ghosts have a separate channel. The Mimic can eavesdrop on all living communication.",
+      "tasks": [
+        "Proximity voice chat for living players (distance-based volume)",
+        "Separate Ghost chat channel (all ghosts can communicate)",
+        "Mimic eavesdrop: receives all living player voice/text",
+        "Campfire lobby: open communication for all, Mimic hidden listener"
+      ]
+    },
+    {
+      "name": "1.4 Persistence & Save System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "Persist campaign state across chapters: SkullCount, player gear, Mimic learned tactics, chapter progression.",
+      "tasks": [
+        "Design campaign save data structure (JSON)",
+        "Save after each chapter completion",
+        "Load campaign on lobby start",
+        "Track Mimic's learned player tactics (observed behaviours)"
+      ]
+    }
+  ]
+}

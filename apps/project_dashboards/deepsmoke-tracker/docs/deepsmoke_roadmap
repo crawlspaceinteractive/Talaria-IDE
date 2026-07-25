@@ -1,0 +1,74 @@
+```markdown
+# 🛤️ Deepsmoke Star Development Roadmap
+
+## 🔩 Phase 1 – Solidify the Foundation
+- Implement host-authoritative co-op sync for block placement & chest inventories.
+- Load and instantiate the custom Blockbench models (steam-hauler, drill turret, goblin mech, etc.).
+- Cache and clone models; ensure lighting and shadows work with dynamic weather.
+- Basic persistence of chest contents and placed block-models.
+
+## ⚙️ Phase 2 – The World Fights Back
+- **Stalactite falls** – crack, drop, damage (with drop shadows).
+- **Lava flows & steam vents** – dynamic hazards tied to steam economy.
+- **Cave-ins** – structural failure when supports are removed.
+- **Dart traps & ancient machinery** – pressure-plate triggered in ruins.
+- **Fossil & coal seams** – mineable resources for suit upgrades and lore.
+- Sound cues for every hazard (Star Audio SDK).
+
+## 🚂 Phase 3 – Trains, Tracks & Logistics
+- Track placement: 2D billboarded rails with drop shadows (performance-friendly).
+- Free-form snapping, simple curves, switches.
+- Hauler carts – cargo capacity, fuel consumption, train schedules.
+- Lever/button controls for automatic camp deliveries.
+
+## 🧰 Phase 4 – Camp, Crafting & Character Upgrades
+- NPC trio (Bub, Tub, Grub) drives progression.
+- **Bub** – camp expansion UI, new station unlocks.
+- **Tub** – drill and mech suit module upgrades (no broken tools).
+  - Drill: speed, fuel efficiency, depth, AoE.
+  - Suit: armour, steam capacity, hazard resistance, light, Grub summon.
+- **Grub** – loyalty path: faster, more carry capacity, air drops.
+- **Streamlined crafting**: module-slot system at Tub’s forge. No giant grids or 20 benches.
+- Fossils and coal as upgrade materials.
+
+## 🤝 Phase 5 – True Cooperative Mechanics
+- Throwable resource cans – aim to share fuel/ore mid-drill.
+- Revive & drag downed teammates (Grub can also do it).
+- Shared camp inventory (already synced).
+- Possible partner-specific abilities (hazard sensing, stronger drilling).
+
+## 🎈 Phase 6 – The Skies
+- Craftable hot air balloons, anchored at camp or outposts.
+- Wind-based navigation tied to weather system.
+- Used for scouting biomes, floating islands, and sightseeing.
+- Optional: balloon-to-balloon tethering, cooperative steering.
+
+## 👻 Phase 7 – Ghost Kings & Puzzle Vaults
+- Ancient sky-castles house spectral goblin kings (Blockbench models, translucent, regal).
+- They offer lore-rich quests (retrieve lost drill core, purify corrupted geode, re-forge Crown Gear).
+- Completing quests grants unique upgrade plans for Tub (ghost-metal drill tip, hazard-sensing module, steam charm).
+- Each castle seals a **puzzle boss** – no combat, only environmental trials:
+  - Crystal Heart (stabilise a pulsing geode with precise drilling and steam redirection).
+  - Furnace Bellows (reroute lava flows, dodge steam vents).
+  - Mirror Maze (use suit lamps, align light beams, avoid fuel-draining darkness).
+- Co-op required for some trials; failure costs resources, not a game over.
+- Rewards: high-tier materials, crown pieces, permanent buffs.
+- Ghost kings reveal the history of the old goblin civilisation – and the existence of the buried titans.
+
+## ⚙️ Phase 8 – Titans in the Dirt
+- Discovery: Ghost King quest unlocks an **Ancient Goblin Lexicon**.
+- Bub’s scanning table triangulates signals of colossal buried mechs hidden in extreme biomes.
+- Excavation is a multi‑session co‑op puzzle-hazard event:
+  - Unstable struts, seeping fuel lines, rust‑spike nests, guardian automatons.
+  - One player scans with the Lexicon, the other places braces and drains hazards.
+- Restored at camp via Tub’s forge:
+  - Each titan yields a unique blueprint in the Titan Codex.
+  - Requires rare materials (Titan Bone, Core Crystals, Boiler Glands).
+  - Limbs, boiler, drill‑arm and cockpit built as separate projects (each a mini‑hazard quest).
+- Piloting: a two‑player vehicle (Pilot + Engineer).
+  - Bores 5×5 tunnels, harvests whole veins, resists lava.
+  - Fuel‑hungry; requires Grub and logistics to keep it running.
+  - Not a combat mech – a terrain‑shaper.
+- Titans unlock endgame biomes (Vaults of the Forgotten Sun) and personal suit modules miniaturised from titan technology.
+- Progression becomes archaeology: rediscovering lost goblin greatness.
+```

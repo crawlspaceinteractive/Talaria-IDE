@@ -1,0 +1,47 @@
+{
+  "id": "phase1",
+  "icon": "🗺️",
+  "title": "Phase 1 – Core Map Parsing & Conversion",
+  "systems": [
+    {
+      "name": "1.1 Map Format Support",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Ensure BUILD2UDMF correctly parses all Witchaven 1, Witchaven 2, and TekWar .MAP files (Build v6/v7). Handle any custom lump offsets or encryption if present.",
+      "tasks": [
+        "Test conversion of every Witchaven 1 single-player map",
+        "Test conversion of every Witchaven 2 map",
+        "Test conversion of all TekWar maps (shareware + registered)",
+        "Verify sector/wall counts match original level data"
+      ]
+    },
+    {
+      "name": "1.2 Blood vs Plain Build Detection",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "BUILD2UDMF already handles Blood's BLD header and dbCrypt. Ensure no false positives for Witchaven/TekWar maps. They are plain Build, so Blood path must be bypassed.",
+      "tasks": [
+        "Add explicit detection for Blood header (BLD+) vs plain Build",
+        "Guard against dbCrypt on non-Blood files",
+        "Test with Witchaven maps to confirm plain path"
+      ]
+    },
+    {
+      "name": "1.3 UDMF Output Validation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Validate generated UDMF against GZDoom's parser. Ensure all sector/linedef/thing properties are correctly mapped. No missing required fields.",
+      "tasks": [
+        "Load sample UDMF in GZDoom and check for errors",
+        "Compare in-game visuals with original Build map screenshots",
+        "Fix any misaligned geometry or missing textures"
+      ]
+    }
+  ]
+}

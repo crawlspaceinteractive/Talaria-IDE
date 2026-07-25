@@ -1,0 +1,47 @@
+{
+  "id": "phase2",
+  "icon": "👾",
+  "title": "Phase 2 – Enemy & AI Improvements",
+  "systems": [
+    {
+      "name": "2.1 New Enemy Types",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add 2–3 new enemy varieties with distinct movement patterns: a bouncer (diagonal bounce off walls), a homing drone, and a stationary turret that shoots.",
+      "tasks": [
+        "Design sprite data for new enemies",
+        "Implement bounce movement logic",
+        "Implement basic homing (adjust X/Y velocity toward player)",
+        "Turret that spawns a projectile on a timer"
+      ]
+    },
+    {
+      "name": "2.2 Enemy Spawning & Wave System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase2_0"],
+      "notes": "Instead of 3 hardcoded enemies, spawn waves that increase in number and speed as the player collects more fuel/pickups. Add a brief delay between enemy spawns.",
+      "tasks": [
+        "Enemy spawn timer and wave counter",
+        "Dynamic difficulty: more enemies, faster movement over time",
+        "Respawn enemies after they are destroyed (if combat is added)"
+      ]
+    },
+    {
+      "name": "2.3 Combat & Enemy Destruction",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Currently enemies only kill on contact. Add a way to shoot them (e.g., press fire to shoot a short‑range laser). Destroyed enemies drop bonus fuel or score.",
+      "tasks": [
+        "Add fire button (bit 0 of input?) and projectile logic",
+        "Enemy health (1 hit for basic, 2 for bosses)",
+        "Death animation (flicker or explode sprite)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Image Key Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>🖼️ Secure Art Key Generator</h1>
+    
+    <p class="security-note">
+        **Security Mandate:** This app runs entirely **offline** in your browser.
+        Your image file is **never uploaded** to the internet.
+    </p>
+
+    <p><strong>1. Select Your Secret Art File:</strong></p>
+    <input type="file" id="imageInput" accept="image/*">
+    
+    <hr>
+
+    <p><strong>2. Your Generated Cryptographic Key (SHA-256):</strong></p>
+    <textarea id="outputKey" rows="4" cols="68" readonly placeholder="Key will appear here after selection..."></textarea>
+    
+    <div id="statusMessage">Awaiting file selection...</div>
+
+    <script src="app.js"></script>
+</body>
+</html>

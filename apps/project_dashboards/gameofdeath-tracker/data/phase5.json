@@ -1,0 +1,48 @@
+{
+  "id": "phase5",
+  "icon": "🪟",
+  "title": "Phase 5 – Windows ME UI & Presentation",
+  "systems": [
+    {
+      "name": "5.1 Window Frame & Title Bar",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": [],
+      "notes": "CSS styling to mimic a Windows ME dialog: grey gradient title bar, white text, close/minimize buttons.",
+      "tasks": [
+        "Create container div with outset border #c0c0c0",
+        "Style title bar with gradient background and white 'Game of Death – [arena]'",
+        "Add non‑functional close/minimize buttons for retro flair",
+        "Ensure the canvas fits inside the frame"
+      ]
+    },
+    {
+      "name": "5.2 Taskbar & HUD",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 3,
+      "dependencies": ["phase1_2"],
+      "notes": "Fixed bottom bar with system stability, frag counters, clock.",
+      "tasks": [
+        "Create taskbar div (height 40px) styled like Windows taskbar",
+        "Display System_Stability: 100 - (occupied/total)*100 %",
+        "Display Agent A Frags: 0 | Agent B Frags: 0",
+        "Optional clock (cosmetic)"
+      ]
+    },
+    {
+      "name": "5.3 Notification Overlay",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "dependencies": ["phase4_0", "phase4_1"],
+      "notes": "Fade-in/out overlay for critical events: SYSTEM_PURGE, OS_REBOOT, FIRST_BLOOD.",
+      "tasks": [
+        "Create absolutely positioned div in top‑right corner",
+        "Use CSS @keyframes for fade or static display for 2 seconds",
+        "Trigger on SYSTEM_PURGE, OS_REBOOT, FIRST_BLOOD"
+      ]
+    }
+  ]
+}

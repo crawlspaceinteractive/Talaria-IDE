@@ -1,0 +1,75 @@
+{
+  "id": "phase5",
+  "icon": "⚠️",
+  "title": "Phase 5 – Late Game & Consequences",
+  "systems": [
+    {
+      "name": "5.1 Chapter 5: The Day the Lights Went Out",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase3_2", "phase4_2"],
+      "notes": "Power dies. No HUD, no score—just aftermath. The Moon goes quiet. Backspace discovers the servers quarantined something worse. Atmosphere-driven level.",
+      "tasks": [
+        "Design blackout level with no HUD elements",
+        "Implement emergency lighting and player flashlight",
+        "Script Backspace's realisation and server room reveal",
+        "Add environmental storytelling through audio logs"
+      ]
+    },
+    {
+      "name": "5.2 Chapter 6: Dead Signal",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase5_0"],
+      "notes": "Broadcast plague turns citizens into 'broadcast dead'. Final choice: burn the last grid or spare it. Consequence-driven ending.",
+      "tasks": [
+        "Design ruined cityscape with infected hordes",
+        "Implement broadcast dead AI (faster, more aggressive)",
+        "Script final choice sequence and branching",
+        "Create two distinct ending cinematics"
+      ]
+    },
+    {
+      "name": "5.3 Consequence System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase5_1"],
+      "notes": "Track player choices across chapters. Affect ending, available allies, and final narrative state. Use the Oppression Contract to ensure every choice has cost.",
+      "tasks": [
+        "Implement global choice tracking (variables, flags)",
+        "Design branching dialogue and event trees",
+        "Test all ending permutations",
+        "Ensure no soft-locks from early choices"
+      ]
+    },
+    {
+      "name": "5.4 Enemy Variety (Late Game)",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_3", "phase4_1"],
+      "notes": "Add infected civilians, glitched machines, and a final boss entity representing the neural virus. Ensure enemies reflect the oppression contract themes.",
+      "tasks": [
+        "Design infected civilian AI (fear, attack, plead)",
+        "Create glitched machine enemies (teleport, EMP)",
+        "Final boss: broadcast entity with multi-phase fight"
+      ]
+    },
+    {
+      "name": "5.5 Narrative Payoffs & Lore Unlocks",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase5_2"],
+      "notes": "Add optional lore terminals, secret areas, and a post-game gallery. Unlock concept art and music after completion.",
+      "tasks": [
+        "Scatter hidden data shards with backstory",
+        "Implement lore codex menu",
+        "Add post-credits scene and unlockables"
+      ]
+    }
+  ]
+}

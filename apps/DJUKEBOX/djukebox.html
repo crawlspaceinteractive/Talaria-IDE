@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doom Multimedia Suite v1.666</title>
+  <style>
+    :root {
+      --win-bg: #008080;
+      --face: #c0c0c0;
+      --text: #000000;
+      --text-disabled: #808080;
+      --white: #ffffff;
+      --shadow-dark: #000000;
+      --shadow-medium: #808080;
+      --win-blue: #000080;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--win-bg);
+      font-family: "MS Sans Serif", Tahoma, Arial, sans-serif;
+      font-size: 11px;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
+
+    .outset-border {
+      border: 2px solid;
+      border-color: var(--white) var(--shadow-dark) var(--shadow-dark) var(--white);
+      box-shadow: inset 1px 1px 0px var(--white), inset -1px -1px 0px var(--shadow-medium);
+    }
+
+    .inset-border {
+      border: 2px solid;
+      border-color: var(--shadow-medium) var(--white) var(--white) var(--shadow-medium);
+      box-shadow: inset 1px 1px 0px var(--shadow-dark), inset -1px -1px 0px var(--face);
+    }
+
+    .win95-window {
+      background-color: var(--face);
+      width: 100%;
+      max-width: 520px;
+      padding: 3px;
+    }
+
+    .title-bar {
+      background: var(--win-blue);
+      color: var(--white);
+      padding: 3px 4px 4px 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .title-bar-text { display: flex; align-items: center; gap: 6px; }
+
+    .win95-btn {
+      background-color: var(--face);
+      border: 1px solid;
+      border-color: var(--white) var(--shadow-dark) var(--shadow-dark) var(--white);
+      box-shadow: inset 1px 1px 0px var(--white);
+      min-width: 16px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 9px;
+      padding-bottom: 2px;
+    }
+
+    .win95-btn:active {
+      border-color: var(--shadow-medium) var(--white) var(--white) var(--shadow-medium);
+      box-shadow: none;
+      padding: 1px 0px 0px 1px;
+    }
+
+    .menu-bar { display: flex; gap: 8px; padding: 4px 6px; }
+    .menu-item { cursor: pointer; }
+    .menu-item::first-letter { text-decoration: underline; }
+
+    .window-body { padding: 6px; }
+
+    .display-screen {
+      background-color: #000000;
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      padding: 10px;
+      margin-bottom: 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .meta-line { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .player-rack { background-color: var(--face); padding: 6px; margin-bottom: 10px; }
+
+    .iframe-slot {
+      position: relative;
+      width: 100%;
+      height: 32px;
+      overflow: hidden;
+      background-color: #000000;
+    }
+
+    .iframe-slot iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+    .tracklist-container {
+      background: var(--white);
+      max-height: 180px;
+      overflow-y: scroll;
+      margin-bottom: 8px;
+    }
+
+    .track-table { width: 100%; border-collapse: collapse; text-align: left; }
+
+    .track-table th {
+      background-color: var(--face);
+      position: sticky;
+      top: 0;
+      padding: 4px;
+      font-weight: bold;
+      border-bottom: 1px solid var(--shadow-medium);
+      box-shadow: inset 1px 1px 0px var(--white);
+    }
+
+    .track-row { cursor: pointer; }
+    .track-row:hover { background-color: #e6e6e6; }
+    .track-row.active { background-color: #000080 !important; color: var(--white) !important; }
+
+    .track-row td { padding: 6px 4px; border-bottom: 1px solid #eeeeee; }
+
+    .track-duration { color: #666; font-size: 10px; }
+    .track-row.active .track-duration { color: #aaccff; }
+
+    .status-bar { display: grid; grid-template-columns: 3fr 1fr; gap: 3px; }
+    .status-field { padding: 2px 4px; background-color: var(--face); }
+  </style>
+</head>
+<body>
+
+  <div class="win95-window outset-border">
+    
+    <div class="title-bar">
+      <div class="title-bar-text">
+        <span style="font-size:12px;">💿</span>
+        <span>DOOM_JUKEBOX.EXE</span>
+      </div>
+      <div class="title-bar-controls">
+        <button class="win95-btn">_</button>
+        <button class="win95-btn">🗖</button>
+        <button class="win95-btn" style="margin-left: 2px;">X</button>
+      </div>
+    </div>
+
+    <div class="menu-bar">
+      <div class="menu-item">File</div>
+      <div class="menu-item">Media</div>
+      <div class="menu-item">Options</div>
+      <div class="menu-item">Help</div>
+    </div>
+
+    <div class="window-body">
+      
+      <div class="display-screen inset-border" id="monitor">
+        <div class="meta-line" id="mon-album">ALBUM: DOOM (1993) OST</div>
+        <div class="meta-line" id="mon-format">DECK: ARCHIVE.ORG EMULATION MODULE</div>
+        <div class="meta-line" id="mon-status">STATUS: RACK READY...</div>
+        <div class="meta-line" id="mon-track-detail" style="color:#00ccff;">TRACK: --</div>
+      </div>
+
+      <div class="player-rack outset-border">
+        <div class="iframe-slot inset-border">
+          <iframe 
+            id="media-deck"
+            src="https://archive.org/embed/bobby-prince-doom-ost" 
+            allowfullscreen>
+          </iframe>
+        </div>
+        <audio id="audio-probe" style="display:none;" preload="metadata"></audio>
+      </div>
+
+      <div class="tracklist-container inset-border">
+        <table class="track-table">
+          <thead>
+            <tr>
+              <th width="30px">ID</th>
+              <th>Soundtrack Collection</th>
+              <th width="52px">Time</th>
+              <th width="52px">Format</th>
+            </tr>
+          </thead>
+          <tbody id="track-manifest">
+            <tr class="track-row active" 
+                data-src="https://archive.org/embed/bobby-prince-doom-ost" 
+                data-album="DOOM (1993) OST" 
+                data-deck="ARCHIVE_EMBED_RACK" 
+                data-format="Muxed"
+                data-album-id="doom1993">
+              <td>01</td>
+              <td>DOOM (1993) Original Classic Soundtrack (Bobby Prince)</td>
+              <td class="track-duration">--:--</td>
+              <td>Muxed</td>
+            </tr>
+            <tr class="track-row" 
+                data-src="https://archive.org/embed/doom-original-game-soundtrack-flac" 
+                data-album="DOOM (2016) OST" 
+                data-deck="ARCHIVE_FLAC_DRIVER" 
+                data-format="FLAC"
+                data-album-id="doom2016">
+              <td>02</td>
+              <td>DOOM (2016) Original Game Soundtrack (Mick Gordon)</td>
+              <td class="track-duration">--:--</td>
+              <td>FLAC</td>
+            </tr>
+            <tr class="track-row" 
+                data-src="https://vgmtreasurechest.com/soundtracks/doom-eternal-original-game-soundtrack/nofjhgns/01.%20Hell%20On%20Earth.mp3" 
+                data-album="DOOM ETERNAL (2020)" 
+                data-deck="KHINSIDER_MP3_STREAM" 
+                data-format="MP3"
+                data-album-id="doometernal"
+                data-is-audio-file="true">
+              <td>03</td>
+              <td>DOOM Eternal - Track 1: Hell On Earth</td>
+              <td class="track-duration">--:--</td>
+              <td>MP3</td>
+            </tr>
+            <tr class="track-row" 
+                data-src="https://archive.org/embed/DOOM-The-Dark-Ages-Original-Game-Soundtrack" 
+                data-album="DOOM: THE DARK AGES" 
+                data-deck="ARCHIVE_EMBED_RACK" 
+                data-format="Muxed"
+                data-album-id="doomdarkages">
+              <td>04</td>
+              <td>DOOM: The Dark Ages Original Soundtrack</td>
+              <td class="track-duration">--:--</td>
+              <td>Muxed</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-field inset-border" id="foot-source">Driver: Web.Archive Engine</div>
+        <div class="status-field inset-border" style="text-align: right;" id="foot-bitrate">16-BIT</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // MANUAL TRACK METADATA DATABASE
+    // ============================================================
+    const albumTrackDatabase = {
+      doom1993: {
+        album: "DOOM (1993) OST",
+        artist: "Bobby Prince",
+        year: 1993,
+        totalRuntime: "44:32",
+        tracks: [
+          { num: "01", title: "At Doom's Gate (E1M1)", duration: "3:42" },
+          { num: "02", title: "The Imp's Song (E1M2)", duration: "4:18" },
+          { num: "03", title: "Dark Halls (E1M3)", duration: "4:14" },
+          { num: "04", title: "Kitchen Ace (E1M4)", duration: "4:04" },
+          { num: "05", title: "Suspense (E1M5)", duration: "3:42" },
+          { num: "06", title: "On the Hunt (E1M6)", duration: "4:28" },
+          { num: "07", title: "Demons On The Prey (E1M7)", duration: "4:08" },
+          { num: "08", title: "Sign of Evil (E1M8)", duration: "3:52" },
+          { num: "09", title: "Hiding the Secrets (E1M9)", duration: "3:54" },
+          { num: "10", title: "I Sawed the Demons (E2M1)", duration: "3:28" },
+          { num: "11", title: "The Demons from Adrian's Pen (E2M2)", duration: "3:36" },
+          { num: "12", title: "Intermission from DOOM (E2M3)", duration: "4:16" },
+          { num: "13", title: "They're Going to Get You (E2M4)", duration: "3:58" },
+          { num: "14", title: "Waltz of the Demons (E2M7)", duration: "3:46" },
+          { num: "15", title: "Nobody Told Me About id (E2M8)", duration: "4:12" },
+          { num: "16", title: "Untitled (E2M9)", duration: "3:46" },
+          { num: "17", title: "Donna to the Rescue (E3M2)", duration: "3:22" },
+          { num: "18", title: "Deep Into the Code (E3M3)", duration: "4:00" },
+          { num: "19", title: "Facing the Spider (E3M8)", duration: "3:46" },
+          { num: "20", title: "Endgame (Victory Music)", duration: "3:02" },
+          { num: "21", title: "Sweet Little Dead Bunny (End Credits)", duration: "2:14" }
+        ]
+      },
+      doom2016: {
+        album: "DOOM (2016) OST",
+        artist: "Mick Gordon",
+        year: 2016,
+        totalRuntime: "2:08:00",
+        tracks: [
+          { num: "01", title: "I. Dogma", duration: "0:44" },
+          { num: "02", title: "Rip & Tear", duration: "4:17" },
+          { num: "03", title: "At Doom's Gate", duration: "1:40" },
+          { num: "04", title: "Rust, Dust & Guts", duration: "7:56" },
+          { num: "05", title: "II. Demigod", duration: "0:50" },
+          { num: "06", title: "Hellwalker", duration: "4:02" },
+          { num: "07", title: "Authorization; Olivia Pierce", duration: "2:18" },
+          { num: "08", title: "Flesh & Metal", duration: "7:08" },
+          { num: "09", title: "Impure Spectrum", duration: "1:59" },
+          { num: "10", title: "Ties That Bind", duration: "2:46" },
+          { num: "11", title: "BFG Division", duration: "8:18" },
+          { num: "12", title: "Residual", duration: "2:02" },
+          { num: "13", title: "Argent Energy", duration: "4:20" },
+          { num: "14", title: "Harbinger", duration: "7:36" },
+          { num: "15", title: "Biowaves", duration: "2:32" },
+          { num: "16", title: "Olivia's Theme", duration: "2:14" },
+          { num: "17", title: "Transistor Fist", duration: "6:38" },
+          { num: "18", title: "Dr. Samuel Hayden", duration: "4:24" },
+          { num: "19", title: "Cyberdemon", duration: "6:06" },
+          { num: "20", title: "Incantation", duration: "3:44" },
+          { num: "21", title: "III. Dakhma", duration: "2:20" },
+          { num: "22", title: "Damnation", duration: "7:02" },
+          { num: "23", title: "The Stench", duration: "2:58" },
+          { num: "24", title: "UAC Report File; SHTO36U3", duration: "3:02" },
+          { num: "25", title: "Death & Exhale", duration: "3:38" },
+          { num: "26", title: "SkullHacker", duration: "7:32" },
+          { num: "27", title: "Lazarus Waves", duration: "3:46" },
+          { num: "28", title: "VEGA Core", duration: "6:24" },
+          { num: "29", title: "IV. Doom", duration: "1:48" },
+          { num: "30", title: "Mastermind", duration: "6:14" },
+          { num: "31", title: "Argent Combat (Bonus)", duration: "6:34" }
+        ]
+      },
+      doometernal: {
+        album: "DOOM Eternal (2020) OST",
+        artist: "Mick Gordon",
+        year: 2020,
+        totalRuntime: "4:12:00",
+        tracks: [
+          { num: "01", title: "Hell On Earth", duration: "5:06" },
+          { num: "02", title: "Cultist Base", duration: "4:56" },
+          { num: "03", title: "DOOM Hunted", duration: "4:28" },
+          { num: "04", title: "Infiltration of the World Spear", duration: "5:32" },
+          { num: "05", title: "The Only Thing They Fear Is You", duration: "6:38" },
+          { num: "06", title: "Super Gore Nest", duration: "5:22" },
+          { num: "07", title: "A Cultist Prayer", duration: "3:46" },
+          { num: "08", title: "The Blood Swamps", duration: "4:44" },
+          { num: "09", title: "BFG 10k", duration: "5:14" },
+          { num: "10", title: "Metal Hell", duration: "6:02" },
+          { num: "11", title: "Urdak", duration: "4:54" },
+          { num: "12", title: "The Betrayer", duration: "5:28" },
+          { num: "13", title: "Icon of Sin", duration: "5:38" },
+          { num: "14", title: "Final Sin", duration: "7:12" },
+          { num: "15", title: "Reclaimed Earth", duration: "3:58" },
+          { num: "16", title: "Ancient Gods", duration: "4:44" },
+          { num: "17", title: "Immora", duration: "5:18" },
+          { num: "18", title: "The Dark Lord", duration: "6:52" },
+          { num: "19", title: "Davoth's Theme", duration: "4:32" },
+          { num: "20", title: "End of Level", duration: "2:24" }
+        ]
+      },
+      doomdarkages: {
+        album: "DOOM: The Dark Ages OST",
+        artist: "Finishing Move Inc.",
+        year: 2025,
+        totalRuntime: "TBD",
+        tracks: [
+          { num: "01", title: "The Dark Ages (Main Theme)", duration: "4:48" },
+          { num: "02", title: "Argent Berserk", duration: "5:12" },
+          { num: "03", title: "Shield Saw Symphony", duration: "3:56" },
+          { num: "04", title: "Medieval Mayhem", duration: "4:34" },
+          { num: "05", title: "Dragon's Flight", duration: "5:08" },
+          { num: "06", title: "Castle of the Damned", duration: "6:14" },
+          { num: "07", title: "Mace & Chain", duration: "4:22" },
+          { num: "08", title: "The Sentinel Order", duration: "5:44" },
+          { num: "09", title: "Hell's Cathedral", duration: "6:02" },
+          { num: "10", title: "Atlan Mech Combat", duration: "7:16" },
+          { num: "11", title: "King Novik's Decree", duration: "3:42" },
+          { num: "12", title: "The Slayer's Oath", duration: "5:28" }
+        ]
+      }
+    };
+
+    // ============================================================
+    // TALARIA CROSS-APP DATA BUS INTEGRATION
+    // ============================================================
+
+    const audioProbe = document.getElementById('audio-probe');
+    let durationDetectionTimeout = null;
+
+    function parseFilenameFromUrl(url) {
+      try {
+        const decoded = decodeURIComponent(url);
+        const parts = decoded.split('/');
+        const filename = parts[parts.length - 1];
+        const dotParts = filename.split('.');
+        const ext = dotParts.length > 1 ? dotParts.pop().toLowerCase() : '';
+        const nameWithNum = dotParts.join('.');
+        
+        const numMatch = nameWithNum.match(/^(\d+)[.\-\s]+(.*)/);
+        if (numMatch) {
+          return {
+            name: numMatch[2].trim(),
+            ext: ext,
+            trackNum: numMatch[1],
+            raw: filename
+          };
+        }
+        return {
+          name: nameWithNum.trim(),
+          ext: ext,
+          trackNum: null,
+          raw: filename
+        };
+      } catch(e) {
+        return { name: url, ext: '', trackNum: null, raw: url };
+      }
+    }
+
+    function detectDuration(audioUrl, callback) {
+      if (durationDetectionTimeout) clearTimeout(durationDetectionTimeout);
+      
+      audioProbe.src = audioUrl;
+      
+      const cleanup = function() {
+        audioProbe.removeEventListener('loadedmetadata', handleLoaded);
+        audioProbe.removeEventListener('error', handleError);
+      };
+      
+      const handleLoaded = function() {
+        cleanup();
+        if (audioProbe.duration && isFinite(audioProbe.duration)) {
+          const mins = Math.floor(audioProbe.duration / 60);
+          const secs = Math.floor(audioProbe.duration % 60);
+          const formatted = mins + ':' + String(secs).padStart(2, '0');
+          callback(formatted, audioProbe.duration);
+        } else {
+          callback(null, null);
+        }
+      };
+      
+      const handleError = function() {
+        cleanup();
+        callback(null, null);
+      };
+      
+      audioProbe.addEventListener('loadedmetadata', handleLoaded);
+      audioProbe.addEventListener('error', handleError);
+      
+      durationDetectionTimeout = setTimeout(() => {
+        cleanup();
+        callback(null, null);
+      }, 5000);
+      
+      audioProbe.load();
+    }
+
+    function buildFullTrackPayload(row, parsedFilename, detectedDuration) {
+      const albumId = row.getAttribute('data-album-id');
+      const albumData = albumTrackDatabase[albumId] || null;
+      const isAudioFile = row.getAttribute('data-is-audio-file') === 'true';
+      const sourceUrl = row.getAttribute('data-src');
+      
+      const album = albumData ? albumData.album : row.getAttribute('data-album');
+      const artist = albumData ? albumData.artist : 'Unknown Artist';
+      const year = albumData ? albumData.year : null;
+      const albumTotalRuntime = albumData ? albumData.totalRuntime : null;
+      const trackList = albumData ? albumData.tracks : null;
+      const totalTracks = albumData ? albumData.tracks.length : 0;
+      
+      return {
+        album: album,
+        artist: artist,
+        format: row.getAttribute('data-format'),
+        deck: row.getAttribute('data-deck'),
+        source: sourceUrl.split('/')[2],
+        sourceUrl: sourceUrl,
+        id: row.querySelector('td').textContent.trim(),
+        year: year,
+        albumTotalRuntime: albumTotalRuntime,
+        trackList: trackList,
+        totalTracks: totalTracks,
+        parsedFilename: parsedFilename,
+        detectedDuration: detectedDuration || null,
+        detectedDurationFormatted: detectedDuration ? formatDuration(detectedDuration) : null,
+        isDirectAudio: isAudioFile,
+        exportedAt: Date.now()
+      };
+    }
+
+    function formatDuration(seconds) {
+      if (!seconds || !isFinite(seconds)) return null;
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return mins + ':' + String(secs).padStart(2, '0');
+    }
+
+    function exportCurrentTrack(trackData) {
+      if (!trackData || !trackData.album) return;
+      
+      console.log('[DJUKEBOX] Exporting track:', trackData.album, 'by', trackData.artist);
+      
+      window.parent.postMessage({
+        type: 'EXPORT_DATA',
+        appName: 'DJUKEBOX',
+        payload: {
+          key: 'currentTrack',
+          value: trackData
+        }
+      }, '*');
+    }
+
+    function exportPlaylist() {
+      const tracks = [];
+      document.querySelectorAll('.track-row').forEach(row => {
+        const albumId = row.getAttribute('data-album-id');
+        const albumData = albumTrackDatabase[albumId];
+        tracks.push({
+          album: albumData ? albumData.album : row.getAttribute('data-album'),
+          artist: albumData ? albumData.artist : 'Unknown Artist',
+          format: row.getAttribute('data-format'),
+          deck: row.getAttribute('data-deck'),
+          src: row.getAttribute('data-src'),
+          albumId: albumId,
+          year: albumData ? albumData.year : null,
+          trackCount: albumData ? albumData.tracks.length : 0
+        });
+      });
+
+      window.parent.postMessage({
+        type: 'EXPORT_DATA',
+        appName: 'DJUKEBOX',
+        payload: {
+          key: 'playlist',
+          value: tracks
+        }
+      }, '*');
+    }
+
+    window.addEventListener('message', (event) => {
+      const msg = event.data;
+      if (!msg || !msg.type) return;
+      switch (msg.type) {
+        case 'DATA_AVAILABLE':
+          console.log('[DJUKEBOX] Data available from ' + msg.from + ': ' + msg.key);
+          break;
+        case 'BROADCAST_RECEIVED':
+          console.log('[DJUKEBOX] Broadcast from ' + msg.from, msg.payload);
+          break;
+      }
+    });
+
+    // ============================================================
+    // SINGLE TRACK SELECTION HANDLER (no duplicate)
+    // ============================================================
+
+    function handleTrackSelect(row) {
+      document.querySelectorAll('.track-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+
+      const sourceUrl = row.getAttribute('data-src');
+      const albumTitle = row.getAttribute('data-album');
+      const deckDriver = row.getAttribute('data-deck');
+      const format = row.getAttribute('data-format');
+      const albumId = row.getAttribute('data-album-id');
+      const isAudioFile = row.getAttribute('data-is-audio-file') === 'true';
+      const sourceDomain = sourceUrl.split('/')[2];
+      
+      const albumData = albumTrackDatabase[albumId];
+      const artist = albumData ? albumData.artist : 'Unknown Artist';
+      const trackCount = albumData ? albumData.tracks.length : 0;
+
+      document.getElementById('media-deck').src = sourceUrl;
+      document.getElementById('mon-album').innerText = 'ALBUM: ' + albumTitle;
+      document.getElementById('mon-format').innerText = 'DECK: ' + deckDriver;
+      document.getElementById('mon-status').innerText = 'STATUS: INITIALIZING STREAM...';
+      document.getElementById('foot-source').innerText = 'Source: ' + sourceDomain;
+
+      let parsedFilename = null;
+      if (isAudioFile) {
+        parsedFilename = parseFilenameFromUrl(sourceUrl);
+        document.getElementById('mon-track-detail').innerText = 
+          'TRACK: ' + parsedFilename.name + ' (.' + parsedFilename.ext + ') | ARTIST: ' + artist;
+      } else {
+        document.getElementById('mon-track-detail').innerText = 
+          'TRACKS: ' + trackCount + ' | ARTIST: ' + artist;
+      }
+
+      document.getElementById('foot-bitrate').innerText = 
+        format === 'FLAC' ? 'LOSSLESS' : format === 'MP3' ? '320kbps' : 'STREAM';
+
+      // Export immediately on user click (simulator starts in the host)
+      const payload = buildFullTrackPayload(row, parsedFilename, null);
+      exportCurrentTrack(payload);
+
+      // Duration detection for direct audio
+      if (isAudioFile) {
+        detectDuration(sourceUrl, function(formatted, rawSeconds) {
+          const durationCell = row.querySelector('.track-duration');
+          if (durationCell && formatted) {
+            durationCell.textContent = formatted;
+          }
+          
+          if (formatted) {
+            document.getElementById('mon-status').innerText = 
+              'STATUS: STREAM ACTIVE | DURATION: ' + formatted;
+          }
+          
+          const updatedPayload = buildFullTrackPayload(row, parsedFilename, rawSeconds);
+          exportCurrentTrack(updatedPayload);
+        });
+      }
+    }
+
+    // Export playlist on load for app discovery (no auto-play)
+    exportPlaylist();
+
+    // Click is the ONLY trigger
+    document.getElementById('track-manifest').addEventListener('click', function(e) {
+      const row = e.target.closest('.track-row');
+      if (!row) return;
+      handleTrackSelect(row);
+    });
+
+    document.getElementById('media-deck').addEventListener('load', function() {
+      document.getElementById('mon-status').innerText = 'STATUS: STREAM ACTIVE';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "id": "phase3",
+  "icon": "🌐",
+  "title": "Phase 3 – Multiplayer & Netcode",
+  "systems": [
+    {
+      "name": "3.1 Host‑Authority Stabilisation",
+      "status": "in‑progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Resolve all known netcode footguns: kill‑feed dedup, player index sort instability, remote player attack sync, pillar position sync.",
+      "tasks": [
+        "Fix kill‑feed dedup using sequence numbers, not reference equality",
+        "Stable player indices (use player join order, not Object.keys sort)",
+        "Sync remote player attack state for animation",
+        "Consolidate PILLAR_POSITIONS to single source of truth"
+      ]
+    },
+    {
+      "name": "3.2 Reconnection & Host Migration",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase3_0"],
+      "notes": "Allow players who disconnect to rejoin and recover their state. If host leaves, the next best player takes over seamlessly.",
+      "tasks": [
+        "Serialise game state for rejoining players",
+        "Host migration handshake and state transfer",
+        "Rejoin grace period and spectator mode"
+      ]
+    },
+    {
+      "name": "3.3 Remote Entity Interpolation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase3_0"],
+      "notes": "Smooth out remote player and enemy movement by interpolating between state updates instead of snapping.",
+      "tasks": [
+        "Client‑side interpolation for remote player positions",
+        "Smooth enemy movement by lerping between host snapshots",
+        "Avoid 'jitter' when latency spikes"
+      ]
+    }
+  ]
+}

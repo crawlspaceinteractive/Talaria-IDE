@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "📟",
+  "title": "Phase 6 – UI, Menus & Progression",
+  "systems": [
+    {
+      "name": "6.1 HUD Design",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0", "phase3_0"],
+      "notes": "Minimal PS1‑style HUD: speedometer, lap counter, position, power‑up icon, boost bar.",
+      "tasks": [
+        "Speed gauge (analog or digital)",
+        "Lap/position display",
+        "Power‑up slot icon",
+        "Boost meter with overheat warning"
+      ]
+    },
+    {
+      "name": "6.2 Main Menu & Options",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Retro‑styled menus with scanline effects. Options for audio, graphics, controls.",
+      "tasks": [
+        "Title screen with rotating car",
+        "Menu transition animations",
+        "Graphics quality and resolution options"
+      ]
+    },
+    {
+      "name": "6.3 Unlockables & Garage",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase6_0"],
+      "notes": "Earn credits from races to buy new cars, skins, and tracks.",
+      "tasks": [
+        "In‑game currency system",
+        "Garage vehicle preview",
+        "Unlockable decals and colours",
+        "Hidden tracks"
+      ]
+    }
+  ]
+}

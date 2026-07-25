@@ -1,0 +1,60 @@
+{
+  "id": "phase5",
+  "icon": "📟",
+  "title": "Phase 5 – UI & Menus",
+  "systems": [
+    {
+      "name": "5.1 Main Menu & Title Screen",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Replace the bare‑bones lobby overlay with a full menu: title screen, options, credits, and a server browser.",
+      "tasks": [
+        "Design title screen with animated background and logo",
+        "Add New Game, Join Game, Options, and Credits screens",
+        "Implement keyboard/gamepad navigation"
+      ]
+    },
+    {
+      "name": "5.2 In‑Game HUD Overhaul",
+      "status": "in‑progress",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Redesign the HUD to be more readable and immersive: health bar, ammo, wave info, mini‑map, and teammate status.",
+      "tasks": [
+        "Add teammate status panels (health, name, weapon)",
+        "Implement a circular mini‑map with enemy dots",
+        "Wave announcement banner with countdown",
+        "Kill feed with player names and icons"
+      ]
+    },
+    {
+      "name": "5.3 Leaderboard & Stats",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase5_0"],
+      "notes": "Integrate the Star Leaderboard SDK for global high scores. Show personal stats after each game and in the main menu.",
+      "tasks": [
+        "Submit score on game over to leaderboard",
+        "Display top 10 scores on a leaderboard screen",
+        "Personal stats page (kills, waves survived, favourite weapon)"
+      ]
+    },
+    {
+      "name": "5.4 Mobile Controls & Responsiveness",
+      "status": "in‑progress",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Improve touch controls: virtual joystick, fire button, weapon switch. Ensure HUD scales correctly on small screens.",
+      "tasks": [
+        "Add on‑screen weapon switcher and reload button",
+        "Improve joystick dead‑zone and smoothing",
+        "Responsive HUD layout for landscape/portrait"
+      ]
+    }
+  ]
+}

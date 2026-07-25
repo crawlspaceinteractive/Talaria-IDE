@@ -1,0 +1,49 @@
+{
+  "id": "phase8",
+  "icon": "🌍",
+  "title": "Phase 8 – Community & Portfolio",
+  "systems": [
+    {
+      "name": "8.1 Join the Community",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 0.5,
+      "dependencies": [],
+      "notes": "Connect with other Blockbench artists, get feedback, and stay updated.",
+      "tasks": [
+        "Join the official Blockbench Discord server",
+        "Follow Blockbench on Twitter / Mastodon",
+        "Share your first model on the #showcase channel"
+      ]
+    },
+    {
+      "name": "8.2 Publish Your Work",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1,
+      "dependencies": ["phase8_0"],
+      "notes": "Upload your models to Sketchfab and learn how to present them well.",
+      "tasks": [
+        {
+          "text": "Upload a model to Sketchfab with textures and animations",
+          "link": "https://sketchfab.com/"
+        },
+        "Write a good description and set up lighting",
+        "Embed the Sketchfab viewer in your portfolio site"
+      ]
+    },
+    {
+      "name": "8.3 Build a Portfolio",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 2,
+      "dependencies": ["phase8_1"],
+      "notes": "Create a simple web page or ArtStation profile to showcase your best work.",
+      "tasks": [
+        "Select your 3 best models",
+        "Create a presentation page with screenshots and links",
+        "Add the page to your GitHub / LinkedIn"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Computerror — Elemental Master Palette v2</title>
+
+<style>
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('Pixelify_Sans/PixelifySans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* ──────────────────────────────────────────────
+   WINDOWS 95 THEME
+   ────────────────────────────────────────────── */
+:root{
+  --win95-gray: #c9c9c9;
+  --win95-dark: #114499;
+  --win95-darker: #114499;
+  --win95-light: #dfdfdf;
+  --win95-white: #ffffff;
+  --win95-black: #000000;
+  --win95-blue: #114499;
+  --win95-blue-title: #114499;
+  --win95-blue-light: #114499;
+  --sans: 'Pixelify Sans', 'MS Sans Serif', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #114499;
+  font-family: var(--sans);
+  overflow: hidden;
+  color: var(--win95-black);
+}
+
+/* WINDOW CHROME */
+.window {
+  position: absolute;
+  background: var(--win95-gray);
+  border: 2px outset var(--win95-light);
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  min-height: 200px;
+}
+
+.title-bar {
+  background: linear-gradient(90deg, var(--win95-blue), var(--win95-blue-light));
+  color: white;
+  padding: 3px 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 11px;
+  cursor: move;
+  user-select: none;
+}
+
+.title-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.title-icon {
+  width: 16px;
+  height: 16px;
+  background: var(--win95-light);
+  border: 1px solid var(--win95-black);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.window-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.win-btn {
+  width: 16px;
+  height: 14px;
+  background: var(--win95-gray);
+  border: 1px outset var(--win95-light);
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0;
+}
+
+.win-btn:active {
+  border-style: inset;
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+.menu-bar {
+  background: var(--win95-gray);
+  border-bottom: 1px solid var(--win95-dark);
+  padding: 2px 4px;
+  font-size: 11px;
+  display: flex;
+  gap: 8px;
+}
+
+.menu-item {
+  padding: 2px 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.menu-item:hover {
+  background: var(--win95-blue);
+  color: white;
+}
+
+.window-content {
+  flex: 1;
+  overflow: auto;
+  background: var(--win95-gray);
+  padding: 8px;
+}
+
+.status-bar {
+  background: var(--win95-gray);
+  border-top: 1px solid var(--win95-white);
+  padding: 2px 4px;
+  font-size: 10px;
+  display: flex;
+  gap: 4px;
+}
+
+.status-panel {
+  border: 1px inset var(--win95-dark);
+  padding: 1px 4px;
+  flex: 1;
+}
+
+/* BUTTONS */
+.btn-95 {
+  background: var(--win95-gray);
+  border: 2px outset var(--win95-light);
+  padding: 4px 12px;
+  font-family: var(--sans);
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 75px;
+}
+
+.btn-95:active {
+  border-style: inset;
+  padding: 5px 11px 3px 13px;
+}
+
+.btn-95:disabled {
+  color: var(--win95-dark);
+  text-shadow: 1px 1px 0 var(--win95-white);
+}
+
+/* PANELS */
+.panel {
+  border: 2px inset var(--win95-dark);
+  padding: 8px;
+  background: var(--win95-white);
+  margin-bottom: 8px;
+}
+
+.panel-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+/* TABS */
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
+  border-bottom: 2px solid var(--win95-dark);
+}
+
+.tab {
+  background: var(--win95-gray);
+  border: 2px outset var(--win95-light);
+  border-bottom: none;
+  padding: 4px 16px;
+  cursor: pointer;
+  font-size: 11px;
+  position: relative;
+  top: 2px;
+}
+
+.tab.active {
+  background: var(--win95-white);
+  border-bottom: 2px solid var(--win95-white);
+  z-index: 1;
+}
+
+.tab-content {
+  display: none;
+  padding: 8px;
+  background: var(--win95-white);
+  border: 2px inset var(--win95-dark);
+  min-height: 300px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* COLOR SWATCHES */
+.swatch-rail {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.swatch-rail.five-band {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.swatch {
+  aspect-ratio: 5/3;
+  border: 2px inset var(--win95-dark);
+  cursor: pointer;
+  position: relative;
+}
+
+.swatch:active {
+  border-style: outset;
+}
+
+.swatch-label {
+  font-size: 9px;
+  font-family: monospace;
+  margin-top: 2px;
+  text-align: center;
+}
+
+/* INPUT FIELDS */
+.input-95 {
+  border: 2px inset var(--win95-dark);
+  padding: 4px;
+  font-family: monospace;
+  font-size: 11px;
+  background: var(--win95-white);
+  width: 100%;
+}
+
+.input-95:focus {
+  outline: 1px dotted var(--win95-black);
+  outline-offset: -3px;
+}
+
+textarea.input-95 {
+  resize: vertical;
+  min-height: 80px;
+  font-family: monospace;
+}
+
+/* FIELDSET */
+.fieldset-95 {
+  border: 2px groove var(--win95-dark);
+  padding: 8px;
+  margin: 8px 0;
+}
+
+.fieldset-95 legend {
+  padding: 0 4px;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+/* COLOR PICKER WRAPPER */
+.color-picker-95 {
+  border: 2px inset var(--win95-dark);
+  padding: 2px;
+  background: var(--win95-white);
+  display: inline-block;
+}
+
+input[type="color"] {
+  border: none;
+  cursor: pointer;
+  width: 60px;
+  height: 30px;
+}
+
+/* CANVAS */
+canvas {
+  border: 2px inset var(--win95-dark);
+  background: var(--win95-white);
+  display: block;
+  max-width: 100%;
+}
+
+/* FILE INPUT */
+.file-input-95 {
+  border: 2px inset var(--win95-dark);
+  padding: 4px;
+  background: var(--win95-white);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* CHECKBOX */
+.checkbox-95 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0;
+  font-size: 11px;
+}
+
+input[type="checkbox"] {
+  width: 13px;
+  height: 13px;
+}
+
+/* RANGE SLIDER */
+input[type="range"] {
+  width: 100%;
+  height: 20px;
+}
+
+/* NOTIFICATION */
+.notification-95 {
+  position: fixed;
+  bottom: 40px;
+  right: 20px;
+  background: var(--win95-gray);
+  border: 2px outset var(--win95-light);
+  padding: 8px 12px;
+  font-size: 11px;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 9999;
+}
+
+.notification-95.active {
+  opacity: 1;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--win95-white);
+  border: 1px solid var(--win95-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--win95-gray);
+  border: 2px outset var(--win95-light);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--win95-gray);
+}
+
+/* LAYOUT */
+.flex-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+label {
+  font-size: 11px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  display: block;
+}
+
+.spacer {
+  margin: 12px 0;
+  height: 1px;
+  background: var(--win95-dark);
+}
+
+/* EXTRACTED COLORS RAIL */
+.extracted-rail {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.extracted-swatch {
+  aspect-ratio: 1;
+  border: 2px inset var(--win95-dark);
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<!-- MAIN WINDOW -->
+<div class="window" id="mainWindow" style="left:20px;top:20px;width:900px;height:600px">
+  <div class="title-bar" id="titleBar">
+    <div class="title-text">
+      <div class="title-icon">🎨</div>
+      <span>COMPUTERROR — Elemental Master Palette v2</span>
+    </div>
+    <div class="window-controls">
+      <button class="win-btn" onclick="minimizeWindow()">_</button>
+      <button class="win-btn" onclick="maximizeWindow()">□</button>
+      <button class="win-btn" onclick="alert('Close prevented - refresh page to exit')">×</button>
+    </div>
+  </div>
+
+  <div class="menu-bar">
+    <div class="menu-item" onclick="showAbout()">File</div>
+    <div class="menu-item" onclick="exportAllPalettes()">Export</div>
+    <div class="menu-item" onclick="showHelp()">Help</div>
+  </div>
+
+  <div class="window-content">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('elemental')">Elemental Palettes</div>
+      <div class="tab" onclick="switchTab('sampler')">Palette Sampler</div>
+      <div class="tab" onclick="switchTab('gradient')">Gradient Generator</div>
+      <div class="tab" onclick="switchTab('paste')">Hex Input</div>
+    </div>
+
+    <!-- TAB: ELEMENTAL PALETTES -->
+    <div id="tab-elemental" class="tab-content active">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        
+        <!-- EARTH -->
+        <div class="panel">
+          <div class="panel-title">🟤 Earth — TerraDepth / Pulp Flesh</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#f4c8a4" data-hex="#f4c8a4" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#e6a985" data-hex="#e6a985" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#d48d70" data-hex="#d48d70" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#b97457" data-hex="#b97457" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#965a44" data-hex="#965a44" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#744838" data-hex="#744838" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#52362d" data-hex="#52362d" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2e1f1b" data-hex="#2e1f1b" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#f3d7b5" data-hex="#f3d7b5" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#e0b28e" data-hex="#e0b28e" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#c88a6c" data-hex="#c88a6c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#a86b52" data-hex="#a86b52" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#8b5343" data-hex="#8b5343" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#704237" data-hex="#704237" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#503028" data-hex="#503028" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2c1c18" data-hex="#2c1c18" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('earth')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+        <!-- WATER -->
+        <div class="panel">
+          <div class="panel-title">🔵 Water — Depth / Mythic Cyan</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#9be7e7" data-hex="#9be7e7" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#78b8c8" data-hex="#78b8c8" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#4d8ca4" data-hex="#4d8ca4" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#3a6789" data-hex="#3a6789" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#304465" data-hex="#304465" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#242f46" data-hex="#242f46" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#1d163a" data-hex="#1d163a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#120a24" data-hex="#120a24" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#b9ffea" data-hex="#b9ffea" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#8be1d5" data-hex="#8be1d5" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#5fb6b8" data-hex="#5fb6b8" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#4a8aa2" data-hex="#4a8aa2" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#5a6b95" data-hex="#5a6b95" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#4d5277" data-hex="#4d5277" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#3b3457" data-hex="#3b3457" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#271d3a" data-hex="#271d3a" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('water')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+        <!-- VERDANT -->
+        <div class="panel">
+          <div class="panel-title">🟢 Verdant — Chaos / Alchemical Bloom</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#c8ff9e" data-hex="#c8ff9e" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#9ee871" data-hex="#9ee871" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#72c64f" data-hex="#72c64f" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#51994a" data-hex="#51994a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#38704a" data-hex="#38704a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#31544b" data-hex="#31544b" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2e3b4a" data-hex="#2e3b4a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#251f36" data-hex="#251f36" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#e4ff8c" data-hex="#e4ff8c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#c6f05d" data-hex="#c6f05d" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#a0d048" data-hex="#a0d048" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#7ea13e" data-hex="#7ea13e" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#667e3a" data-hex="#667e3a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#556542" data-hex="#556542" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#3e5142" data-hex="#3e5142" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2a3835" data-hex="#2a3835" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('verdant')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+        <!-- FIRE -->
+        <div class="panel">
+          <div class="panel-title">🔥 Fire — Infernal Signal / Analog Flame</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#fff0c2" data-hex="#fff0c2" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#ffb55a" data-hex="#ffb55a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#ff7043" data-hex="#ff7043" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#e63b3f" data-hex="#e63b3f" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#b3274e" data-hex="#b3274e" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#792347" data-hex="#792347" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#441a2e" data-hex="#441a2e" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#15090f" data-hex="#15090f" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#ffe5b0" data-hex="#ffe5b0" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#fdb870" data-hex="#fdb870" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#fa7f46" data-hex="#fa7f46" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#d94a3c" data-hex="#d94a3c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#a83044" data-hex="#a83044" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#762b3f" data-hex="#762b3f" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#4b2232" data-hex="#4b2232" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#1f1214" data-hex="#1f1214" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('fire')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+        <!-- WIND -->
+        <div class="panel">
+          <div class="panel-title">💨 Wind — Signal Drift / Periwinkle Noise</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#d9d7cf" data-hex="#d9d7cf" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#b9b6ad" data-hex="#b9b6ad" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#8f8b86" data-hex="#8f8b86" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#6c6a79" data-hex="#6c6a79" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#5a5e91" data-hex="#5a5e91" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#4b569f" data-hex="#4b569f" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#3c4a97" data-hex="#3c4a97" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2b2f47" data-hex="#2b2f47" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#e4e1da" data-hex="#e4e1da" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#c5bfc0" data-hex="#c5bfc0" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#a39aa5" data-hex="#a39aa5" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#837d9a" data-hex="#837d9a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#6a6da0" data-hex="#6a6da0" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#575c9c" data-hex="#575c9c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#46478b" data-hex="#46478b" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#2c2c53" data-hex="#2c2c53" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('wind')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+        <!-- VOID -->
+        <div class="panel">
+          <div class="panel-title">⚫ Void — Neutral / Press Black</div>
+          <div style="font-size:10px;color:var(--win95-darker);margin-bottom:4px">Digital Core:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#ffffff" data-hex="#ffffff" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#d9d9d9" data-hex="#d9d9d9" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#b3b3b3" data-hex="#b3b3b3" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#8c8c8c" data-hex="#8c8c8c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#666666" data-hex="#666666" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#404040" data-hex="#404040" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#1a1a1a" data-hex="#1a1a1a" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#000000" data-hex="#000000" onclick="copyColor(this)"></div>
+          </div>
+          <div style="font-size:10px;color:var(--win95-darker);margin:8px 0 4px">Analog Expansion:</div>
+          <div class="swatch-rail">
+            <div class="swatch" style="background:#fffaf0" data-hex="#fffaf0" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#d9d2c8" data-hex="#d9d2c8" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#b5aea0" data-hex="#b5aea0" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#8c857c" data-hex="#8c857c" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#5e5b56" data-hex="#5e5b56" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#3a3734" data-hex="#3a3734" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#1f1e1d" data-hex="#1f1e1d" onclick="copyColor(this)"></div>
+            <div class="swatch" style="background:#0b0b0b" data-hex="#0b0b0b" onclick="copyColor(this)"></div>
+          </div>
+          <button class="btn-95" onclick="copyRamp('void')" style="width:100%;margin-top:4px">Copy Both Ramps</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB: PALETTE SAMPLER -->
+    <div id="tab-sampler" class="tab-content">
+      <fieldset class="fieldset-95">
+        <legend>Input Method</legend>
+        <div class="flex-row">
+          <button class="btn-95" id="modeManual" onclick="setSamplerMode('manual')" style="background:#000080;color:white">Manual Colors</button>
+          <button class="btn-95" id="modeImage" onclick="setSamplerMode('image')">Sample from Image</button>
+        </div>
+      </fieldset>
+
+      <!-- MANUAL MODE -->
+      <div id="manualMode">
+        <fieldset class="fieldset-95">
+          <legend>Color Selection</legend>
+          <div class="flex-row">
+            <div style="flex:1">
+              <label>Lightest:</label>
+              <div class="color-picker-95">
+                <input type="color" id="samplerLight" value="#c8ff9e">
+              </div>
+            </div>
+            <div style="flex:1">
+              <label>Mid:</label>
+              <div class="color-picker-95">
+                <input type="color" id="samplerMid" value="#51994a">
+              </div>
+            </div>
+            <div style="flex:1">
+              <label>Darkest:</label>
+              <div class="color-picker-95">
+                <input type="color" id="samplerDark" value="#251f36">
+              </div>
+            </div>
+          </div>
+          <div class="checkbox-95">
+            <input type="checkbox" id="useMidpoint" checked>
+            <label for="useMidpoint">Use midpoint color</label>
+          </div>
+        </fieldset>
+      </div>
+
+      <!-- IMAGE MODE -->
+      <div id="imageMode" style="display:none">
+        <fieldset class="fieldset-95">
+          <legend>Image Upload</legend>
+          <input type="file" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)" class="file-input-95">
+          
+          <div id="imagePreview" style="display:none;margin-top:12px">
+            <canvas id="imageCanvas" style="max-width:100%;max-height:200px"></canvas>
+            <p style="font-size:10px;margin:4px 0">Analyzing at 64×64 → extracts 10 colors → drops extremes → dual 5-band (2×5)</p>
+            <button class="btn-95" onclick="extractAndGeneratePalette()" style="width:100%;margin-top:8px">Extract & Generate Ramps</button>
+          </div>
+
+          <div id="extractedDisplay" style="display:none;margin-top:12px">
+            <label>Extracted 8-Color Palette:</label>
+            <div id="extractedRail" class="extracted-rail"></div>
+          </div>
+        </fieldset>
+      </div>
+
+      <fieldset class="fieldset-95">
+        <legend>Analog Warmth Shift</legend>
+        <div class="flex-row">
+          <button class="btn-95" id="warmth-neutral" onclick="setWarmth('neutral')" style="background:#000080;color:white">Neutral</button>
+          <button class="btn-95" id="warmth-warm" onclick="setWarmth('warm')">+Warm</button>
+          <button class="btn-95" id="warmth-cool" onclick="setWarmth('cool')">+Cool</button>
+          <button class="btn-95" id="warmth-saturate" onclick="setWarmth('saturate')">+Vibrant</button>
+        </div>
+      </fieldset>
+
+      <button class="btn-95" onclick="generateSampledPalette()" style="width:100%;margin-bottom:12px">Generate Dual 5-Band Ramps (2×5)</button>
+
+      <div id="samplerResults" style="display:none">
+        <fieldset class="fieldset-95">
+          <legend>Digital Core (5-band)</legend>
+          <div id="samplerCoreRail" class="swatch-rail five-band"></div>
+          <button class="btn-95" onclick="copySamplerCore()" style="width:100%">Copy Core</button>
+        </fieldset>
+
+        <fieldset class="fieldset-95">
+          <legend>Analog Expansion (5-band)</legend>
+          <div id="samplerExpRail" class="swatch-rail five-band"></div>
+          <button class="btn-95" onclick="copySamplerExpansion()" style="width:100%">Copy Expansion</button>
+        </fieldset>
+
+        <div class="flex-row">
+          <button class="btn-95" onclick="copySamplerBoth()" style="flex:1">Copy Both</button>
+          <button class="btn-95" onclick="exportSamplerCSS()" style="flex:1">Export CSS</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: GRADIENT GENERATOR -->
+    <div id="tab-gradient" class="tab-content">
+      <fieldset class="fieldset-95">
+        <legend>Gradient Settings</legend>
+        <div class="flex-row">
+          <div style="flex:1">
+            <label>Start Color:</label>
+            <div class="color-picker-95">
+              <input type="color" id="gradStart" value="#ff5733">
+            </div>
+          </div>
+          <div style="flex:1">
+            <label>End Color:</label>
+            <div class="color-picker-95">
+              <input type="color" id="gradEnd" value="#3357ff">
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label>Steps: <span id="gradStepDisplay">8</span></label>
+          <input type="range" id="gradSteps" min="2" max="16" value="8" oninput="document.getElementById('gradStepDisplay').textContent=this.value">
+        </div>
+      </fieldset>
+
+      <button class="btn-95" onclick="generateGradient()" style="width:100%;margin-bottom:12px">Generate Gradient</button>
+
+      <div id="gradientResults" style="display:none">
+        <fieldset class="fieldset-95">
+          <legend>Generated Gradient</legend>
+          <div id="gradientRail" class="swatch-rail"></div>
+          <button class="btn-95" onclick="copyGradient()" style="width:100%;margin-top:8px">Copy All Colors</button>
+        </fieldset>
+      </div>
+    </div>
+
+    <!-- TAB: HEX INPUT -->
+    <div id="tab-paste" class="tab-content">
+      <fieldset class="fieldset-95">
+        <legend>Paste Hex Codes</legend>
+        <label>Enter hex codes (space, comma, or newline separated):</label>
+        <textarea id="hexInput" class="input-95" placeholder="#ff5733 #33ff57 #3357ff&#10;or&#10;ff5733, 33ff57, 3357ff"></textarea>
+        <button class="btn-95" onclick="parseHexInput()" style="width:100%;margin-top:8px">Parse & Display</button>
+      </fieldset>
+
+      <div id="pasteResults" style="display:none">
+        <fieldset class="fieldset-95">
+          <legend>Your Palette</legend>
+          <div id="pasteRail" class="swatch-rail"></div>
+          <div class="flex-row" style="margin-top:8px">
+            <button class="btn-95" onclick="copyParsedPalette()" style="flex:1">Copy All</button>
+            <button class="btn-95" onclick="exportPasteCSS()" style="flex:1">Export CSS</button>
+            <button class="btn-95" onclick="exportPasteJSON()" style="flex:1">Export JSON</button>
+          </div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-panel" id="statusText">Ready</div>
+    <div class="status-panel" style="flex:0 0 auto">Dual 5-Band (2×5)</div>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div id="notification" class="notification-95"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// WINDOW MANAGEMENT
+// ════════════════════════════════════════════════════════════
+let isDragging = false;
+let dragOffsetX, dragOffsetY;
+let isMaximized = false;
+let savedPosition = {};
+
+const mainWindow = document.getElementById('mainWindow');
+const titleBar = document.getElementById('titleBar');
+
+titleBar.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.win-btn')) return;
+  isDragging = true;
+  dragOffsetX = e.clientX - mainWindow.offsetLeft;
+  dragOffsetY = e.clientY - mainWindow.offsetTop;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging || isMaximized) return;
+  mainWindow.style.left = (e.clientX - dragOffsetX) + 'px';
+  mainWindow.style.top = (e.clientY - dragOffsetY) + 'px';
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+function minimizeWindow() {
+  showNotification('Minimize not implemented (it\'s a demo!)');
+}
+
+function maximizeWindow() {
+  if (!isMaximized) {
+    savedPosition = {
+      left: mainWindow.style.left,
+      top: mainWindow.style.top,
+      width: mainWindow.style.width,
+      height: mainWindow.style.height
+    };
+    mainWindow.style.left = '0';
+    mainWindow.style.top = '0';
+    mainWindow.style.width = '100vw';
+    mainWindow.style.height = '100vh';
+    isMaximized = true;
+  } else {
+    mainWindow.style.left = savedPosition.left;
+    mainWindow.style.top = savedPosition.top;
+    mainWindow.style.width = savedPosition.width;
+    mainWindow.style.height = savedPosition.height;
+    isMaximized = false;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// TAB MANAGEMENT
+// ════════════════════════════════════════════════════════════
+function switchTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  
+  // Show selected tab
+  document.getElementById(`tab-${tabName}`).classList.add('active');
+  event.target.classList.add('active');
+  
+  updateStatus(`Tab: ${tabName}`);
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+function showNotification(msg) {
+  const notif = document.getElementById('notification');
+  notif.textContent = msg;
+  notif.classList.add('active');
+  setTimeout(() => notif.classList.remove('active'), 2000);
+}
+
+function updateStatus(msg) {
+  document.getElementById('statusText').textContent = msg;
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text);
+}
+
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16)
+  };
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(x => {
+    const hex = Math.max(0, Math.min(255, x)).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// ELEMENTAL PALETTES
+// ════════════════════════════════════════════════════════════
+function copyColor(element) {
+  const hex = element.dataset.hex;
+  copyToClipboard(hex);
+  showNotification(`Copied ${hex.toUpperCase()}`);
+}
+
+const paletteData = {
+  earth: {
+    core: '#f4c8a4 #e6a985 #d48d70 #b97457 #965a44 #744838 #52362d #2e1f1b',
+    exp: '#f3d7b5 #e0b28e #c88a6c #a86b52 #8b5343 #704237 #503028 #2c1c18'
+  },
+  water: {
+    core: '#9be7e7 #78b8c8 #4d8ca4 #3a6789 #304465 #242f46 #1d163a #120a24',
+    exp: '#b9ffea #8be1d5 #5fb6b8 #4a8aa2 #5a6b95 #4d5277 #3b3457 #271d3a'
+  },
+  verdant: {
+    core: '#c8ff9e #9ee871 #72c64f #51994a #38704a #31544b #2e3b4a #251f36',
+    exp: '#e4ff8c #c6f05d #a0d048 #7ea13e #667e3a #556542 #3e5142 #2a3835'
+  },
+  fire: {
+    core: '#fff0c2 #ffb55a #ff7043 #e63b3f #b3274e #792347 #441a2e #15090f',
+    exp: '#ffe5b0 #fdb870 #fa7f46 #d94a3c #a83044 #762b3f #4b2232 #1f1214'
+  },
+  wind: {
+    core: '#d9d7cf #b9b6ad #8f8b86 #6c6a79 #5a5e91 #4b569f #3c4a97 #2b2f47',
+    exp: '#e4e1da #c5bfc0 #a39aa5 #837d9a #6a6da0 #575c9c #46478b #2c2c53'
+  },
+  void: {
+    core: '#ffffff #d9d9d9 #b3b3b3 #8c8c8c #666666 #404040 #1a1a1a #000000',
+    exp: '#fffaf0 #d9d2c8 #b5aea0 #8c857c #5e5b56 #3a3734 #1f1e1d #0b0b0b'
+  }
+};
+
+function copyRamp(element) {
+  const data = paletteData[element];
+  const text = `Core: ${data.core}\nExpansion: ${data.exp}`;
+  copyToClipboard(text);
+  showNotification(`${element.toUpperCase()} ramps copied!`);
+}
+
+function exportAllPalettes() {
+  const json = JSON.stringify(paletteData, null, 2);
+  copyToClipboard(json);
+  showNotification('All palettes exported as JSON!');
+}
+
+// ════════════════════════════════════════════════════════════
+// PALETTE SAMPLER
+// ════════════════════════════════════════════════════════════
+let samplerMode = 'manual';
+let currentWarmth = 'neutral';
+let samplerCoreColors = [];
+let samplerExpColors = [];
+let imageCanvas, imageCtx;
+
+function setSamplerMode(mode) {
+  samplerMode = mode;
+  document.getElementById('modeManual').style.background = mode === 'manual' ? '#000080' : '';
+  document.getElementById('modeManual').style.color = mode === 'manual' ? 'white' : '';
+  document.getElementById('modeImage').style.background = mode === 'image' ? '#000080' : '';
+  document.getElementById('modeImage').style.color = mode === 'image' ? 'white' : '';
+  
+  document.getElementById('manualMode').style.display = mode === 'manual' ? 'block' : 'none';
+  document.getElementById('imageMode').style.display = mode === 'image' ? 'block' : 'none';
+}
+
+function setWarmth(type) {
+  currentWarmth = type;
+  ['neutral', 'warm', 'cool', 'saturate'].forEach(t => {
+    const btn = document.getElementById(`warmth-${t}`);
+    btn.style.background = t === type ? '#000080' : '';
+    btn.style.color = t === type ? 'white' : '';
+  });
+}
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      imageCanvas = document.getElementById('imageCanvas');
+      imageCtx = imageCanvas.getContext('2d');
+      
+      const maxWidth = 400;
+      const maxHeight = 300;
+      let displayWidth = img.width;
+      let displayHeight = img.height;
+      
+      if (displayWidth > maxWidth) {
+        displayHeight = (displayHeight * maxWidth) / displayWidth;
+        displayWidth = maxWidth;
+      }
+      if (displayHeight > maxHeight) {
+        displayWidth = (displayWidth * maxHeight) / displayHeight;
+        displayHeight = maxHeight;
+      }
+      
+      imageCanvas.width = displayWidth;
+      imageCanvas.height = displayHeight;
+      imageCtx.drawImage(img, 0, 0, displayWidth, displayHeight);
+      
+      document.getElementById('imagePreview').style.display = 'block';
+      showNotification('Image loaded');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function extractAndGeneratePalette() {
+  if (!imageCanvas) {
+    showNotification('Upload an image first');
+    return;
+  }
+  
+  const analysisSize = 64;
+  const analysisCanvas = document.createElement('canvas');
+  analysisCanvas.width = analysisSize;
+  analysisCanvas.height = analysisSize;
+  const analysisCtx = analysisCanvas.getContext('2d');
+  
+  analysisCtx.drawImage(imageCanvas, 0, 0, analysisSize, analysisSize);
+  const imageData = analysisCtx.getImageData(0, 0, analysisSize, analysisSize);
+  const pixels = imageData.data;
+  
+  const colors = [];
+  for (let i = 0; i < pixels.length; i += 4) {
+    colors.push({
+      r: pixels[i],
+      g: pixels[i + 1],
+      b: pixels[i + 2]
+    });
+  }
+  
+  const numClusters = 10;
+  const clusters = kMeansClustering(colors, numClusters);
+  
+  clusters.sort((a, b) => {
+    const brightnessA = (a.r * 0.299 + a.g * 0.587 + a.b * 0.114);
+    const brightnessB = (b.r * 0.299 + b.g * 0.587 + b.b * 0.114);
+    return brightnessB - brightnessA;
+  });
+  
+  const usableClusters = clusters.slice(1, 9);
+  const extractedPalette = usableClusters.map(c => rgbToHex(
+    Math.round(c.r),
+    Math.round(c.g),
+    Math.round(c.b)
+  ));
+  
+  displayExtractedColors(extractedPalette);
+  
+  samplerCoreColors = extractedPalette.slice(0, 5);
+  const expansionBase = extractedPalette.slice(3, 8);
+  samplerExpColors = expansionBase.map(hex => applyAnalogShift(hex, currentWarmth));
+  
+  displaySamplerRamp('samplerCoreRail', samplerCoreColors);
+  displaySamplerRamp('samplerExpRail', samplerExpColors);
+  document.getElementById('samplerResults').style.display = 'block';
+  
+  clearImageMemory();
+  showNotification('Extracted 10 → dual 5-band ramps (2×5)!');
+}
+
+function kMeansClustering(colors, k) {
+  let centroids = [];
+  for (let i = 0; i < k; i++) {
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    centroids.push({...colors[randomIndex]});
+  }
+  
+  for (let iteration = 0; iteration < 10; iteration++) {
+    const assignments = colors.map(color => {
+      let minDist = Infinity;
+      let cluster = 0;
+      
+      centroids.forEach((centroid, idx) => {
+        const dist = Math.sqrt(
+          Math.pow(color.r - centroid.r, 2) +
+          Math.pow(color.g - centroid.g, 2) +
+          Math.pow(color.b - centroid.b, 2)
+        );
+        if (dist < minDist) {
+          minDist = dist;
+          cluster = idx;
+        }
+      });
+      
+      return cluster;
+    });
+    
+    const newCentroids = [];
+    for (let i = 0; i < k; i++) {
+      const clusterColors = colors.filter((_, idx) => assignments[idx] === i);
+      if (clusterColors.length === 0) {
+        newCentroids.push(centroids[i]);
+        continue;
+      }
+      
+      const avg = {
+        r: clusterColors.reduce((sum, c) => sum + c.r, 0) / clusterColors.length,
+        g: clusterColors.reduce((sum, c) => sum + c.g, 0) / clusterColors.length,
+        b: clusterColors.reduce((sum, c) => sum + c.b, 0) / clusterColors.length
+      };
+      newCentroids.push(avg);
+    }
+    
+    centroids = newCentroids;
+  }
+  
+  return centroids;
+}
+
+function displayExtractedColors(colors) {
+  const rail = document.getElementById('extractedRail');
+  rail.innerHTML = '';
+  document.getElementById('extractedDisplay').style.display = 'block';
+  
+  colors.forEach(hex => {
+    const swatch = document.createElement('div');
+    swatch.className = 'extracted-swatch';
+    swatch.style.background = hex;
+    swatch.onclick = () => {
+      copyToClipboard(hex);
+      showNotification(`Copied ${hex.toUpperCase()}`);
+    };
+    rail.appendChild(swatch);
+  });
+}
+
+function clearImageMemory() {
+  if (imageCanvas && imageCtx) {
+    imageCtx.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+    imageCanvas.width = 0;
+    imageCanvas.height = 0;
+  }
+  document.getElementById('imageUpload').value = '';
+  document.getElementById('imagePreview').style.display = 'none';
+  imageCanvas = null;
+  imageCtx = null;
+}
+
+function generateSampledPalette() {
+  if (samplerMode === 'image') {
+    showNotification('Use image extraction button instead');
+    return;
+  }
+  
+  const light = document.getElementById('samplerLight').value;
+  const mid = document.getElementById('samplerMid').value;
+  const dark = document.getElementById('samplerDark').value;
+  const useMid = document.getElementById('useMidpoint').checked;
+  
+  let palette;
+  if (useMid) {
+    const firstHalf = generateGradientBetween(light, mid, 3);
+    const secondHalf = generateGradientBetween(mid, dark, 3).slice(1);
+    palette = [...firstHalf, ...secondHalf];
+  } else {
+    palette = generateGradientBetween(light, dark, 5);
+  }
+  
+  samplerCoreColors = palette;
+  samplerExpColors = palette.map(hex => applyAnalogShift(hex, currentWarmth));
+  
+  displaySamplerRamp('samplerCoreRail', samplerCoreColors);
+  displaySamplerRamp('samplerExpRail', samplerExpColors);
+  document.getElementById('samplerResults').style.display = 'block';
+  
+  showNotification('Generated dual 5-band ramps!');
+}
+
+function generateGradientBetween(startHex, endHex, steps) {
+  const start = hexToRgb(startHex);
+  const end = hexToRgb(endHex);
+  const colors = [];
+  
+  for (let i = 0; i < steps; i++) {
+    const ratio = i / (steps - 1);
+    const r = Math.round(start.r + (end.r - start.r) * ratio);
+    const g = Math.round(start.g + (end.g - start.g) * ratio);
+    const b = Math.round(start.b + (end.b - start.b) * ratio);
+    colors.push(rgbToHex(r, g, b));
+  }
+  
+  return colors;
+}
+
+function applyAnalogShift(hex, warmthType) {
+  const rgb = hexToRgb(hex);
+  let r = rgb.r, g = rgb.g, b = rgb.b;
+  
+  switch(warmthType) {
+    case 'warm':
+      r = Math.min(255, Math.round(r * 1.08));
+      g = Math.min(255, Math.round(g * 1.03));
+      b = Math.max(0, Math.round(b * 0.92));
+      break;
+    case 'cool':
+      r = Math.max(0, Math.round(r * 0.92));
+      g = Math.min(255, Math.round(g * 1.02));
+      b = Math.min(255, Math.round(b * 1.08));
+      break;
+    case 'saturate':
+      const avg = (r + g + b) / 3;
+      r = Math.round(r + (r - avg) * 0.15);
+      g = Math.round(g + (g - avg) * 0.15);
+      b = Math.round(b + (b - avg) * 0.15);
+      r = Math.max(0, Math.min(255, r));
+      g = Math.max(0, Math.min(255, g));
+      b = Math.max(0, Math.min(255, b));
+      break;
+    case 'neutral':
+      const avgNeutral = (r + g + b) / 3;
+      r = Math.round(r * 0.97 + avgNeutral * 0.03 + 3);
+      g = Math.round(g * 0.97 + avgNeutral * 0.03 + 2);
+      b = Math.round(b * 0.97 + avgNeutral * 0.03 - 1);
+      r = Math.max(0, Math.min(255, r));
+      g = Math.max(0, Math.min(255, g));
+      b = Math.max(0, Math.min(255, b));
+      break;
+  }
+  
+  return rgbToHex(r, g, b);
+}
+
+function displaySamplerRamp(railId, colors) {
+  const rail = document.getElementById(railId);
+  rail.innerHTML = '';
+  
+  colors.forEach(hex => {
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch';
+    swatch.style.background = hex;
+    swatch.dataset.hex = hex;
+    swatch.onclick = () => copyColor(swatch);
+    rail.appendChild(swatch);
+  });
+}
+
+function copySamplerCore() {
+  copyToClipboard(samplerCoreColors.join(' '));
+  showNotification('Core ramp copied!');
+}
+
+function copySamplerExpansion() {
+  copyToClipboard(samplerExpColors.join(' '));
+  showNotification('Expansion ramp copied!');
+}
+
+function copySamplerBoth() {
+  const text = `Core: ${samplerCoreColors.join(' ')}\nExpansion: ${samplerExpColors.join(' ')}`;
+  copyToClipboard(text);
+  showNotification('Both ramps copied!');
+}
+
+function exportSamplerCSS() {
+  let css = '/* Digital Core */\n:root {\n';
+  samplerCoreColors.forEach((hex, i) => {
+    css += `  --core-${i + 1}: ${hex};\n`;
+  });
+  css += '}\n\n/* Analog Expansion */\n:root {\n';
+  samplerExpColors.forEach((hex, i) => {
+    css += `  --expansion-${i + 1}: ${hex};\n`;
+  });
+  css += '}';
+  
+  copyToClipboard(css);
+  showNotification('CSS variables exported!');
+}
+
+// ════════════════════════════════════════════════════════════
+// GRADIENT GENERATOR
+// ════════════════════════════════════════════════════════════
+let gradientColors = [];
+
+function generateGradient() {
+  const start = document.getElementById('gradStart').value;
+  const end = document.getElementById('gradEnd').value;
+  const steps = parseInt(document.getElementById('gradSteps').value);
+  
+  gradientColors = generateGradientBetween(start, end, steps);
+  
+  const rail = document.getElementById('gradientRail');
+  rail.innerHTML = '';
+  rail.style.gridTemplateColumns = `repeat(${steps}, 1fr)`;
+  
+  gradientColors.forEach(hex => {
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch';
+    swatch.style.background = hex;
+    swatch.dataset.hex = hex;
+    swatch.onclick = () => copyColor(swatch);
+    rail.appendChild(swatch);
+  });
+  
+  document.getElementById('gradientResults').style.display = 'block';
+  showNotification(`Generated ${steps}-step gradient!`);
+}
+
+function copyGradient() {
+  copyToClipboard(gradientColors.join(' '));
+  showNotification('Gradient copied!');
+}
+
+// ════════════════════════════════════════════════════════════
+// HEX INPUT
+// ════════════════════════════════════════════════════════════
+let parsedColors = [];
+
+function parseHexInput() {
+  const input = document.getElementById('hexInput').value;
+  const hexPattern = /#?([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})/g;
+  const matches = input.match(hexPattern);
+  
+  if (!matches || matches.length === 0) {
+    showNotification('No valid hex codes found!');
+    return;
+  }
+  
+  parsedColors = matches.map(hex => {
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    return '#' + hex.toLowerCase();
+  });
+  
+  const rail = document.getElementById('pasteRail');
+  rail.innerHTML = '';
+  rail.style.gridTemplateColumns = `repeat(${Math.min(parsedColors.length, 8)}, 1fr)`;
+  
+  parsedColors.forEach(hex => {
+    const swatch = document.createElement('div');
+    swatch.className = 'swatch';
+    swatch.style.background = hex;
+    swatch.dataset.hex = hex;
+    swatch.onclick = () => copyColor(swatch);
+    rail.appendChild(swatch);
+  });
+  
+  document.getElementById('pasteResults').style.display = 'block';
+  showNotification(`Parsed ${parsedColors.length} colors!`);
+}
+
+function copyParsedPalette() {
+  copyToClipboard(parsedColors.join(' '));
+  showNotification('Palette copied!');
+}
+
+function exportPasteCSS() {
+  let css = ':root {\n';
+  parsedColors.forEach((hex, i) => {
+    css += `  --color-${i + 1}: ${hex};\n`;
+  });
+  css += '}';
+  copyToClipboard(css);
+  showNotification('CSS exported!');
+}
+
+function exportPasteJSON() {
+  const json = JSON.stringify({ colors: parsedColors }, null, 2);
+  copyToClipboard(json);
+  showNotification('JSON exported!');
+}
+
+// ════════════════════════════════════════════════════════════
+// MENU FUNCTIONS
+// ════════════════════════════════════════════════════════════
+function showAbout() {
+  alert('COMPUTERROR — Elemental Master Palette v2\n\nPortable Pixel Painter\'s Palette\nDual 5-Band Ramp Architecture (2×5)\n\nDigital Core + Analog Expansion\n\n© 2025 COMPUTERROR');
+}
+
+function showHelp() {
+  alert('HELP:\n\n• Click any color swatch to copy its hex code\n• Use tabs to access different tools\n• Palette Sampler: Extract from images or create manually\n• All colors can be exported as CSS or JSON\n• Drag the title bar to move the window');
+}
+
+// Initialize
+updateStatus('Ready - Click any swatch to copy');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "🏆",
+  "title": "Phase 5 – Meta-Progression & Persistence",
+  "systems": [
+    {
+      "name": "5.1 Unlockable Characters & Skins",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Start with one contestant; unlock others by completing challenges. Each character has unique starting weapon and passive ability.",
+      "tasks": [
+        "Design 4 new player character sprites and stats",
+        "Challenge system: 'beat wave 25 with only melee', etc.",
+        "Skin variations unlockable via score milestones"
+      ]
+    },
+    {
+      "name": "5.2 Persistent Upgrades & Stat Tracking",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase5_0"],
+      "notes": "Earn credits per run to spend on permanent upgrades (start with more HP, better weapon, free trinket). Use Star Leaderboard for global high scores.",
+      "tasks": [
+        "Meta-currency earning based on run performance",
+        "Permanent upgrade tree (offense, defense, utility)",
+        "Leaderboard integration for wave/score rankings",
+        "Personal stats page (kills, deaths, favorite weapon)"
+      ]
+    },
+    {
+      "name": "5.3 Daily / Weekly Challenges",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase5_0"],
+      "notes": "Daily seed run with fixed modifiers; global leaderboard for that seed. Encourages replayability.",
+      "tasks": [
+        "Seed-based modifier generator",
+        "Daily challenge UI and timer",
+        "Rewards for daily completion"
+      ]
+    }
+  ]
+}

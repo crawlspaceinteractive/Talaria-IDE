@@ -1,0 +1,48 @@
+{
+  "id": "phase2",
+  "icon": "🏚️",
+  "title": "Phase 2 – Environment & Level Design",
+  "systems": [
+    {
+      "name": "2.1 Room & Scene Management",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Define room data: background image, camera list, trigger zones to adjacent rooms, and interactive objects. Rooms stream in/out as player moves.",
+      "tasks": [
+        "Room data format (JSON with camera, exit, item data)",
+        "Room transition logic (fade/door animation)",
+        "Object state persistence per room",
+        "Minimap generation from room connectivity"
+      ]
+    },
+    {
+      "name": "2.2 Puzzles & Interactive Objects",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0"],
+      "notes": "Classic survival horror puzzles: locked doors, key items, cranks, crests, and environmental manipulation.",
+      "tasks": [
+        "Examine / use / combine item system",
+        "Interactive hotspot detection (look, touch, push)",
+        "Locked door with key inventory check",
+        "Multi‑stage environmental puzzles (light beams, statues)"
+      ]
+    },
+    {
+      "name": "2.3 Lighting & Fog Effects",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_1"],
+      "notes": "Dynamic lighting on 3D objects, volumetric fog, and flashlight/ lantern light cone. Blend with static background lighting.",
+      "tasks": [
+        "Per‑object light influence from scene lights",
+        "Flashlight with limited battery",
+        "Fog layer for distant hallways"
+      ]
+    }
+  ]
+}

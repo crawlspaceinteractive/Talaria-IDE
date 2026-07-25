@@ -1,0 +1,33 @@
+{
+  "id": "phase5",
+  "icon": "🔊",
+  "title": "Phase 5 – Audio & Visual Juice",
+  "systems": [
+    {
+      "name": "5.1 Sound Effects & Music",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Retro sound effects (chiptune / crunchy samples) and looping level tracks. Use Web Audio API or a simple buffer player.",
+      "tasks": [
+        "Sound effect manager (jump, coin, hit, death)",
+        "Background music per level (looping)",
+        "Volume controls (master, SFX, music)"
+      ]
+    },
+    {
+      "name": "5.2 Particle & VFX",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_2"],
+      "notes": "Low‑poly particles: dust on landing, coin sparkles, teleport swish. Use billboards with dithering.",
+      "tasks": [
+        "Simple particle emitter (position, velocity, life)",
+        "Billboard sprite rendering",
+        "Pre‑authored VFX for common events"
+      ]
+    }
+  ]
+}

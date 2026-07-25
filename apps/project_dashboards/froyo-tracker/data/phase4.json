@@ -1,0 +1,49 @@
+{
+  "id": "phase4",
+  "icon": "💎",
+  "title": "Phase 4 – Collectibles & Progression",
+  "systems": [
+    {
+      "name": "4.1 Sprinkle / Gem Collection",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_2"],
+      "notes": "Scattered collectibles. Rotating 3D model, pickup sound, counter HUD.",
+      "tasks": [
+        "Placeable gem entities (rotate + bob)",
+        "Collect on player overlap (audio + particle)",
+        "Persistent level collection count (for 100% completion)"
+      ]
+    },
+    {
+      "name": "4.2 Health & Lives System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 6,
+      "dependencies": [],
+      "notes": "Classic health points, extra lives from 100 coins or 1‑up items. Game over screen with continue.",
+      "tasks": [
+        "Player health (3 HP default)",
+        "Damage invincibility frames",
+        "Extra life pickup",
+        "Lives counter HUD",
+        "Game over → continue (limited continues)"
+      ]
+    },
+    {
+      "name": "4.3 Hub World & Level Unlocks",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0", "phase6_0"],
+      "notes": "Central hub with portals to levels. Collect enough stars/gems to unlock new areas. Portal islands already exist – expand on them.",
+      "tasks": [
+        "Hub world design (using existing Voronoi islands)",
+        "Portal interaction (walk into portal → load level)",
+        "Level completion unlocks next portal",
+        "Return to hub after death / level complete"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+---
+
+## 1. Identify the Star Asset Format
+The Star platform typically uses an optimized derivative of glTF, often with a `.starasset` or `.glb` extension, loaded via the **Star Asset SDK**. Check your Star documentation—it likely provides:
+
+- `StarAssets.LoadAsync(key)` → returns a promise with the asset object.
+- For 3D models, the result might be a `THREE.Group` or a path to a glTF file that the SDK has already cached.
+
+*If you’re just using standard `.glb` files and no Star‑specific loader,* you can fall back to Three.js’s `GLTFLoader`. I’ll cover both, assuming you’ll use the Star SDK for platform consistency.
+
+---
+
+## 2. Create an Asset Manifest
+Define your five models in a central file, e.g., `assets.js`, mapping logical names to their asset keys (the identifier you use with the Star platform) and any configuration.
+
+```javascript
+// assets.js
+export const ASSETS = {
+  steamHauler: {
+    key: 'models/hauler.glb',      // or Star asset ID
+    scale: 1.5,
+    replaceBlock: 'hauler_assembly' // block type that spawns this model
+  },
+  drillTurret: {
+    key: 'models/drill_turret.glb',
+    scale: 1.0,
+    replaceBlock: 'drill_turret_placed'
+  },
+  // ... etc.
+};
+```
+
+---
+
+## 3. Preload All Models During Boot
+In `main.js`, after initializing the Three.js renderer but before the player enters the world, load and cache all models. This avoids pop‑in later.
+
+```javascript
+// main.js (or new loader.js)
+import { StarAssets } from 'star-sdk'; // hypothetical
+import * as THREE from 'three';
+
+const modelCache = new Map();
+
+async function preloadModels() {
+  const promises = Object.entries(ASSETS).map(async ([name, cfg]) => {
+    const gltf = await StarAssets.LoadAsync(cfg.key);  // if Star SDK
+    // or: const gltf = await new GLTFLoader().loadAsync(cfg.key);
+    modelCache.set(name, gltf.scene);
+  });
+  await Promise.all(promises);
+  console.log('All custom models loaded');
+}
+```
+
+Run this during the loading screen sequence; you can use your existing UI (the procedural brass panels) to show a loading bar.
+
+---
+
+## 4. Cache and Clone for Performance
+Storing the original `THREE.Group` in the cache and cloning it for each placed object keeps memory low and performance high.
+
+```javascript
+export function getModelInstance(name) {
+  const original = modelCache.get(name);
+  if (!original) return null;
+  const clone = original.clone(true);
+  // Apply stored scale, rotation etc.
+  clone.scale.set(ASSETS[name].scale, ASSETS[name].scale, ASSETS[name].scale);
+  return clone;
+}
+```
+
+If you have many identical objects (e.g., placed turrets), consider using `THREE.InstancedMesh` for the static parts—but start with simple cloning first.
+
+---
+
+## 5. Replace Voxel Representations
+In your `world.js` or block‑placement handler, when a specific block type is placed, instantiate the corresponding custom model instead of (or in addition to) the voxel block.
+
+**On block placement (host and all clients after `BLOCK_PLACE_CONFIRM`):**
+- Check if the `blockType` has a model replacement defined.
+- If yes, create a new `THREE.Object3D` from the cache, position it at the block’s world coordinates, and add it to the scene.
+- Keep a reference (e.g., `worldBlock.attachedModel`) so you can remove it when the block is destroyed.
+
+```javascript
+// After world.setBlock(x, y, z, blockType)
+const modelInfo = ASSETS[blockType];
+if (modelInfo) {
+  const model = getModelInstance(blockType);
+  model.position.set(x + 0.5, y, z + 0.5); // center in block
+  scene.add(model);
+  // store reference to clean up later
+  world.setBlockEntity(x, y, z, model);
+}
+```
+
+---
+
+## 6. Ensure Material & Lighting Compatibility
+Blockbench models often use standard PBR materials. Since your game has dynamic weather and lighting, make sure:
+
+- Models respond to scene lights (set `mesh.material = new THREE.MeshStandardMaterial({...})` if needed).
+- Shadows are enabled (`castShadow` / `receiveShadow`) for realism.
+- The existing fog and atmospheric effects are applied (deep underground vs. mountain top).
+
+You can tweak materials after loading to fit your voxel aesthetic:
+
+```javascript
+gltf.scene.traverse((child) => {
+  if (child.isMesh) {
+    child.castShadow = true;
+    child.receiveShadow = true;
+    child.material.color = new THREE.Color(child.material.color); // ensure instanceable
+  }
+});
+```
+
+---
+
+## 7. Handle Multiplayer Visibility
+When a client receives a block placement confirmation that triggers a model, they’ll run the same `getModelInstance` and add it to their scene. No extra network code is needed because the block type itself is synced; each client loads its own local copy of the model. Just make sure the model replacement logic lives in a shared module that both host and client execute after block updates.
+
+---
+
+## 8. Animation Support (Optional)
+If your models have animations (e.g., a steam‑hauler’s piston), load the `gltf.animations` array and set up an `AnimationMixer`. Update the mixer in your main loop, driven by game logic (e.g., when the hauler is active).
+
+```javascript
+const mixer = new THREE.AnimationMixer(model);
+const action = mixer.clipAction(gltf.animations[0]);
+action.play();
+
+// In render loop:
+const delta = clock.getDelta();
+mixer.update(delta);
+```
+
+---
+
+## 9. Testing and Optimization
+- **Loading screen**: show the brass‑panel UI with progress as each model loads.
+- **Caching**: verify the cache is populated before the game starts.
+- **Performance**: profile when many models are in view; consider LODs or impostor voxels at distance.
+- **Star platform integration**: if the Star Asset SDK provides a streaming or compression format, you may not need to manually manage loading; just use its `Instantiate` method directly on block placement.
+

@@ -1,0 +1,2106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOOMARCH — Archive Manager & Offset Tool</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+  :root {
+    /* Win95 Colors */
+    --win95-bg: #c9c9c9;
+    --win95-light: #dfdfdf;
+    --win95-dark: #808080;
+    --win95-darker: #000000;
+    --win95-highlight: #ffffff;
+    --win95-shadow: #808080;
+    --win95-face: #c9c9c9;
+    --win95-text: #000000;
+    --win95-input: #c0c0c0;
+    
+    /* NeXTSTEP accent colors */
+    --next-highlight: #ffff00;
+    --next-shadow: #333333;
+    --next-border: #666666;
+  }
+
+  *, *::before, *::after { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0;
+  }
+
+  body {
+    background: var(--win95-bg);
+    color: var(--win95-text);
+    font-family: 'MS Sans Serif', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+
+  /* ══════════════════════════════════════════════════════════════ */
+  /* WIN95 WINDOW STYLING */
+  /* ══════════════════════════════════════════════════════════════ */
+  
+  .win95-window {
+    display: flex;
+    flex-direction: column;
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+    box-shadow: 1px 1px 0 var(--win95-shadow), -1px -1px 0 var(--win95-light);
+  }
+
+  .win95-titlebar {
+    background: linear-gradient(90deg, #000080 0%, #1084d7 100%);
+    color: white;
+    padding: 2px 2px 2px 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 11px;
+    user-select: none;
+    cursor: move;
+  }
+
+  .win95-titlebar-text {
+    flex: 1;
+    padding: 2px 2px;
+    font-family: 'MS Sans Serif', sans-serif;
+  }
+
+  .win95-titlebar-buttons {
+    display: flex;
+    gap: 2px;
+  }
+
+  .win95-btn-title {
+    width: 16px;
+    height: 14px;
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+    color: var(--win95-text);
+    font-weight: bold;
+  }
+
+  .win95-btn-title:active {
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+  }
+
+  /* Win95 Button */
+  .win95-btn {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+    color: var(--win95-text);
+    font-family: 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+    padding: 4px 12px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 75px;
+    text-align: center;
+    transition: none;
+  }
+
+  .win95-btn:active {
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+  }
+
+  .win95-btn:disabled {
+    color: var(--win95-light);
+    text-shadow: 1px 1px var(--win95-darker);
+    cursor: default;
+  }
+
+  .win95-btn:hover:not(:disabled) {
+    background: var(--win95-light);
+  }
+
+  /* Win95 Input */
+  .win95-input, .win95-select {
+    background: var(--win95-input);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    color: var(--win95-text);
+    font-family: 'Roboto Mono', monospace;
+    font-size: 11px;
+    padding: 3px 4px;
+    outline: none;
+  }
+
+  .win95-input:focus, .win95-select:focus {
+    outline: 1px dotted var(--win95-text);
+    outline-offset: -4px;
+  }
+
+  /* Win95 Panel/Inset */
+  .win95-panel {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    padding: 2px;
+  }
+
+  .win95-panel-inset {
+    background: white;
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    padding: 2px;
+  }
+
+  .win95-statusbar {
+    background: var(--win95-face);
+    border-top: 1px solid var(--win95-highlight);
+    display: flex;
+    gap: 2px;
+    padding: 2px;
+    font-size: 11px;
+  }
+
+  .win95-statusbar-field {
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    padding: 2px 4px;
+    flex: 1;
+    background: white;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* ══════════════════════════════════════════════════════════════ */
+  /* NEXTSTEP ACCENTS */
+  /* ══════════════════════════════════════════════════════════════ */
+
+  .nextstep-accent {
+    border: 3px solid var(--next-border);
+    border-radius: 4px;
+    background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  }
+
+  .nextstep-label {
+    font-weight: bold;
+    color: var(--next-shadow);
+    text-shadow: 1px 1px var(--win95-highlight);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ══════════════════════════════════════════════════════════════ */
+  /* LAYOUT */
+  /* ══════════════════════════════════════════════════════════════ */
+
+  #titlebar {
+    height: 24px;
+    background: linear-gradient(90deg, #000080 0%, #1084d7 100%);
+    border-bottom: 2px solid var(--win95-darker);
+    display: flex;
+    align-items: center;
+    padding: 2px 4px;
+    gap: 4px;
+    flex-shrink: 0;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+  }
+
+  .logo {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-shadow: 1px 1px rgba(0,0,0,0.5);
+  }
+
+  .spacer { flex: 1; }
+
+  #toolbar {
+    background: var(--win95-face);
+    border-bottom: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker);
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    gap: 2px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .tb-sep {
+    width: 2px;
+    height: 20px;
+    background: var(--win95-highlight);
+    border-right: 1px solid var(--win95-darker);
+    margin: 0 2px;
+  }
+
+  #archive-label {
+    font-size: 11px;
+    color: var(--win95-text);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+  }
+
+  #main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    gap: 2px;
+    padding: 2px;
+    background: var(--win95-bg);
+  }
+
+  /* Archive Panel */
+  #panel-archive {
+    width: 300px;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .panel-header {
+    background: linear-gradient(90deg, #000080 0%, #1084d7 100%);
+    color: white;
+    padding: 2px 4px;
+    font-weight: bold;
+    font-size: 11px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--win95-darker);
+  }
+
+  #archive-search {
+    background: var(--win95-face);
+    border-bottom: 1px solid var(--win95-darker);
+    flex-shrink: 0;
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    align-items: center;
+  }
+
+  #archive-search input, #archive-search select {
+    flex: 1;
+  }
+
+  #archive-drop {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #archive-drop-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 128, 0.1);
+    border: 3px dashed #000080;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #000080;
+    font-weight: bold;
+  }
+
+  #archive-drop-overlay.show { display: flex; }
+
+  #archive-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--win95-text);
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    margin: 2px;
+  }
+
+  #archive-empty .big-icon {
+    font-size: 48px;
+  }
+
+  #archive-empty .empty-title {
+    font-weight: bold;
+    font-size: 12px;
+  }
+
+  #archive-empty .empty-sub {
+    font-size: 11px;
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  #open-file-btn-big {
+    min-width: 100px;
+  }
+
+  #archive-table-wrap {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--win95-input);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    margin: 2px;
+  }
+
+  #archive-table-wrap::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  #archive-table-wrap::-webkit-scrollbar-track {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+  }
+
+  #archive-table-wrap::-webkit-scrollbar-thumb {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+  }
+
+  table.archive-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  table.archive-tbl thead tr {
+    position: sticky;
+    top: 0;
+    background: var(--win95-face);
+    border-bottom: 2px solid var(--win95-darker);
+    color: var(--win95-text);
+  }
+
+  table.archive-tbl th {
+    padding: 4px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-right: 1px solid var(--win95-darker);
+    user-select: none;
+  }
+
+  table.archive-tbl th:hover {
+    background: var(--win95-light);
+  }
+
+  table.archive-tbl tr.lump-row {
+    cursor: pointer;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  table.archive-tbl tr.lump-row:hover {
+    background: #ffff00;
+    color: var(--win95-text);
+  }
+
+  table.archive-tbl tr.lump-row.selected {
+    background: #ffff00;
+    color: var(--win95-text);
+  }
+
+  table.archive-tbl td {
+    padding: 2px 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .td-ext {
+    font-size: 10px;
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: bold;
+    display: inline-block;
+    background: #ffff00;
+    border: 1px solid var(--win95-darker);
+    color: var(--win95-text);
+  }
+
+  #archive-stats {
+    padding: 4px;
+    background: var(--win95-face);
+    border-top: 1px solid var(--win95-darker);
+    display: flex;
+    gap: 8px;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+
+  /* Preview Panel */
+  #panel-preview {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  #viewer-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #00ffff;
+    position: relative;
+    overflow: hidden;
+    cursor: crosshair;
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    margin: 2px;
+    transition: background-color 0.2s ease;
+    color: var(--win95-text);
+  }
+
+  #viewer-wrap.bg-mauve {
+    background: #a76b6b;
+  }
+
+  #viewer-canvas {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+
+  #crosshair-h, #crosshair-v {
+    position: absolute;
+    background: rgba(0, 0, 128, 0.3);
+    pointer-events: none;
+  }
+
+  #crosshair-h {
+    width: 100%;
+    height: 1px;
+    top: 50%;
+  }
+
+  #crosshair-v {
+    height: 100%;
+    width: 1px;
+    left: 50%;
+  }
+
+  #offset-dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff0000;
+    border: 2px solid #000080;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    display: none;
+    box-shadow: 0 0 4px rgba(0, 0, 128, 0.5);
+  }
+
+  #viewer-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--win95-text);
+    pointer-events: none;
+  }
+
+  #viewer-empty .ve-icon {
+    font-size: 36px;
+  }
+
+  #viewer-empty .ve-text {
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  #viewer-controls {
+    padding: 4px;
+    background: var(--win95-face);
+    border-top: 1px solid var(--win95-darker);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  #viewer-controls label {
+    color: var(--win95-text);
+    font-size: 11px;
+    font-weight: bold;
+  }
+
+  #zoom-range {
+    flex: 1;
+    min-width: 80px;
+    accent-color: #000080;
+  }
+
+  #zoom-val {
+    color: var(--win95-text);
+    font-size: 11px;
+    min-width: 28px;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  #viewer-info {
+    padding: 4px;
+    background: var(--win95-face);
+    border-top: 1px solid var(--win95-darker);
+    font-size: 11px;
+    color: var(--win95-text);
+    flex-shrink: 0;
+    line-height: 1.6;
+  }
+
+  #viewer-info div {
+    margin: 2px 0;
+  }
+
+  /* Offset Panel */
+  #panel-offset {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 260px;
+  }
+
+  #offset-form {
+    padding: 4px;
+    flex: 1;
+    overflow-y: auto;
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    margin: 2px;
+    color: var(--win95-text);
+  }
+
+  #offset-form::-webkit-scrollbar {
+    width: 16px;
+  }
+
+  #offset-form::-webkit-scrollbar-track {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+  }
+
+  #offset-form::-webkit-scrollbar-thumb {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+  }
+
+  .osec-title {
+    font-weight: bold;
+    font-size: 11px;
+    color: #000080;
+    margin: 8px 0 4px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--win95-darker);
+  }
+
+  .osec-title .osec-lump {
+    color: #ff0000;
+    font-size: 11px;
+  }
+
+  .formula-box {
+    background: var(--win95-input);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    padding: 4px;
+    font-size: 10px;
+    color: var(--win95-text);
+    margin-bottom: 8px;
+    line-height: 1.6;
+  }
+
+  .formula-box strong {
+    color: #000080;
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .field-row label {
+    width: 80px;
+    color: var(--win95-text);
+    font-size: 11px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .field-row input[type=number] {
+    width: 60px;
+  }
+
+  .field-row input[type=range] {
+    flex: 1;
+  }
+
+  .field-row .val-display {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    color: #000080;
+    min-width: 40px;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  /* Feet Distance Control */
+  .feet-distance-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+    padding: 6px;
+    background: var(--win95-input);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    border-radius: 2px;
+  }
+
+  .feet-distance-row label {
+    width: 80px;
+    color: var(--win95-text);
+    font-size: 11px;
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+
+  .feet-distance-row input[type=number] {
+    width: 60px;
+  }
+
+  .feet-distance-row input[type=range] {
+    flex: 1;
+  }
+
+  .feet-distance-row .val-display {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 14px;
+    color: #ff0000;
+    min-width: 40px;
+    text-align: right;
+    font-weight: bold;
+  }
+
+  /* Live Offset Toggle Status */
+  #live-toggle {
+    font-weight: bold;
+    transition: all 0.2s ease;
+  }
+
+  #live-toggle.active {
+    background: #ffff00;
+    color: #000080;
+    border-color: #000080 var(--win95-highlight) var(--win95-highlight) #000080;
+  }
+
+  #live-toggle.active:hover {
+    background: #ffff00;
+    color: #000080;
+  }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .preset-btn {
+    font-size: 10px;
+    padding: 4px;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .preset-sub {
+    font-size: 9px;
+    color: var(--win95-text);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .apply-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  .apply-row .win95-btn {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .osec-divider {
+    height: 2px;
+    background: var(--win95-highlight);
+    border-bottom: 1px solid var(--win95-darker);
+    margin: 8px 0;
+  }
+
+  .export-section {
+    background: var(--win95-input);
+    border: 2px solid;
+    border-color: var(--win95-darker) var(--win95-highlight) var(--win95-highlight) var(--win95-darker);
+    padding: 4px;
+  }
+
+  .export-section .ex-title {
+    font-weight: bold;
+    font-size: 10px;
+    color: #000080;
+    margin-bottom: 4px;
+  }
+
+  .export-section pre {
+    font-size: 10px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Roboto Mono', monospace;
+  }
+
+  /* Statusbar */
+  #statusbar {
+    height: 22px;
+    background: var(--win95-face);
+    border-top: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker);
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    gap: 2px;
+    font-size: 11px;
+    color: var(--win95-text);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .sb-seg {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    white-space: nowrap;
+    padding: 0 4px;
+  }
+
+  .sb-val {
+    color: #000080;
+    font-weight: bold;
+  }
+
+  .sb-sep {
+    color: var(--win95-darker);
+  }
+
+  #sb-msg {
+    color: var(--win95-text);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 4px;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal.show {
+    display: flex;
+  }
+
+  .modal-content {
+    background: var(--win95-face);
+    border: 2px solid;
+    border-color: var(--win95-highlight) var(--win95-darker) var(--win95-darker) var(--win95-highlight);
+    box-shadow: 1px 1px 0 var(--win95-shadow), -1px -1px 0 var(--win95-light);
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-titlebar {
+    background: linear-gradient(90deg, #000080 0%, #1084d7 100%);
+    color: white;
+    padding: 2px 4px;
+    font-weight: bold;
+    font-size: 11px;
+    border-bottom: 1px solid var(--win95-darker);
+  }
+
+  .modal-body {
+    color: var(--win95-text);
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 8px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .modal-body strong {
+    color: #000080;
+  }
+
+  .modal-body code {
+    background: var(--win95-input);
+    padding: 2px 4px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 10px;
+    border: 1px solid var(--win95-darker);
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+    padding: 8px;
+    border-top: 1px solid var(--win95-darker);
+  }
+
+  .modal-buttons .win95-btn {
+    min-width: 75px;
+  }
+</style>
+</head>
+<body>
+
+<!-- TITLEBAR -->
+<div id="titlebar">
+  <div class="logo">DOOMARCH</div>
+  <span style="font-size: 10px; margin-left: 8px;">v2.2 — Win95/NeXTSTEP + Gamepad</span>
+  <div class="spacer"></div>
+</div>
+
+<!-- TOOLBAR -->
+<div id="toolbar">
+  <button class="win95-btn" onclick="triggerOpen()" title="S">📂 Open</button>
+  <div class="tb-sep"></div>
+  <button class="win95-btn" id="btn-auto" onclick="runAutoOffset()" disabled title="Ctrl+A">⊕ Auto</button>
+  <button class="win95-btn" id="btn-apply" onclick="applyOffsets()" disabled title="Enter/Space">✔ Apply</button>
+  <button class="win95-btn" id="btn-export" onclick="exportOffsets()" disabled title="E">⬇ Export</button>
+  <button class="win95-btn" id="btn-import" onclick="triggerImport()" disabled title="I">⬆ Import</button>
+  <div class="tb-sep"></div>
+  <span id="archive-label">No archive loaded</span>
+  <input type="file" id="file-input" accept=".zip,.pk3,.wad" style="display:none" onchange="loadArchive(this)">
+  <input type="file" id="import-input" accept=".json" style="display:none" onchange="importOffsets(this)">
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT: Archive Browser -->
+  <div id="panel-archive" class="win95-window">
+    <div class="panel-header">📦 Archive Browser</div>
+    <div id="archive-search">
+      <input type="text" id="search-input" class="win95-input" placeholder="Filter..." oninput="filterEntries()" style="flex: 1;">
+      <select id="type-filter" class="win95-select" onchange="filterEntries()">
+        <option value="">All</option>
+        <option value="img">Images</option>
+        <option value="snd">Sounds</option>
+        <option value="map">Maps</option>
+        <option value="misc">Other</option>
+      </select>
+    </div>
+    <div id="archive-drop">
+      <div id="archive-drop-overlay">
+        <div style="font-size:32px">📦</div>
+        <div>DROP ARCHIVE HERE</div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="archive-empty">
+        <div class="big-icon">📦</div>
+        <div class="empty-title">NO ARCHIVE LOADED</div>
+        <div class="empty-sub">Open or drop a .zip or .pk3 file</div>
+        <button id="open-file-btn-big" class="win95-btn" onclick="triggerOpen()">Open Archive</button>
+      </div>
+
+      <!-- Table -->
+      <div id="archive-table-wrap" style="display:none">
+        <table class="archive-tbl">
+          <thead>
+            <tr>
+              <th onclick="sortBy('name')">Name ⇅</th>
+              <th onclick="sortBy('ext')">Type</th>
+              <th onclick="sortBy('size')">Size</th>
+              <th>Offset</th>
+            </tr>
+          </thead>
+          <tbody id="entry-tbody"></tbody>
+        </table>
+      </div>
+      <div id="archive-stats" style="display:none">
+        Total: <strong id="stat-total">0</strong> | Images: <strong id="stat-images">0</strong> | Offsets: <strong id="stat-offsets">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIDDLE: Image Viewer -->
+  <div id="panel-preview" class="win95-window">
+    <div class="panel-header">🖼️ Image Viewer</div>
+    <div id="viewer-wrap" onclick="setOffsetFromClick(event)">
+      <div id="crosshair-h"></div>
+      <div id="crosshair-v"></div>
+      <div id="offset-dot"></div>
+      <canvas id="viewer-canvas" width="200" height="200"></canvas>
+      <div id="viewer-empty">
+        <div class="ve-icon">🖼</div>
+        <div class="ve-text">SELECT AN IMAGE</div>
+      </div>
+    </div>
+    <div id="viewer-controls">
+      <label>Zoom:</label>
+      <input type="range" id="zoom-range" min="1" max="8" value="2" oninput="setZoom(this.value)">
+      <span id="zoom-val">2×</span>
+      <div class="tb-sep"></div>
+      <label>BG:</label>
+      <button class="win95-btn" id="bg-toggle" onclick="toggleViewerBackground()" style="min-width: 60px; padding: 2px 8px;" title="B">Cyan</button>
+      <div class="tb-sep"></div>
+      <button class="win95-btn" id="live-toggle" onclick="toggleLiveOffset()" disabled style="min-width: 80px; padding: 2px 8px;" title="L">🔴 Live Off</button>
+    </div>
+    <div id="viewer-info">
+      <div>File: <strong id="vi-name">—</strong></div>
+      <div>Dims: <strong id="vi-dims">—</strong></div>
+      <div>Anchor: <strong id="vi-anchor">—</strong></div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Offset Editor -->
+  <div id="panel-offset" class="win95-window">
+    <div class="panel-header">⊕ Offset Assignment</div>
+    <div id="offset-form">
+      <div class="osec-title">Lump: <span class="osec-lump" id="active-lump-name">NO SELECTION</span></div>
+
+      <div class="formula-box">
+        <strong>Computerror Protocol v1.1 — Off-by-One Precision</strong><br>
+        <strong>X-Offset</strong> = width / 2 — center over ground<br>
+        <strong>Y-Offset</strong> = height − foot_inset — plant on ground<br>
+        <span style="font-size: 9px; color: #666;">Integer anchoring, ≥1px margin, drift ≤±1px</span>
+      </div>
+
+      <div class="field-row">
+        <label>X-Offset:</label>
+        <input type="number" class="win95-input" id="ox-input" value="0" min="-4096" max="4096" oninput="onOffsetInput()">
+        <input type="range" id="ox-range" min="-512" max="512" value="0" oninput="onOffsetRange('x')" style="flex: 1;">
+        <span class="val-display" id="ox-display">0</span>
+      </div>
+      <div class="field-row">
+        <label>Y-Offset:</label>
+        <input type="number" class="win95-input" id="oy-input" value="0" min="-4096" max="4096" oninput="onOffsetInput()">
+        <input type="range" id="oy-range" min="-512" max="512" value="0" oninput="onOffsetRange('y')" style="flex: 1;">
+        <span class="val-display" id="oy-display">0</span>
+      </div>
+      <div class="field-row">
+        <label>Foot Inset:</label>
+        <input type="number" class="win95-input" id="foot-input" value="2" min="0" max="32" style="width:50px" oninput="updateFootInset()">
+        <span style="font-size: 10px; color: #000080; margin-left: 4px;">px</span>
+      </div>
+
+      <div class="feet-distance-row">
+        <label>Feet Distance:</label>
+        <input type="number" class="win95-input" id="feet-distance-input" value="0" min="-4096" max="4096" oninput="onFeetDistanceInput()">
+        <input type="range" id="feet-distance-range" min="-512" max="512" value="0" oninput="onFeetDistanceRange()" style="flex: 1;">
+        <span class="val-display" id="feet-distance-display">0</span>
+        <span style="font-size: 9px; color: #666; margin-left: 2px;" title="Computerror Protocol v1.1">v1.1</span>
+      </div>
+
+      <div class="osec-divider"></div>
+      <div class="osec-title">Presets</div>
+      <div class="preset-grid" id="preset-grid">
+        <button class="win95-btn preset-btn" disabled onclick="applyPreset('entity')" title="1">Entity Std<span class="preset-sub">w/2, h−2</span></button>
+        <button class="win95-btn preset-btn" disabled onclick="applyPreset('weapon')" title="2">Weapon HUD<span class="preset-sub">160, 168</span></button>
+        <button class="win95-btn preset-btn" disabled onclick="applyPreset('centered')" title="3">Centered<span class="preset-sub">w/2, h/2</span></button>
+        <button class="win95-btn preset-btn" disabled onclick="applyPreset('floor')" title="4">Floor Decal<span class="preset-sub">w/2, 0</span></button>
+      </div>
+
+      <div class="apply-row">
+        <button class="win95-btn" id="btn-apply2" disabled onclick="applyOffsets()" title="Enter/Space">✔ Apply</button>
+        <button class="win95-btn" id="btn-auto2" disabled onclick="runAutoOffset()" title="Ctrl+A">⊕ Auto</button>
+      </div>
+
+      <div class="osec-divider"></div>
+      <div class="osec-title">Offset Data</div>
+      <div class="export-section">
+        <div class="ex-title">JSON Preview</div>
+        <pre id="offset-preview">{ }</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUSBAR -->
+<div id="statusbar" class="win95-statusbar">
+  <div class="sb-seg">File: <span class="sb-val" id="sb-file">—</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-seg">Dims: <span class="sb-val" id="sb-dims">—</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-seg">OX: <span class="sb-val" id="sb-ox">—</span></div>
+  <div class="sb-seg">OY: <span class="sb-val" id="sb-oy">—</span></div>
+  <div class="sb-sep">|</div>
+  <div class="sb-seg" id="sb-msg" style="flex: 1;">Ready</div>
+</div>
+
+<!-- Help Modal -->
+<div id="help-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-titlebar">⌨️ Keyboard & Gamepad Controls</div>
+    <div class="modal-body">
+      <strong>Navigation:</strong><br>
+      <code>W</code> / <code>↑</code> — Previous entry | <code>S</code> / <code>↓</code> — Next entry<br>
+      <br>
+      <strong>Offset Adjustment:</strong><br>
+      <code>← → ↑ ↓</code> — Fine adjustment (±1px)<br>
+      <code>Shift + Arrows</code> — Coarse adjustment (±10px)<br>
+      <br>
+      <strong>Actions:</strong><br>
+      <code>Enter</code> / <code>Space</code> — Apply offset<br>
+      <code>Ctrl+A</code> — Auto-offset<br>
+      <code>Z</code> — Zoom in | <code>X</code> — Zoom out<br>
+      <code>B</code> — Toggle background (Cyan/Mauve)<br>
+      <br>
+      <strong>Presets:</strong><br>
+      <code>1</code> Entity Std | <code>2</code> Weapon HUD | <code>3</code> Centered | <code>4</code> Floor Decal<br>
+      <br>
+      <strong>File Operations:</strong><br>
+      <code>S</code> — Open archive | <code>E</code> — Export JSON | <code>I</code> — Import JSON<br>
+      <br>
+      <strong>Gamepad (Xbox/PS4 layout):</strong><br>
+      <strong>Left Stick</strong> — Fine offset (±1px) | <strong>Right Stick</strong> — Coarse (±10px)<br>
+      <strong>D-Pad ↑↓</strong> — Navigate entries<br>
+      <strong>A</strong> — Apply | <strong>X</strong> — Auto | <strong>B</strong> — Toggle BG | <strong>Y</strong> — Zoom in<br>
+      <strong>LB</strong> — Zoom out | <strong>RB</strong> — Export | <strong>Start</strong> — Open archive<br>
+      <br>
+      <strong>Other:</strong><br>
+      <code>?</code> — Show this help
+    </div>
+    <div class="modal-buttons">
+      <button class="win95-btn" onclick="closeModal('help-modal')">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// GAMEPAD MANAGER
+// ═══════════════════════════════════════════
+class GamepadManager {
+  constructor({ deadzone = 0.15 } = {}) {
+    this._deadzone = deadzone;
+    this._handlers = { connected: [], disconnected: [], update: [] };
+    this._rafId = null;
+    this._running = false;
+    this._prevButtons = {};
+    this._currButtons = {};
+    this._onConnected = this._onConnected.bind(this);
+    this._onDisconnected = this._onDisconnected.bind(this);
+    this._poll = this._poll.bind(this);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gamepadconnected', this._onConnected);
+      window.addEventListener('gamepaddisconnected', this._onDisconnected);
+    }
+  }
+  on(event, fn) {
+    if (this._handlers[event]) this._handlers[event].push(fn);
+    return this;
+  }
+  off(event, fn) {
+    if (this._handlers[event]) {
+      this._handlers[event] = this._handlers[event].filter((h) => h !== fn);
+    }
+    return this;
+  }
+  start() {
+    if (this._running) return this;
+    this._running = true;
+    this.safeGetGamepads().forEach((pad) => {
+      if (pad) this._emit('connected', pad);
+    });
+    this._rafId = requestAnimationFrame(this._poll);
+    return this;
+  }
+  stop() {
+    this._running = false;
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+    }
+    return this;
+  }
+  isPressed(padIndex, buttonIndex) {
+    return !!this._currButtons[padIndex]?.[buttonIndex];
+  }
+  justPressed(padIndex, buttonIndex) {
+    return (
+      !!this._currButtons[padIndex]?.[buttonIndex] &&
+      !this._prevButtons[padIndex]?.[buttonIndex]
+    );
+  }
+  axisValue(padIndex, axisIndex) {
+    const pads = this.safeGetGamepads();
+    const pad = pads[padIndex];
+    if (!pad) return 0;
+    const v = pad.axes[axisIndex] ?? 0;
+    return Math.abs(v) < this._deadzone ? 0 : v;
+  }
+  getStick(padIndex, xAxis = 0, yAxis = 1) {
+    const pads = this.safeGetGamepads();
+    const pad = pads[padIndex];
+    if (!pad) return { x: 0, y: 0 };
+    const x = pad.axes[xAxis] ?? 0;
+    const y = pad.axes[yAxis] ?? 1;
+    const magnitude = Math.sqrt(x * x + y * y);
+    if (magnitude < this._deadzone) return { x: 0, y: 0 };
+    return { x, y };
+  }
+  vibrate(padIndex, { duration = 200, strongMagnitude = 1.0, weakMagnitude = 1.0 } = {}) {
+    const pads = this.safeGetGamepads();
+    const pad = pads[padIndex];
+    if (pad?.vibrationActuator) {
+      return pad.vibrationActuator.playEffect('dual-rumble', {
+        duration,
+        strongMagnitude,
+        weakMagnitude,
+      }).catch(() => null);
+    }
+    return null;
+  }
+  safeGetGamepads() {
+    try {
+      return navigator.getGamepads ? Array.from(navigator.getGamepads()) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  _onConnected(e) {
+    this._emit('connected', e.gamepad);
+  }
+  _onDisconnected(e) {
+    const g = e.gamepad;
+    delete this._prevButtons[g.index];
+    delete this._currButtons[g.index];
+    this._emit('disconnected', g);
+  }
+  _poll() {
+    if (!this._running) return;
+    const rawPads = this.safeGetGamepads();
+    const pads = [];
+    for (const pad of rawPads) {
+      if (!pad) continue;
+      if (!this._prevButtons[pad.index]) {
+        this._prevButtons[pad.index] = new Array(pad.buttons.length).fill(false);
+      }
+      this._prevButtons[pad.index] = this._currButtons[pad.index] || this._prevButtons[pad.index];
+      this._currButtons[pad.index] = pad.buttons.map((b) => b.pressed);
+      pads.push({
+        index: pad.index,
+        id: pad.id,
+        buttons: pad.buttons.map((b) => ({ pressed: b.pressed, value: b.value })),
+        axes: Array.from(pad.axes),
+      });
+    }
+    this._emit('update', pads);
+    this._rafId = requestAnimationFrame(this._poll);
+  }
+  _emit(event, data) {
+    for (const fn of this._handlers[event] || []) {
+      try {
+        fn(data);
+      } catch (_) {}
+    }
+  }
+}
+
+const BTN = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, SELECT: 8, START: 9, L3: 10, R3: 11, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15, HOME: 16 };
+const AXIS = { LEFT_X: 0, LEFT_Y: 1, RIGHT_X: 2, RIGHT_Y: 3 };
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const IMAGE_EXTS = new Set(['png','jpg','jpeg','gif','bmp','webp','tga','lmp']);
+const SOUND_EXTS = new Set(['wav','mp3','ogg','flac','aiff','mus','mid','midi']);
+const MAP_EXTS   = new Set(['wad','lmp']);
+const MAP_NAMES  = /^(MAP\d\d|E\dM\d)$/i;
+
+let entries = [];
+let offsets = {};
+let selectedPath = null;
+let sortKey = 'name';
+let sortDir = 1;
+let zoomLevel = 2;
+let currentImage = null;
+let archiveName = '';
+let liveOffsetMode = false;
+let bgMode = 'cyan';
+let gamepadManager = null;
+let gamepadEnabled = false;
+let lastGamepadInput = 0;
+
+// ═══════════════════════════════════════════
+// FILE OPEN
+// ═══════════════════════════════════════════
+function triggerOpen() {
+  document.getElementById('file-input').click();
+}
+
+function triggerImport() {
+  document.getElementById('import-input').click();
+}
+
+async function loadArchive(input) {
+  const file = input.files[0];
+  if (!file) return;
+  archiveName = file.name;
+  setMsg(`Loading ${file.name}...`);
+
+  try {
+    const zip = await JSZip.loadAsync(file);
+    entries = [];
+    offsets = {};
+
+    const promises = [];
+    zip.forEach((relPath, zipEntry) => {
+      if (zipEntry.dir) return;
+      const parts = relPath.split('/');
+      const name = parts[parts.length - 1];
+      if (!name || name.startsWith('.')) return;
+
+      const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
+      const cat = IMAGE_EXTS.has(ext) ? 'img'
+                : SOUND_EXTS.has(ext) ? 'snd'
+                : (MAP_EXTS.has(ext) || MAP_NAMES.test(name.replace(/\.[^.]+$/, ''))) ? 'map'
+                : 'misc';
+
+      const entry = { name, path: relPath, size: 0, ext, cat, blob: null, img: null, ox: 0, oy: 0 };
+      entries.push(entry);
+
+      const p = zipEntry.async('blob').then(blob => {
+        entry.blob = blob;
+        entry.size = blob.size;
+      });
+      promises.push(p);
+    });
+
+    await Promise.all(promises);
+
+    document.getElementById('archive-empty').style.display = 'none';
+    document.getElementById('archive-table-wrap').style.display = '';
+    document.getElementById('archive-stats').style.display = '';
+    document.getElementById('archive-search').style.display = '';
+    document.getElementById('archive-label').textContent = archiveName;
+    document.getElementById('btn-import').disabled = false;
+
+    renderTable();
+    updateStats();
+    updateOffsetPreview();
+    setMsg(`Loaded ${archiveName} — ${entries.length} entries`);
+    document.getElementById('btn-export').disabled = false;
+  } catch(e) {
+    setMsg(`Error: ${e.message}`);
+  }
+
+  input.value = '';
+}
+
+async function importOffsets(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    
+    if (!data.entries || !Array.isArray(data.entries)) {
+      throw new Error('Invalid JSON format');
+    }
+
+    let imported = 0;
+    data.entries.forEach(entry => {
+      if (entry.path && typeof entry.xOffset === 'number' && typeof entry.yOffset === 'number') {
+        offsets[entry.path] = { ox: entry.xOffset, oy: entry.yOffset };
+        imported++;
+      }
+    });
+
+    renderTable();
+    updateStats();
+    updateOffsetPreview();
+    setMsg(`Imported ${imported} offsets from ${file.name}`);
+  } catch(e) {
+    setMsg(`Error importing: ${e.message}`);
+  }
+
+  input.value = '';
+}
+
+// ═══════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════
+const archiveDrop = document.getElementById('archive-drop');
+const dropOverlay = document.getElementById('archive-drop-overlay');
+
+archiveDrop.addEventListener('dragover', e => { e.preventDefault(); dropOverlay.classList.add('show'); });
+archiveDrop.addEventListener('dragleave', e => { if (!archiveDrop.contains(e.relatedTarget)) dropOverlay.classList.remove('show'); });
+archiveDrop.addEventListener('drop', e => {
+  e.preventDefault();
+  dropOverlay.classList.remove('show');
+  const file = e.dataTransfer.files[0];
+  if (!file) return;
+  loadArchive({ files: [file] });
+});
+
+// ═══════════════════════════════════════════
+// TABLE RENDERING
+// ═══════════════════════════════════════════
+function getFilteredEntries() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const tf = document.getElementById('type-filter').value;
+  return entries
+    .filter(e => (!q || e.name.toLowerCase().includes(q) || e.path.toLowerCase().includes(q))
+              && (!tf || e.cat === tf))
+    .sort((a, b) => {
+      let av = a[sortKey] ?? '', bv = b[sortKey] ?? '';
+      if (typeof av === 'string') av = av.toLowerCase();
+      if (typeof bv === 'string') bv = bv.toLowerCase();
+      return av < bv ? -sortDir : av > bv ? sortDir : 0;
+    });
+}
+
+function renderTable() {
+  const tbody = document.getElementById('entry-tbody');
+  const fl = getFilteredEntries();
+  tbody.innerHTML = fl.map(e => {
+    const isImg = e.cat === 'img';
+    const extLabel = e.ext ? e.ext.toUpperCase() : '—';
+    const hasOffset = offsets[e.path] && (offsets[e.path].ox !== 0 || offsets[e.path].oy !== 0);
+    const ox = offsets[e.path]?.ox ?? 0;
+    const oy = offsets[e.path]?.oy ?? 0;
+    const offsetStr = isImg ? (hasOffset ? `${ox},${oy}` : '—') : '';
+    return `<tr class="lump-row${e.path === selectedPath ? ' selected' : ''}"
+               onclick="selectEntry('${CSS.escape(e.path)}')">
+      <td title="${e.path}">${e.name}</td>
+      <td><span class="td-ext">${extLabel}</span></td>
+      <td>${fmtSize(e.size)}</td>
+      <td>${offsetStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  renderTable();
+}
+
+function filterEntries() { renderTable(); }
+
+function updateStats() {
+  const imgs = entries.filter(e => e.cat === 'img').length;
+  const withOff = Object.keys(offsets).filter(k => offsets[k].ox || offsets[k].oy).length;
+  document.getElementById('stat-total').textContent = entries.length;
+  document.getElementById('stat-images').textContent = imgs;
+  document.getElementById('stat-offsets').textContent = withOff;
+}
+
+function fmtSize(b) {
+  if (b >= 1048576) return (b/1048576).toFixed(1) + 'M';
+  if (b >= 1024) return (b/1024).toFixed(1) + 'K';
+  return b + 'B';
+}
+
+// ═══════════════════════════════════════════
+// SELECTION
+// ═══════════════════════════════════════════
+function selectEntry(path) {
+  selectedPath = entries.find(e => CSS.escape(e.path) === path)?.path ?? path;
+  const entry = entries.find(e => e.path === selectedPath);
+  if (!entry) return;
+
+  renderTable();
+  document.getElementById('sb-file').textContent = entry.name;
+  document.getElementById('active-lump-name').textContent = entry.name;
+
+  const savedOx = offsets[selectedPath]?.ox ?? 0;
+  const savedOy = offsets[selectedPath]?.oy ?? 0;
+
+  if (entry.cat === 'img') {
+    loadAndShowImage(entry, savedOx, savedOy);
+  } else {
+    currentImage = null;
+    clearCanvas();
+    document.getElementById('viewer-empty').style.display = 'flex';
+    document.getElementById('offset-dot').style.display = 'none';
+    document.getElementById('vi-name').textContent = entry.name;
+    document.getElementById('vi-dims').textContent = '—';
+    document.getElementById('vi-anchor').textContent = '—';
+    document.getElementById('sb-dims').textContent = '—';
+    setOffsetUI(savedOx, savedOy);
+    // Reset feet distance (Computerror Protocol v1.1 compliance)
+    document.getElementById('feet-distance-input').value = 0;
+    document.getElementById('feet-distance-range').value = 0;
+    document.getElementById('feet-distance-display').textContent = '0';
+    setButtonsEnabled(false);
+  }
+  setMsg(`Selected: ${entry.path}`);
+}
+
+function loadAndShowImage(entry, ox, oy) {
+  if (entry.img) {
+    currentImage = entry.img;
+    showImage(entry, ox, oy);
+    return;
+  }
+  const url = URL.createObjectURL(entry.blob);
+  const img = new Image();
+  img.onload = () => {
+    entry.img = img;
+    currentImage = img;
+    URL.revokeObjectURL(url);
+    showImage(entry, ox, oy);
+  };
+  img.onerror = () => {
+    setMsg(`Warning: Could not decode ${entry.name}`);
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+
+function showImage(entry, ox, oy) {
+  document.getElementById('viewer-empty').style.display = 'none';
+  document.getElementById('offset-dot').style.display = 'block';
+
+  const w = currentImage.naturalWidth, h = currentImage.naturalHeight;
+  document.getElementById('vi-name').textContent = entry.name;
+  document.getElementById('vi-dims').textContent = `${w} × ${h} px`;
+  document.getElementById('sb-dims').textContent = `${w}×${h}`;
+  setOffsetUI(ox, oy);
+  document.getElementById('feet-distance-input').value = 0;
+  document.getElementById('feet-distance-range').value = 0;
+  document.getElementById('feet-distance-display').textContent = '0';
+  drawCanvas();
+  setButtonsEnabled(true);
+}
+
+function setButtonsEnabled(on) {
+  ['btn-auto','btn-apply','btn-apply2','btn-auto2'].forEach(id => {
+    document.getElementById(id).disabled = !on;
+  });
+  document.getElementById('live-toggle').disabled = !on;
+  document.querySelectorAll('#preset-grid .preset-btn').forEach(b => b.disabled = !on);
+}
+
+// ═══════════════════════════════════════════
+// CANVAS DRAWING
+// ═══════════════════════════════════════════
+function drawCanvas() {
+  const wrap = document.getElementById('viewer-wrap');
+  const canvas = document.getElementById('viewer-canvas');
+  const ctx = canvas.getContext('2d');
+  const ww = wrap.clientWidth, wh = wrap.clientHeight;
+  canvas.width = ww;
+  canvas.height = wh;
+  ctx.clearRect(0, 0, ww, wh);
+
+  if (!currentImage) return;
+
+  const z = zoomLevel;
+  const sw = currentImage.naturalWidth * z, sh = currentImage.naturalHeight * z;
+  const ox = parseInt(document.getElementById('ox-input').value) || 0;
+  const oy = parseInt(document.getElementById('oy-input').value) || 0;
+  const fd = parseInt(document.getElementById('feet-distance-input').value) || 0;
+  
+  // Computerror Protocol v1.1: Off-by-One Precision
+  // Integer pivot anchoring with ≥1px margin inside canvas
+  const margin = 1;  // OBO-MARGIN: minimum 1px margin
+  
+  // Calculate base sprite position (centered)
+  let dx = (ww - sw) / 2;
+  let dy = (wh - sh) / 2;
+  
+  // In Live Offset mode, shift sprite relative to the origin point
+  if (liveOffsetMode) {
+    // Origin is at (ox, oy) in sprite coordinates
+    // We want the origin to stay fixed at center of canvas
+    // So we shift the sprite by -ox, -oy (with integer precision)
+    dx -= Math.round(ox * z);
+    dy -= Math.round(oy * z);
+  }
+  
+  // Apply integer rounding to eliminate sub-pixel drift (OBO-ALIGN)
+  dx = Math.round(dx);
+  dy = Math.round(dy);
+  
+  // Calculate origin position with feet distance offset
+  const refX = Math.round((ww / 2) + (fd * z));  // Origin X (center + feet distance)
+  const refY = Math.round(wh / 2);                // Origin Y (center)
+  
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(currentImage, dx, dy, sw, sh);
+
+  if (liveOffsetMode) {
+    // Draw crosshair at origin (Computerror Protocol v1.1 precision)
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)';
+    ctx.lineWidth = 1;  // 1px line for precise alignment
+    ctx.beginPath();
+    ctx.moveTo(refX - 12, refY);
+    ctx.lineTo(refX + 12, refY);
+    ctx.moveTo(refX, refY - 12);
+    ctx.lineTo(refX, refY + 12);
+    ctx.stroke();
+    
+    // Draw origin circle
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+    ctx.beginPath();
+    ctx.arc(refX, refY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw margin boundary indicator
+    ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.strokeRect(margin, margin, ww - margin * 2, wh - margin * 2);
+    ctx.setLineDash([]);
+  }
+
+  const dot = document.getElementById('offset-dot');
+  dot.style.left = refX + 'px';
+  dot.style.top = refY + 'px';
+  
+  // Display alignment info: OX, OY, FD, and drift indicator
+  const driftX = Math.abs((dx % 1) * 100).toFixed(0);
+  const driftY = Math.abs((dy % 1) * 100).toFixed(0);
+  document.getElementById('vi-anchor').textContent = `OX: ${ox}  OY: ${oy}  FD: ${fd} [OBO-ALIGN]`;
+}
+
+function clearCanvas() {
+  const canvas = document.getElementById('viewer-canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function setZoom(v) {
+  zoomLevel = parseInt(v);
+  document.getElementById('zoom-val').textContent = v + '×';
+  drawCanvas();
+}
+
+function toggleLiveOffset() {
+  liveOffsetMode = !liveOffsetMode;
+  const btn = document.getElementById('live-toggle');
+  if (liveOffsetMode) {
+    btn.classList.add('active');
+    btn.textContent = 'Live On';
+    setMsg('Live offset mode ON — click to set anchor point');
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = 'Live Off';
+    setMsg('Live offset mode OFF');
+  }
+  // Reset feet distance when toggling live mode
+  document.getElementById('feet-distance-input').value = 0;
+  document.getElementById('feet-distance-range').value = 0;
+  document.getElementById('feet-distance-display').textContent = '0';
+  drawCanvas();
+}
+
+// ═══════════════════════════════════════════
+// OFFSET UI
+// ═══════════════════════════════════════════
+function setOffsetUI(ox, oy) {
+  document.getElementById('ox-input').value = ox;
+  document.getElementById('ox-range').value = Math.max(-512, Math.min(512, ox));
+  document.getElementById('ox-display').textContent = ox;
+  document.getElementById('oy-input').value = oy;
+  document.getElementById('oy-range').value = Math.max(-512, Math.min(512, oy));
+  document.getElementById('oy-display').textContent = oy;
+  document.getElementById('sb-ox').textContent = ox;
+  document.getElementById('sb-oy').textContent = oy;
+}
+
+function onOffsetInput() {
+  const ox = parseInt(document.getElementById('ox-input').value) || 0;
+  const oy = parseInt(document.getElementById('oy-input').value) || 0;
+  document.getElementById('ox-range').value = Math.max(-512, Math.min(512, ox));
+  document.getElementById('oy-range').value = Math.max(-512, Math.min(512, oy));
+  document.getElementById('ox-display').textContent = ox;
+  document.getElementById('oy-display').textContent = oy;
+  document.getElementById('sb-ox').textContent = ox;
+  document.getElementById('sb-oy').textContent = oy;
+  drawCanvas();
+}
+
+function onOffsetRange(axis) {
+  if (axis === 'x') {
+    const v = parseInt(document.getElementById('ox-range').value);
+    document.getElementById('ox-input').value = v;
+    document.getElementById('ox-display').textContent = v;
+    document.getElementById('sb-ox').textContent = v;
+  } else {
+    const v = parseInt(document.getElementById('oy-range').value);
+    document.getElementById('oy-input').value = v;
+    document.getElementById('oy-display').textContent = v;
+    document.getElementById('sb-oy').textContent = v;
+  }
+  drawCanvas();
+}
+
+function setOffsetFromClick(e) {
+  if (!selectedPath || !currentImage) return;
+  const wrap = document.getElementById('viewer-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+  const ww = wrap.clientWidth, wh = wrap.clientHeight;
+  const sw = currentImage.naturalWidth * zoomLevel;
+  const sh = currentImage.naturalHeight * zoomLevel;
+  const dx = (ww - sw) / 2, dy = (wh - sh) / 2;
+  const ox = Math.round((cx - dx) / zoomLevel);
+  const oy = Math.round((cy - dy) / zoomLevel);
+  setOffsetUI(ox, oy);
+  drawCanvas();
+  setMsg(`Anchor set: OX=${ox} OY=${oy} — click Apply to save`);
+}
+
+// ═══════════════════════════════════════════
+// APPLY / PRESETS / AUTO
+// ═══════════════════════════════════════════
+function applyOffsets() {
+  if (!selectedPath) return;
+  const ox = parseInt(document.getElementById('ox-input').value) || 0;
+  const oy = parseInt(document.getElementById('oy-input').value) || 0;
+  offsets[selectedPath] = { ox, oy };
+  renderTable();
+  updateStats();
+  updateOffsetPreview();
+  setMsg(`Offset saved: ${selectedPath.split('/').pop()} → OX=${ox} OY=${oy}`);
+}
+
+function applyPreset(key) {
+  if (!currentImage) return;
+  const w = currentImage.naturalWidth, h = currentImage.naturalHeight;
+  const fi = parseInt(document.getElementById('foot-input').value) || 2;
+  const map = {
+    entity:   { ox: Math.round(w/2), oy: h - fi },
+    weapon:   { ox: 160, oy: 168 },
+    centered: { ox: Math.round(w/2), oy: Math.round(h/2) },
+    floor:    { ox: Math.round(w/2), oy: 0 },
+  };
+  const r = map[key];
+  setOffsetUI(r.ox, r.oy);
+  drawCanvas();
+  setMsg(`Preset "${key}" applied — OX=${r.ox} OY=${r.oy}`);
+}
+
+function updateFootInset() {
+  const fi = parseInt(document.getElementById('foot-input').value) || 2;
+  setMsg(`Foot inset: ${fi}px — affects Entity Std and Auto-offset`);
+}
+
+function onFeetDistanceInput() {
+  const fd = parseInt(document.getElementById('feet-distance-input').value) || 0;
+  document.getElementById('feet-distance-range').value = Math.max(-512, Math.min(512, fd));
+  document.getElementById('feet-distance-display').textContent = fd;
+  drawCanvas();
+}
+
+function onFeetDistanceRange() {
+  const fd = parseInt(document.getElementById('feet-distance-range').value) || 0;
+  document.getElementById('feet-distance-input').value = fd;
+  document.getElementById('feet-distance-display').textContent = fd;
+  drawCanvas();
+}
+
+function runAutoOffset() {
+  if (!currentImage) return;
+  const w = currentImage.naturalWidth, h = currentImage.naturalHeight;
+  const fi = parseInt(document.getElementById('foot-input').value) || 2;
+  const ox = Math.round(w / 2), oy = h - fi;
+  setOffsetUI(ox, oy);
+  drawCanvas();
+  applyOffsets();
+}
+
+// ═══════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════
+function updateOffsetPreview() {
+  const keys = Object.keys(offsets);
+  if (keys.length === 0) {
+    document.getElementById('offset-preview').textContent = '{ }';
+    return;
+  }
+  const preview = {};
+  keys.slice(0, 8).forEach(k => {
+    const name = k.split('/').pop();
+    preview[name] = offsets[k];
+  });
+  if (keys.length > 8) preview['…'] = `(${keys.length - 8} more)`;
+  document.getElementById('offset-preview').textContent = JSON.stringify(preview, null, 2);
+}
+
+function exportOffsets() {
+  const data = {
+    archive: archiveName,
+    exportedBy: 'DOOMARCH v2.2',
+    exportDate: new Date().toISOString(),
+    entries: Object.entries(offsets).map(([path, o]) => ({
+      path,
+      name: path.split('/').pop(),
+      xOffset: o.ox,
+      yOffset: o.oy,
+    }))
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = archiveName.replace(/\.[^.]+$/, '') + '_offsets.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setMsg(`Exported: ${a.download} (${data.entries.length} entries)`);
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+}
+
+window.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal')) {
+    e.target.classList.remove('show');
+  }
+});
+
+// ═══════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  
+  // Help dialog (? key)
+  if (e.key === '?') {
+    document.getElementById('help-modal').classList.add('show');
+    return;
+  }
+  
+  // Open archive (S key)
+  if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.shiftKey) {
+    triggerOpen();
+    e.preventDefault();
+    return;
+  }
+  
+  // Export offsets (E key)
+  if ((e.key === 'e' || e.key === 'E') && !e.ctrlKey && !e.shiftKey) {
+    if (!document.getElementById('btn-export').disabled) {
+      exportOffsets();
+      e.preventDefault();
+    }
+    return;
+  }
+  
+  // Import offsets (I key)
+  if ((e.key === 'i' || e.key === 'I') && !e.ctrlKey && !e.shiftKey) {
+    if (!document.getElementById('btn-import').disabled) {
+      triggerImport();
+      e.preventDefault();
+    }
+    return;
+  }
+  
+  // Toggle background (B key)
+  if ((e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.shiftKey) {
+    toggleViewerBackground();
+    e.preventDefault();
+    return;
+  }
+  
+  // Navigate entries (W/S for up/down)
+  if ((e.key === 'w' || e.key === 'W') && !e.ctrlKey && !e.shiftKey) {
+    navigateEntries(-1);
+    e.preventDefault();
+    return;
+  }
+  if ((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.shiftKey) {
+    navigateEntries(1);
+    e.preventDefault();
+    return;
+  }
+  
+  // Only process offset/zoom controls if an image is selected
+  if (!selectedPath || !currentImage) return;
+  
+  let ox = parseInt(document.getElementById('ox-input').value) || 0;
+  let oy = parseInt(document.getElementById('oy-input').value) || 0;
+  
+  // Fine offset adjustment (Arrow keys)
+  if (e.key === 'ArrowLeft')  { ox -= 1; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+  if (e.key === 'ArrowRight') { ox += 1; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+  if (e.key === 'ArrowUp')    { oy -= 1; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+  if (e.key === 'ArrowDown')  { oy += 1; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+  
+  // Coarse offset adjustment (Shift + Arrow keys)
+  if (e.shiftKey) {
+    if (e.key === 'ArrowLeft')  { ox -= 10; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+    if (e.key === 'ArrowRight') { ox += 10; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+    if (e.key === 'ArrowUp')    { oy -= 10; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+    if (e.key === 'ArrowDown')  { oy += 10; setOffsetUI(ox, oy); drawCanvas(); e.preventDefault(); return; }
+  }
+  
+  // Apply offset (Enter or Space)
+  if (e.key === 'Enter' || e.key === ' ') {
+    applyOffsets();
+    e.preventDefault();
+    return;
+  }
+  
+  // Auto-offset (Ctrl+A)
+  if (e.key === 'a' && e.ctrlKey) {
+    runAutoOffset();
+    e.preventDefault();
+    return;
+  }
+  
+  // Zoom controls (Z for zoom in, X for zoom out)
+  if ((e.key === 'z' || e.key === 'Z') && !e.ctrlKey && !e.shiftKey) {
+    setZoom(Math.min(8, zoomLevel + 1));
+    e.preventDefault();
+    return;
+  }
+  if ((e.key === 'x' || e.key === 'X') && !e.ctrlKey && !e.shiftKey) {
+    setZoom(Math.max(1, zoomLevel - 1));
+    e.preventDefault();
+    return;
+  }
+  
+  // Presets (Number keys 1-4)
+  if (e.key >= '1' && e.key <= '4' && !e.ctrlKey && !e.shiftKey) {
+    const presets = ['entity', 'weapon', 'centered', 'floor'];
+    const presetIdx = parseInt(e.key) - 1;
+    if (presetIdx < presets.length && !document.getElementById('preset-grid').children[presetIdx].disabled) {
+      applyPreset(presets[presetIdx]);
+      e.preventDefault();
+    }
+    return;
+  }
+  
+  // Toggle live offset mode (L key)
+  if ((e.key === 'l' || e.key === 'L') && !e.ctrlKey && !e.shiftKey && selectedPath && currentImage) {
+    toggleLiveOffset();
+    e.preventDefault();
+    return;
+  }
+});
+
+window.addEventListener('resize', () => { if (currentImage) drawCanvas(); });
+
+// ═══════════════════════════════════════════
+// GAMEPAD INPUT HANDLING
+// ═══════════════════════════════════════════
+
+function initGamepad() {
+  if (gamepadManager) return;
+  gamepadManager = new GamepadManager({ deadzone: 0.15 });
+  
+  gamepadManager.on('connected', (pad) => {
+    gamepadEnabled = true;
+    setMsg(`Gamepad connected: ${pad.id}`);
+  });
+  
+  gamepadManager.on('disconnected', (pad) => {
+    gamepadEnabled = false;
+    setMsg(`Gamepad disconnected: ${pad.id}`);
+  });
+  
+  gamepadManager.on('update', (pads) => {
+    if (!gamepadEnabled || pads.length === 0) return;
+    handleGamepadInput(pads[0]);
+  });
+  
+  gamepadManager.start();
+}
+
+function handleGamepadInput(pad) {
+  if (!selectedPath || !currentImage) return;
+  
+  const now = Date.now();
+  if (now - lastGamepadInput < 100) return;
+  
+  const stick = gamepadManager.getStick(pad.index, AXIS.LEFT_X, AXIS.LEFT_Y);
+  const rightStick = gamepadManager.getStick(pad.index, AXIS.RIGHT_X, AXIS.RIGHT_Y);
+  
+  let ox = parseInt(document.getElementById('ox-input').value) || 0;
+  let oy = parseInt(document.getElementById('oy-input').value) || 0;
+  
+  if (Math.abs(stick.x) > 0.3) {
+    ox += stick.x > 0 ? 1 : -1;
+    lastGamepadInput = now;
+  }
+  if (Math.abs(stick.y) > 0.3) {
+    oy += stick.y > 0 ? 1 : -1;
+    lastGamepadInput = now;
+  }
+  
+  if (Math.abs(rightStick.x) > 0.3) {
+    ox += rightStick.x > 0 ? 10 : -10;
+    lastGamepadInput = now;
+  }
+  if (Math.abs(rightStick.y) > 0.3) {
+    oy += rightStick.y > 0 ? 10 : -10;
+    lastGamepadInput = now;
+  }
+  
+  if (gamepadManager.justPressed(pad.index, BTN.UP)) {
+    navigateEntries(-1);
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.DOWN)) {
+    navigateEntries(1);
+    lastGamepadInput = now;
+  }
+  
+  if (gamepadManager.justPressed(pad.index, BTN.A)) {
+    applyOffsets();
+    gamepadManager.vibrate(pad.index, { duration: 100, strongMagnitude: 0.5 });
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.X)) {
+    runAutoOffset();
+    gamepadManager.vibrate(pad.index, { duration: 150, strongMagnitude: 0.7 });
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.B)) {
+    toggleViewerBackground();
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.Y)) {
+    setZoom(Math.min(8, Math.max(1, zoomLevel + 1)));
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.LB)) {
+    setZoom(Math.max(1, zoomLevel - 1));
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.RB)) {
+    exportOffsets();
+    gamepadManager.vibrate(pad.index, { duration: 200, strongMagnitude: 1.0 });
+    lastGamepadInput = now;
+  }
+  if (gamepadManager.justPressed(pad.index, BTN.START)) {
+    triggerOpen();
+    lastGamepadInput = now;
+  }
+  
+  setOffsetUI(ox, oy);
+  drawCanvas();
+}
+
+function navigateEntries(direction) {
+  const filtered = getFilteredEntries();
+  if (filtered.length === 0) return;
+  
+  const currentIdx = filtered.findIndex(e => e.path === selectedPath);
+  let nextIdx = currentIdx + direction;
+  
+  if (nextIdx < 0) nextIdx = filtered.length - 1;
+  if (nextIdx >= filtered.length) nextIdx = 0;
+  
+  const nextEntry = filtered[nextIdx];
+  selectEntry(CSS.escape(nextEntry.path));
+}
+
+window.addEventListener('gamepadconnected', initGamepad);
+window.addEventListener('gamepaddisconnected', () => {
+  if (gamepadManager) gamepadManager.stop();
+  gamepadManager = null;
+  gamepadEnabled = false;
+});
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initGamepad, 100);
+  });
+} else {
+  setTimeout(initGamepad, 100);
+}
+
+// ═══════════════════════════════════════════
+// VIEWER BACKGROUND TOGGLE
+// ═══════════════════════════════════════════
+
+function toggleViewerBackground() {
+  const wrap = document.getElementById('viewer-wrap');
+  const btn = document.getElementById('bg-toggle');
+  
+  if (bgMode === 'cyan') {
+    bgMode = 'mauve';
+    wrap.classList.add('bg-mauve');
+    btn.textContent = 'Mauve';
+    setMsg('Background: Mauve');
+  } else {
+    bgMode = 'cyan';
+    wrap.classList.remove('bg-mauve');
+    btn.textContent = 'Cyan';
+    setMsg('Background: Cyan');
+  }
+}
+
+// ═══════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════
+function setMsg(msg) { document.getElementById('sb-msg').textContent = msg; }
+</script>
+</body>
+</html>

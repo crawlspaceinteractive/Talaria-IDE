@@ -1,0 +1,194 @@
+## 1. Decide the Authority Model
+For a drilling/construction game, a **host-authoritative** model works best:
+- One peer is designated the host (usually the first player).
+- All block placements and chest interactions are sent to the host as *action requests*.
+- The host validates them (e.g., checks if the player is close enough, has the item, inventory space, etc.), applies the change to its world state, and then broadcasts the confirmed state to everyone.
+- Clients only update their local worlds after receiving the host’s confirmation.
+
+This prevents cheating and keeps all worlds in sync.
+
+---
+
+## 2. Define Network Messages
+Add a new message type enumeration in `coop.js` (or a shared `networkMessages.js`). Example:
+
+```javascript
+export const MessageType = {
+  PLAYER_JOIN: 0,
+  PLAYER_LEAVE: 1,
+  PLAYER_MOVE: 2,
+  BLOCK_PLACE_REQUEST: 10,
+  BLOCK_PLACE_CONFIRM: 11,
+  BLOCK_REMOVE_REQUEST: 12,
+  BLOCK_REMOVE_CONFIRM: 13,
+  CHEST_OPEN_REQUEST: 20,
+  CHEST_UPDATE: 21,
+  CHEST_CLOSE: 22,
+  // ... existing types
+};
+```
+
+### Block Placement Payload
+```javascript
+{
+  type: MessageType.BLOCK_PLACE_REQUEST,
+  playerId: string,
+  blockX: int, blockY: int, blockZ: int,
+  blockType: string,     // e.g. 'stone', 'dirt'
+  placedFromHotbarSlot: int // for inventory validation
+}
+```
+
+### Chest Update Payload
+Chests need a unique ID (e.g., a combination of position + a GUID saved in the chunk). The payload can be the whole inventory:
+
+```javascript
+{
+  type: MessageType.CHEST_UPDATE,
+  chestId: string,        // 'chest_12_5_32'
+  items: [ { slot:0, itemId:'iron_ore', count:5 }, ... ],
+  openedByPlayerId: string | null  // so others see the lid open
+}
+```
+
+---
+
+## 3. Host-Side Action Handler
+Inside the host’s `coop.js` (or a new `hostLogic.js`), add functions that Star Multiplayer SDK calls when a message arrives from a client.
+
+### Block Placement Handler
+```javascript
+function handleBlockPlaceRequest(message, senderId) {
+  // 1. Validate
+  if (!isHost) return;
+  const player = players[senderId];
+  if (!player || !player.isAlive) return;
+  
+  // Check distance (e.g. 6 units)
+  const dist = distance(player.position, 
+    new Vector3(message.blockX, message.blockY, message.blockZ));
+  if (dist > MAX_PLACE_DISTANCE) return;
+
+  // Check if target block is air / replaceable
+  const world = getHostWorld(); // reference to host’s world.js
+  const currentBlock = world.getBlock(message.blockX, message.blockY, message.blockZ);
+  if (currentBlock && currentBlock.solid) return; // already occupied
+
+  // Check inventory (optional: consume item)
+  const playerInv = player.inventory;
+  const hotbarSlot = message.placedFromHotbarSlot;
+  if (!playerInv.hasItem(message.blockType, 1, hotbarSlot)) return;
+
+  // 2. Apply to host world
+  world.setBlock(message.blockX, message.blockY, message.blockZ, message.blockType);
+  playerInv.removeItem(message.blockType, 1, hotbarSlot);
+
+  // 3. Broadcast confirmation to all clients (including sender for consistency)
+  const confirmMsg = {
+    type: MessageType.BLOCK_PLACE_CONFIRM,
+    playerId: senderId,
+    blockX: message.blockX,
+    blockY: message.blockY,
+    blockZ: message.blockZ,
+    blockType: message.blockType,
+    // Optionally send the updated hotbar state
+    hotbarSlot: hotbarSlot,
+    newHotbarCount: playerInv.getSlotCount(hotbarSlot)
+  };
+  StarMultiplayer.SendMessageToAll(confirmMsg);
+}
+```
+
+### Chest Update Handler
+Chests are trickier because multiple players could interact. Use a lock/open/close flow:
+
+- Client sends `CHEST_OPEN_REQUEST` (chestId).
+- Host checks if the chest is already opened by someone else (optional: deny if locked).
+- Host replies with `CHEST_UPDATE` containing the full inventory and marks it as opened.
+- When a player moves items (add/remove/swap), client sends a *delta* or the new full inventory as a `CHEST_UPDATE` request to the host.
+- Host validates the delta (e.g., checks if the item really was in that slot), applies it, then broadcasts the new inventory to all.
+
+Simpler approach (authoritative host):
+- Client never directly modifies the chest. Instead, when a player tries to move an item, the client sends a “move item” request (`CHEST_TRANSFER_REQUEST`).
+- Host validates, updates the chest (and the player’s inventory if needed), then sends a single `CHEST_UPDATE` to all, plus a player inventory update to the specific player.
+
+```javascript
+function handleChestTransfer(message, senderId) {
+  // message: { chestId, fromSlot, toSlot, direction } 
+  // direction: 'chest_to_player' or 'player_to_chest'
+  // Validate ownership, distance, slot bounds...
+  // Update host chest data and player inventory
+  // Broadcast CHEST_UPDATE and PLAYER_INVENTORY_UPDATE
+}
+```
+
+---
+
+## 4. Client-Side Reconciliation
+When a client receives a `BLOCK_PLACE_CONFIRM`, it should:
+- Place the block at the given coordinates (using `world.setBlock`), overriding any local prediction.
+- Update the player’s hotbar count if included (to keep inventory synced).
+
+*Optional prediction:* You can let the client optimistically place the block immediately, then correct if the server rejects it. The confirmation message will just be a no-op (or remove the block if refused). Keep it simple – wait for the confirmation to avoid ghost blocks.
+
+In `coop.js`, register the message handler:
+
+```javascript
+StarMultiplayer.OnMessageReceived((msg, senderId) => {
+  switch(msg.type) {
+    case MessageType.BLOCK_PLACE_CONFIRM:
+      world.setBlock(msg.blockX, msg.blockY, msg.blockZ, msg.blockType);
+      if (msg.playerId === localPlayerId) {
+        hotbar.setSlotCount(msg.hotbarSlot, msg.newHotbarCount);
+      }
+      break;
+    // ... other cases
+  }
+});
+```
+
+---
+
+## 5. Chest Container Sync
+Chest inventories need a shared data structure on the host. In `world.js` (or a new `containerManager.js`), store:
+
+```javascript
+// Map of chestId -> array of slot items
+this.chestInventories = new Map();
+```
+
+When a chest is created (block placed), generate a unique ID (e.g., `"chest_" + x + "_" + y + "_" + z`) and initialise an empty array of 27 slots. When a chunk is loaded on the host, restore chest data from saved file/DB.
+
+For late-joining players, the host must send the current state of all chests. You can batch this in a `WORLD_STATE` message when a player finishes joining.
+
+---
+
+## 6. Persisting Chest State
+Host should save chest inventories alongside world chunks. If your world saves use per-chunk data, embed a `containers` object in the chunk save, mapping local block coordinates to inventory data. On world load, populate `chestInventories`.
+
+---
+
+## 7. Integration with Existing Modules
+- **`coop.js`**: Add message types, host handlers, and client-side dispatchers.
+- **`player.js`**: When a player opens a chest, send `CHEST_OPEN_REQUEST`. Listen for `CHEST_UPDATE` to display the UI.
+- **`inventory.js` / `ui.js`**: Chest UI must be read-only until the host gives the latest state; movements trigger `CHEST_TRANSFER_REQUEST`.
+- **`world.js`**: Expose `getBlock` / `setBlock` methods already. Ensure `setBlock` is used by the network sync path.
+
+Since hotbar is vertically stacked on the right (as noted), chest UI can follow the same procedural brass-panel style, with no static images.
+
+---
+
+## 8. Testing Tips
+- Run two clients on the same machine (different browser profiles) with the host on one.
+- Place a block, see it appear on the second client.
+- Open a chest on one client, move items, watch the other client’s chest UI update.
+- Use the Star Multiplayer SDK’s latency simulation if available.
+
+---
+
+## 9. Next Steps
+1. Add the message types and basic dispatch in `coop.js`.
+2. Implement host-side `handleBlockPlaceRequest` using the current world and inventory systems.
+3. Wire up client block placement input (when a player right-clicks with a block) to send a request instead of placing immediately.
+4. Implement chest ID generation and the open/transfer/close flow.
+5. Test, then optimize chunk updates for bulk block operations (digging large areas) by sending batches of changes.

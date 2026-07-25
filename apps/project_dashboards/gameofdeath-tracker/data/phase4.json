@@ -1,0 +1,49 @@
+{
+  "id": "phase4",
+  "icon": "🏆",
+  "title": "Phase 4 – Win/Loss & System Purge",
+  "systems": [
+    {
+      "name": "4.1 Base Core & Frag System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 5,
+      "dependencies": ["phase1_1"],
+      "notes": "Define 3×3 base cores for each agent. Detect when all core cells are occupied by opponent.",
+      "tasks": [
+        "Mark base core positions for Agent A and B",
+        "Each tick, check if all 9 cells of a core are enemy colour",
+        "On defeat, increment opponent frags, trigger OS_REBOOT"
+      ]
+    },
+    {
+      "name": "4.2 Respawn (OS_REBOOT)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 4,
+      "dependencies": ["phase4_0"],
+      "notes": "Clear defeated base, place new base far from enemy, reset fog, show notification.",
+      "tasks": [
+        "Clear defeated agent's base core cells",
+        "Find random location at least 20% arena width from any enemy cell",
+        "Reset that agent's fog masks completely",
+        "Display 'Agent X OS_REBOOT' notification"
+      ]
+    },
+    {
+      "name": "4.3 System Purge (Overpopulation)",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 3,
+      "dependencies": ["phase1_0"],
+      "notes": "When occupied cells > 75%, reset the entire grid and both bases.",
+      "tasks": [
+        "Calculate occupied ratio each tick",
+        "If > 0.75, clear gridCurrent and gridNext",
+        "Reset both base cores to original positions",
+        "Reset all fog masks",
+        "Show SYSTEM_PURGE notification"
+      ]
+    }
+  ]
+}

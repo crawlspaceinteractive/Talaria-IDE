@@ -1,0 +1,49 @@
+{
+  "id": "phase4",
+  "icon": "👻",
+  "title": "Phase 4 – Ghost Mechanics & Afterlife Agency",
+  "systems": [
+    {
+      "name": "4.1 Ghost State & Abilities",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 14,
+      "dependencies": ["phase1_0"],
+      "notes": "On death, players become Ghosts. They can see the Mimic's true aura but cannot communicate directly with the living. They manipulate the environment to guide survivors.",
+      "tasks": [
+        "Ghost transition: death animation → spectral form",
+        "Ghost vision: can see Mimic's true aura at all times",
+        "Ghost movement: free roam, pass through walls, no collision",
+        "Ghost abilities: slam doors, rattle chains, flicker lights"
+      ]
+    },
+    {
+      "name": "4.2 Environmental Interaction for Ghosts",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase4_0"],
+      "notes": "Ghosts trigger environmental traps and hazards to slow or damage the Mimic. Use existing dungeon objects as ghost-interactable.",
+      "tasks": [
+        "Ghosts can trigger traps (spike pits, falling rocks, poison gas)",
+        "Poltergeist actions: throw objects to create noise distractions",
+        "Haunt mechanic: possess a single object to create a persistent hazard",
+        "Cooldown on ghost abilities to prevent spam"
+      ]
+    },
+    {
+      "name": "4.3 Ghost Communication Restrictions",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_2", "phase4_0"],
+      "notes": "Ghosts cannot speak or text directly with the living. They must use environmental cues. Ghosts have their own private chat channel.",
+      "tasks": [
+        "Isolate Ghost chat from living player chat",
+        "Block Ghost-to-living voice/text communication",
+        "Environmental cue system: ghosts can trigger pre-set 'signals'",
+        "Ghosts can leave spectral marks visible only to living with high Spirit affinity"
+      ]
+    }
+  ]
+}

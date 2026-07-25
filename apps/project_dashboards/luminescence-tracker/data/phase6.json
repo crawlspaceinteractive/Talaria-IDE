@@ -1,0 +1,49 @@
+{
+  "id": "phase6",
+  "icon": "🎨",
+  "title": "Phase 6 – Art, Audio & Polish",
+  "systems": [
+    {
+      "name": "6.1 Visual Style & Asset Creation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 50,
+      "dependencies": [],
+      "notes": "Hades‑inspired dark aesthetic with neon accents. Hand‑drawn unicorns, enemies, environments, UI.",
+      "tasks": [
+        "Design and animate all 4 unicorns (idle, walk, attack, special, hit, death)",
+        "Create enemy sprites for all tiers (16+ enemy types)",
+        "Environment art for 4 level themes",
+        "UI design (HUD, menus, shop) – sleek, minimal"
+      ]
+    },
+    {
+      "name": "6.2 Sound Design & Music",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Original soundtrack with dynamic intensity. Impactful SFX for hits, horn powers, boss roars.",
+      "tasks": [
+        "Compose main theme and level variants",
+        "Dynamic music layers (exploration(leads and rhythm drop out leaving bass track and drums playing), combat(rhythm section joins), boss(lead joins))",
+        "SFX: melee swings, horn powers, enemy sounds, UI",
+        "Voice acting for boss dialogue (optional) - PCM voices for each boss will work."
+      ]
+    },
+    {
+      "name": "6.3 Performance & Optimization",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "60 FPS target on mid‑range hardware. Optimise sprite rendering, particle effects, and co‑op path.",
+      "tasks": [
+        "Sprite batching and atlas packing",
+        "Particle system pooling",
+        "Reduce draw calls and overdraw",
+        "Test on minimum spec machine"
+      ]
+    }
+  ]
+}

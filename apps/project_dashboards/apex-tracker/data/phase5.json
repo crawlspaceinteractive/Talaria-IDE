@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "🌐",
+  "title": "Phase 5 – Multiplayer & Networking",
+  "systems": [
+    {
+      "name": "5.1 Online Multiplayer (Star Multiplayer SDK)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase1_0", "phase3_0"],
+      "notes": "Real‑time 4‑player racing using host‑authoritative sync. Vehicle positions, power‑ups, and race events synced.",
+      "tasks": [
+        "Host‑authoritative player vehicle state",
+        "Interpolation for remote vehicles",
+        "Synchronized power‑up collection",
+        "Race start and finish events broadcast"
+      ]
+    },
+    {
+      "name": "5.2 Split‑Screen Local Multiplayer",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "2‑player vertical split‑screen using dual rendering passes with separate cameras.",
+      "tasks": [
+        "Dual render pass with separate viewports",
+        "Input assignment per player (keyboard/controller)",
+        "Separate HUD per player"
+      ]
+    },
+    {
+      "name": "5.3 Lobby & Matchmaking",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase5_0"],
+      "notes": "Main menu lobby where players pick vehicle, track, and race settings.",
+      "tasks": [
+        "Character/vehicle select with skins",
+        "Track voting",
+        "Ready‑up and countdown sync"
+      ]
+    }
+  ]
+}

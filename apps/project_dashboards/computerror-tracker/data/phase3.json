@@ -1,0 +1,77 @@
+{
+  "id": "phase3",
+  "icon": "💡",
+  "title": "Phase 3 – Midgame & Narrative Depth",
+  "systems": [
+    {
+      "name": "3.1 Chapter 3: The Fluorescent Ascent",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 35,
+      "dependencies": ["phase2_0"],
+      "notes": "Climb from gutter to corpo districts. Brightness as oppression. Backspace enables infiltration. Escalate sanity pressure through overexposed lighting.",
+      "tasks": [
+        "Design vertical ascent level with light puzzles",
+        "Implement exposure-linked sanity drain",
+        "Script Backspace's role in infiltration",
+        "Add environmental hazards (blinding light, patrols)"
+      ]
+    },
+    {
+      "name": "3.2 Chapter 4: The Corporate Cathedral",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase3_0"],
+      "notes": "Inside Nekrotek HQ. Light-as-architecture. Reactor doubles as neural virus containment. Audio-visual crescendo leads to detonation.",
+      "tasks": [
+        "Build cathedral arena with dynamic lighting",
+        "Script reactor sequence and boss encounter",
+        "Integrate musical and visual peak",
+        "Handle post-detonation transition"
+      ]
+    },
+    {
+      "name": "3.3 Sanity & Light Mechanics",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase2_2", "phase3_0"],
+      "notes": "Fully implement the light-as-oppression mechanic: brightness drains sanity, darkness calms, overexposure triggers visual distortions.",
+      "tasks": [
+        "Dynamic sanity drain based on ambient light level",
+        "Visual distortion effects at low sanity (wavy, double vision)",
+        "Calm restoration in darkness or shielded areas",
+        "Balance sanity costs with player agency"
+      ]
+    },
+    {
+      "name": "3.4 Audio & Music Integration",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Compose and implement the dynamic score, PA system voice, Moon narrator, and environmental soundscapes. Audio must reflect oppression contract layers.",
+      "tasks": [
+        "Compose chapter-specific music tracks",
+        "Implement PA system with sidechained audio mix",
+        "Record Moon narrator lines with compression effect",
+        "Add ambient sounds (rain, hums, broadcast static)"
+      ]
+    },
+    {
+      "name": "3.5 Boss Encounters & Set Pieces",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": ["phase2_3", "phase3_2"],
+      "notes": "Design unique boss fights: Nekrotek Security Chief (Ch3), Neural Virus Core (Ch4). Use arena mechanics tied to light and sanity.",
+      "tasks": [
+        "Design boss AI with phases and weak points",
+        "Create arena hazards (light beams, electrified floor)",
+        "Script boss defeat sequences and narrative consequences",
+        "Test boss difficulty scaling with player resources"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Polish & Release",
+  "systems": [
+    {
+      "name": "7.1 Performance Optimisation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 3,
+      "dependencies": ["phase1_2"],
+      "notes": "Optimise canvas rendering: draw only changed cells, or use an offscreen canvas.",
+      "tasks": [
+        "Implement dirty‑region tracking to redraw only changed cells",
+        "Or pre‑render to offscreen canvas and copy to display",
+        "Ensure 30 Hz is stable on low‑end hardware"
+      ]
+    },
+    {
+      "name": "7.2 Bug Fixing & Edge Cases",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 5,
+      "dependencies": ["all"],
+      "notes": "Test fog interactions, spawn conflicts, base core logic, and multi‑round tournaments.",
+      "tasks": [
+        "Test fog penalty with overlapping patterns",
+        "Verify base core detection with partial occupation",
+        "Ensure spawn annihilation doesn't cause infinite loops",
+        "Test tournament mode reset"
+      ]
+    },
+    {
+      "name": "7.3 Packaging & Documentation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "dependencies": [],
+      "notes": "Create a README, pack as a standalone HTML file, upload to itch.io.",
+      "tasks": [
+        "Write README with build instructions and architecture",
+        "Bundle all JS/CSS into a single HTML",
+        "Deploy to itch.io or GitHub Pages"
+      ]
+    }
+  ]
+}

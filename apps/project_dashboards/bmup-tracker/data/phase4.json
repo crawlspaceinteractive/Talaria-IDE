@@ -1,0 +1,49 @@
+{
+  "id": "phase4",
+  "icon": "🎵",
+  "title": "Phase 4 – Audio & Atmosphere",
+  "systems": [
+    {
+      "name": "4.1 Sound Effects & Voice Clips",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "PCM synthesised sound effects are in place. Add voice grunts, special callouts, and environmental sounds.",
+      "tasks": [
+        "Synthesise per‑character attack grunts",
+        "Special move callouts ('Meteor!', 'Truck!')",
+        "Environmental ambience (city noise, crowd)",
+        "Sound priority and channel management"
+      ]
+    },
+    {
+      "name": "4.2 Dynamic Music System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "SoR‑style music that transitions between exploration, combat, and boss themes seamlessly.",
+      "tasks": [
+        "Music track playlist per level",
+        "Crossfade between intensity layers",
+        "Boss encounter music switch",
+        "Volume ducking during specials"
+      ]
+    },
+    {
+      "name": "4.3 Hit Impact & Screen Shake",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_0"],
+      "notes": "Add impactful hit effects: sparks, screen shake intensity based on damage, heavy landing thuds.",
+      "tasks": [
+        "Hit spark VFX (procedural or sprite)",
+        "Screen shake scaling with damage",
+        "Heavy landing dust cloud",
+        "Sound effect variety per damage type"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "id": "phase7",
+  "icon": "📤",
+  "title": "Phase 7 – Export & Integration",
+  "systems": [
+    {
+      "name": "7.1 Export Formats & Settings",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 1,
+      "dependencies": [],
+      "notes": "Understand the different export formats (glTF, OBJ, JSON) and when to use them.",
+      "tasks": [
+        "Export a model as glTF for web use",
+        "Export as OBJ for 3D printing or further editing",
+        "Export as JSON for Minecraft Bedrock",
+        "Adjust export settings (scale, animation, textures)"
+      ]
+    },
+    {
+      "name": "7.2 Game Engine Integration",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 2,
+      "dependencies": ["phase7_0"],
+      "notes": "Test your exported models in a game engine or modding environment.",
+      "tasks": [
+        {
+          "text": "Import a model into Minecraft: Java Edition (resource pack)",
+          "link": "https://www.blockbench.net/wiki/tutorials/#minecraft-java"
+        },
+        "Import a glTF into Unity and set up materials",
+        "Import into Godot and test animations"
+      ]
+    },
+    {
+      "name": "7.3 Performance & Optimisation",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 1,
+      "dependencies": ["phase7_0"],
+      "notes": "Reduce polygon count, texture size, and bone count for better performance.",
+      "tasks": [
+        "Decimate a high‑poly mesh",
+        "Resize textures and convert to appropriate formats",
+        "Bake high‑poly details onto a low‑poly mesh"
+      ]
+    }
+  ]
+}

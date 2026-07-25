@@ -1,0 +1,77 @@
+{
+  "id": "phase1",
+  "icon": "⚙️",
+  "title": "Phase 1 – Foundation & Engine",
+  "systems": [
+    {
+      "name": "1.1 MapBuild Protocol Implementation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Implement the deterministic UDMF→PWAD builder with canonical lump order, self-healing (REJECT/BLOCKMAP regeneration), and corridor/lighting rules. Must produce byte-stable outputs across runs.",
+      "tasks": [
+        "Build UDMF→PWAD converter with lump order enforcement",
+        "Auto-generate missing REJECT and BLOCKMAP lumps",
+        "Implement corridor-width and default-light checks",
+        "Ensure deterministic output (no RNG, seed=0)"
+      ]
+    },
+    {
+      "name": "1.2 Audit Protocol & Validation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Create MD5-per-lump checker, magic-byte typing, Freedoom Phase 2 baselines, and cross-link validation between LINEDEFS↔SIDEDEFS↔VERTEXES↔SECTORS. Output audit CSV/JSON.",
+      "tasks": [
+        "Implement MD5 hash per lump with delta reporting",
+        "Magic-byte type detection (PNG, WAV, etc.)",
+        "Cross-index integrity checks between map lumps",
+        "REJECT/BLOCKMAP sanity checks with auto-repair"
+      ]
+    },
+    {
+      "name": "1.3 WadParse Utility",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "In-house WAD parser that recognises map markers (E#M#|MAP##) and enforces the 10-lump chain. Emit census tables and validation JSON for SRP.",
+      "tasks": [
+        "Parse WAD directory and extract lump metadata",
+        "Detect and validate map marker lumps",
+        "Generate census tables (thing counts, line counts)",
+        "Output validation JSON for SRP consumption"
+      ]
+    },
+    {
+      "name": "1.4 Self-Reflection Protocol (SRP) Core",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_1", "phase1_2"],
+      "notes": "Implement Logic Brain/Logic Loose modes, Dreamstate Cycle, meta-audit, historical confidence tracking, and reflexive logging. The SRP checks the checker.",
+      "tasks": [
+        "Implement mode switching (Logic Brain vs Logic Loose)",
+        "Meta-audit: hash the ruleset itself and detect drift",
+        "Rolling confidence per repair (e.g., REJECT regen 99.9%)",
+        "Schedule synthetic test-map builds for threshold validation"
+      ]
+    },
+    {
+      "name": "1.5 Build Pipeline & Automation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0", "phase1_1"],
+      "notes": "Scriptable pipeline that runs MapBuild → Audit → SRP report in one command. Configuration via JSON stubs. Generate map_overview.csv and map_issues.csv.",
+      "tasks": [
+        "Create CLI wrapper for MapBuild + Audit + SRP",
+        "Define config.json schema (mode, thresholds, etc.)",
+        "Generate build artifacts (CSV, validation JSON, report)",
+        "Test byte-stability over multiple runs"
+      ]
+    }
+  ]
+}

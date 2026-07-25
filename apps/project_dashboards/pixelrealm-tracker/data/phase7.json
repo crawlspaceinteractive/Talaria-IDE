@@ -1,0 +1,46 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Release & Community",
+  "systems": [
+    {
+      "name": "7.1 Packaging & Distribution",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package as standalone web app. Deploy to dedicated domain and submit to game portals.",
+      "tasks": [
+        "Offline HTML build with inlined assets",
+        "Deploy to itch.io and GitHub Pages",
+        "Custom domain and SSL"
+      ]
+    },
+    {
+      "name": "7.2 Modding & Custom Maps",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Allow players to create custom dungeons via a simple JSON editor. Share maps via URL.",
+      "tasks": [
+        "Define dungeon map format",
+        "In‑game map editor (God mode)",
+        "Map sharing community hub"
+      ]
+    },
+    {
+      "name": "7.3 Post‑Launch Content",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Plan for additional acts, new character classes, seasonal events, and leaderboards.",
+      "tasks": [
+        "Seasonal ladder with fresh economy",
+        "New playable class (Necromancer, Assassin)",
+        "Act VI expansion"
+      ]
+    }
+  ]
+}

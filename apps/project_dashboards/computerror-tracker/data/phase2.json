@@ -1,0 +1,78 @@
+{
+  "id": "phase2",
+  "icon": "🌆",
+  "title": "Phase 2 – Core Gameplay & Chapters 1–2",
+  "systems": [
+    {
+      "name": "2.1 Chapter 1: Static City",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 40,
+      "dependencies": ["phase1_0"],
+      "notes": "Build the opening level: rain-choked alley, pirate broadcast, Enforcer encounters, Backspace intro, first data shard. Teach movement and sanity-as-currency.",
+      "tasks": [
+        "Design and block out alley network with verticality",
+        "Script intro sequence (boot, broadcast, Enforcer fire)",
+        "Implement Backspace meeting and ChemScrubber/Firewall pickup",
+        "Add data shard collectible with lore snippet",
+        "Integrate HUD sanity meter and basic debt mechanics"
+      ]
+    },
+    {
+      "name": "2.2 Chapter 2: Echoes of 1999",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 35,
+      "dependencies": ["phase1_0", "phase2_0"],
+      "notes": "Nekrotek archive dive. Reveal the Quiet Protocol, SHI/VA's complicity, and the Moon narrator. Integrate deeper sanity mechanics.",
+      "tasks": [
+        "Design archive tileset and layout",
+        "Implement environmental storytelling (logs, terminals)",
+        "Script Moon narrator triggers and voice lines",
+        "Add sanity pressure events (AdDream flashbacks)"
+      ]
+    },
+    {
+      "name": "2.3 Core Player Mechanics",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Implement movement (with stamina), ChemScrubber/Firewall usage, AdDream risk, and the sanity/debt HUD. All mechanics must interact with the oppression contract lens.",
+      "tasks": [
+        "Player controller with stamina and movement penalties",
+        "ChemScrubber (clears CalmMist) and Firewall (blocks AdDream) logic",
+        "Sanity meter with visual and audio feedback",
+        "Debt/Attention/Truth/Calm currency tracking"
+      ]
+    },
+    {
+      "name": "2.4 Enemy & Encounter Design",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase2_2"],
+      "notes": "Create Enforcer (ranged, melee), surveillance drone, and basic broadcast dead. AI must respond to player's sanity and alert state.",
+      "tasks": [
+        "Design Enforcer behavior (shoot, suppress, flank)",
+        "Add security drone (patrol, scan, alarm)",
+        "Implement first broadcast dead enemy type",
+        "Balance damage and resource drops"
+      ]
+    },
+    {
+      "name": "2.5 HUD & UI Systems",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_2"],
+      "notes": "Build the dystopian HUD: sanity meter, debt counter, attention/truth/calm bars, Firewall status, and chapter-specific overlays.",
+      "tasks": [
+        "Design HUD layout with cyberpunk aesthetic",
+        "Implement dynamic meter updates (sanity, debt, etc.)",
+        "Add chapter title cards and transition effects",
+        "Create inventory screen for items and lore"
+      ]
+    }
+  ]
+}

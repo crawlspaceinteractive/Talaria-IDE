@@ -1,0 +1,63 @@
+{
+  "id": "phase11",
+  "icon": "☀️",
+  "title": "Phase 11 – Awakening the Vault & Ancient Enemies",
+  "systems": [
+    {
+      "name": "11.1 The Vault of the Forgotten Sun",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 22,
+      "dependencies": ["phase8_4", "phase10_0"],
+      "notes": "Endgame biome accessed only with a dreadnaught. A dormant moving city. Restoring its heart activates the Sun Engine, triggering global changes.",
+      "tasks": [
+        "Design Vault biome (ancient machinery, dormant energy)",
+        "Implement dreadnaught-only entry gate",
+        "Create Sun Engine restoration sequence (multi-step)",
+        "Trigger global world changes on activation"
+      ]
+    },
+    {
+      "name": "11.2 Ancient Kaiju Enemy Emergence",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase11_0"],
+      "notes": "Colossal roaming kaiju: Sand Wyrm, Magma Leviathan, Storm Roc. They threaten player bases and reshape terrain.",
+      "tasks": [
+        "Design each kaiju's appearance, movement, and attack patterns",
+        "Implement kaiju spawning logic (biome-specific, post-Sun Engine)",
+        "Add base threat system (kaiju can damage camp structures)",
+        "Balance kaiju frequency and difficulty"
+      ]
+    },
+    {
+      "name": "11.3 Dreadnaught vs Kaiju Combat",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 28,
+      "dependencies": ["phase10_2", "phase11_1"],
+      "notes": "Kaiju have weak points that must be exposed by the Engineer (targeting subsystem) while the Pilot maneuvers. Defeating a kaiju yields unique artifacts and fuels the Sun Engine.",
+      "tasks": [
+        "Implement weak-point targeting mechanic (Engineer role)",
+        "Design kaiju attack telegraphs and phases",
+        "Create rewards: ancient artifacts, Sun Engine fuel",
+        "Add cinematic defeat sequences"
+      ]
+    },
+    {
+      "name": "11.4 Escalating World Events",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase11_0"],
+      "notes": "The more you awaken, the more frequent and intense the ancient incursions. Players can choose to keep the world quiet or push for greater rewards.",
+      "tasks": [
+        "Implement escalation meter (world state)",
+        "Increase kaiju spawn rate and strength with meter",
+        "Allow players to pause escalation via certain actions",
+        "Broadcast world events to all players"
+      ]
+    }
+  ]
+}

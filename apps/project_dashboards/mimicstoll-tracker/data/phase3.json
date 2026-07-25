@@ -1,0 +1,63 @@
+{
+  "id": "phase3",
+  "icon": "👁️",
+  "title": "Phase 3 – Mimic Mechanics & Stealth System",
+  "systems": [
+    {
+      "name": "3.1 Prop Mode (Object Disguise)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_1"],
+      "notes": "The Mimic can possess any non-player object (chests, crates, torches). While in Prop Mode, the Mimic is invulnerable but immobile. Must be able to observe surroundings.",
+      "tasks": [
+        "Implement object possession: click on object to inhabit it",
+        "Prop Mode: invulnerable, immobile, can observe nearby area",
+        "Visual: subtle tell on possessed object (slight shimmer or eye)",
+        "Object physics: Mimic exits Prop Mode, object returns to normal"
+      ]
+    },
+    {
+      "name": "3.2 Infiltration Mode (Player Disguise)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0", "phase1_0"],
+      "notes": "After eliminating a player, the Mimic can assume their identity. Gains access to that character's inventory, abilities, and appearance. Vulnerable to damage and Spirit Checks.",
+      "tasks": [
+        "On player kill: Mimic can absorb identity (inventory, abilities, sprite)",
+        "Infiltration Mode: Mimic is vulnerable, must act convincingly",
+        "Cooldown on ability use while disguised (can't spam victim's skills)",
+        "Disguise degrades over time: subtle visual tells appear"
+      ]
+    },
+    {
+      "name": "3.3 Mimic Hunting & Elimination",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase3_0", "phase3_1"],
+      "notes": "The Mimic eliminates players through ambushes. Transition from Prop → attack → Infiltration should feel fluid and rewarding.",
+      "tasks": [
+        "Ambush attack: high damage when attacking from Prop Mode",
+        "Sustained damage in open combat (lower than ambush)",
+        "Elimination animation: player dragged into shadows",
+        "Trophy collected: skull added to Trophy Room"
+      ]
+    },
+    {
+      "name": "3.4 Mimic Progression & Learning",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_3"],
+      "notes": "The Mimic learns player tactics over the campaign. Unlocks new abilities or perks based on skulls collected and patterns observed.",
+      "tasks": [
+        "Track player behaviours: common routes, item usage, communication patterns",
+        "Unlock Mimic perks at skull milestones (e.g., faster transition, silent kill)",
+        "Mimic XP system: earn points for successful eliminations",
+        "Perk tree: stealth, deception, combat branches"
+      ]
+    }
+  ]
+}

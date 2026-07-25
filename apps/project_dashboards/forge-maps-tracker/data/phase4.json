@@ -1,0 +1,67 @@
+{
+  "id": "phase4",
+  "icon": "🔴",
+  "title": "Tier 4 – Not Started (0%)",
+  "systems": [
+    {
+      "name": "Sandwich Parkour – 0% Complete",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Sandwich-themed obstacle course. Light-hearted, fun parkour map.",
+      "tasks": [
+        "Design sandwich-themed obstacle course layout",
+        "Build parkour platforms and jumps",
+        "Add giant sandwich props and decorations",
+        "Script checkpoints and timer system",
+        "Playtest difficulty and flow"
+      ]
+    },
+    {
+      "name": "Geode – 0% Complete",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Transfer layout from Brain Damage (Doom Dark Side of the Moon map). Make more Suban Ore Crystal Chunk prefabs (Covenant Metal with Emissive, Banished Grime texture: Grime .50, Scratch .20).",
+      "tasks": [
+        "Import and adapt Brain Damage layout",
+        "Create Suban Ore Crystal Chunk prefabs with emissive",
+        "Apply Banished Grime texture settings",
+        "Build geode cave interior spaces",
+        "Lighting pass with crystal glow effects"
+      ]
+    },
+    {
+      "name": "Galleon – 0% Complete",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Pirate Battle themed Husky Raid map. Naval combat on the high seas.",
+      "tasks": [
+        "Design galleon ship layout and deck plan",
+        "Build pirate-themed structures and props",
+        "Create water/ocean environment",
+        "Set up Husky Raid spawns and objectives",
+        "Add cannon emplacements and naval combat elements"
+      ]
+    },
+    {
+      "name": "Doomriders – 0% Complete",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Hell-themed Raiders Republic map. Giant Kaiju Demon to ride through using cosmic growth props and bones from alien mushroom tree trunks. Portal section over Mars surface then back to Hell. Giant BFG from Doom Eternal with FX, scaled green beacon emitter, dynamic light that toggles on/off.",
+      "tasks": [
+        "Design Hell-themed track layout",
+        "Build giant Kaiju Demon structure (rideable)",
+        "Create Mars surface portal transition section",
+        "Build Giant BFG with green beacon emitter and dynamic light FX",
+        "Add Doom-themed props and hell atmosphere"
+      ]
+    }
+  ]
+}

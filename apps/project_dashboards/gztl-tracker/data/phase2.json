@@ -1,0 +1,60 @@
+{
+  "id": "phase2",
+  "icon": "🔄",
+  "title": "Phase 2 – Advanced ACS & Script Environment",
+  "systems": [
+    {
+      "name": "2.1 ACS VM Enhancements",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_4"],
+      "notes": "Expand the ACS virtual machine to support more opcodes, nested scripts, and advanced control flow. Improve error handling and debugging hooks.",
+      "tasks": [
+        "Support more ACS opcodes (math, string, arrays)",
+        "Implement nested script calls and ENTER/RESPAWN scripts",
+        "Add script debug logging and error reporting",
+        "Support libraries (LOADACS) and global scripts"
+      ]
+    },
+    {
+      "name": "2.2 Extended Line Specials & Sector Actions",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_6", "phase1_4"],
+      "notes": "Add support for all classic line specials: doors, lifts, stairs, lighting changes, teleporters, etc.",
+      "tasks": [
+        "Implement remaining ZDoom line specials (Light_Change, Floor_Lower, etc.)",
+        "Handle sector special triggers (secret, damage, friction)",
+        "Implement line activation types (walk-over, shoot, use)"
+      ]
+    },
+    {
+      "name": "2.3 Script Scope & Variables",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_0"],
+      "notes": "Implement proper variable scoping (world, global, map) and array handling in ACS.",
+      "tasks": [
+        "World/global variables persistent across maps",
+        "Map variables reset per map",
+        "Support ACS arrays and map arrays"
+      ]
+    },
+    {
+      "name": "2.4 Polyobjects & 3D Floors",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 20,
+      "dependencies": ["phase2_1"],
+      "notes": "Support polyobject movement (sliding doors, swinging) and 3D floor definitions for advanced level geometry.",
+      "tasks": [
+        "Parse and create polyobject anchors and segments",
+        "Implement polyobject movement specials",
+        "Support 3D floor definitions (extra floor/ceiling layers)"
+      ]
+    }
+  ]
+}

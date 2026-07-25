@@ -1,0 +1,49 @@
+{
+  "id": "phase3",
+  "icon": "👾",
+  "title": "Phase 3 – Enemies & Hazards",
+  "systems": [
+    {
+      "name": "3.1 Basic Enemy AI",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 22,
+      "dependencies": ["phase1_0", "phase1_2"],
+      "notes": "Simple patrol/chase enemies typical of PS1 platformers. No complex behaviour trees. Use state machines.",
+      "tasks": [
+        "Patrol along waypoints",
+        "Line‑of‑sight chase when player is near",
+        "Attack on contact (push / damage)",
+        "Defeat by freezing then charging (shatter mechanic)",
+        "Spawn / death effects (low‑poly particle burst)"
+      ]
+    },
+    {
+      "name": "3.2 Static Hazards",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_2"],
+      "notes": "Spikes, lava pits, crushing blocks. Use simple collision volumes.",
+      "tasks": [
+        "Spikes (damage)",
+        "Lava (instant death)/ bottomless pits (respawn player)",
+        "Crush traps (triggered by proximity or timer)"
+      ]
+    },
+    {
+      "name": "3.3 Boss Encounters",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 20,
+      "dependencies": ["phase3_0", "phase2_0"],
+      "notes": "One boss per world. Pattern‑based, arena fights. Health bar UI. Defeat unlocks new ability or level.",
+      "tasks": [
+        "Boss state machine (idle, attack1, attack2, stunned)",
+        "Telegraphed attacks (visual/audio tells)",
+        "Damage phases and invincibility frames",
+        "Boss defeat sequence (explosion, gem drop)"
+      ]
+    }
+  ]
+}

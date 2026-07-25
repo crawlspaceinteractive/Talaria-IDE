@@ -1,0 +1,28 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+}
+
+#outputKey {
+    width: 100%;
+    resize: none;
+    font-family: monospace;
+    font-size: 14px;
+    background-color: #f4f4f4;
+}
+
+.security-note {
+    border: 1px solid #007bff;
+    padding: 10px;
+    background-color: #e6f7ff;
+    color: #007bff;
+    font-weight: bold;
+}
+
+#statusMessage {
+    margin-top: 10px;
+    font-weight: bold;
+}

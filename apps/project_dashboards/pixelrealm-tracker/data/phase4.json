@@ -1,0 +1,47 @@
+{
+  "id": "phase4",
+  "icon": "🌐",
+  "title": "Phase 4 – Multiplayer & Persistence",
+  "systems": [
+    {
+      "name": "4.1 Trading & Player Interaction",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Add secure player‑to‑player trading window. Allow players to inspect each other's gear. Implement dueling for friendly PvP.",
+      "tasks": [
+        "Trade window with confirmation lock",
+        "Inspect other player's equipment",
+        "Duel request and arena flag"
+      ]
+    },
+    {
+      "name": "4.2 Persistent Player Stash & Account Storage",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_1"],
+      "notes": "Items stored in town stash persist across sessions and dungeons. Account‑wide shared stash for alts.",
+      "tasks": [
+        "Personal stash (expandable with gold)",
+        "Shared stash tabs",
+        "Stash save/load to localStorage or backend"
+      ]
+    },
+    {
+      "name": "4.3 Multiplayer Stability & Performance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Optimize netcode for 16‑player co‑op in dungeons. Reduce latency on enemy AI and item drops. Address known footguns from FG section.",
+      "tasks": [
+        "Delta compression for player and enemy state",
+        "Client‑side prediction for movement",
+        "Enemy AI load distribution (host only, but optimize)",
+        "Loot duplication and desync prevention"
+      ]
+    }
+  ]
+}

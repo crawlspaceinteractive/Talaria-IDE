@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "⚙️",
+  "title": "Phase 5 – Advanced Modeling Techniques",
+  "systems": [
+    {
+      "name": "5.1 Mesh Editing & Modifiers",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 2,
+      "dependencies": ["phase2_1"],
+      "notes": "Use mesh tools like extrude, bevel, loop cut, and Boolean operations.",
+      "tasks": [
+        "Extrude a face multiple times to create a shape",
+        "Apply a Subdivision Surface modifier",
+        "Use the mirror modifier for symmetrical models",
+        "Boolean union / difference two meshes"
+      ]
+    },
+    {
+      "name": "5.2 Vertex Colors & Shaders",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1,
+      "dependencies": ["phase5_0"],
+      "notes": "Add vertex colours and basic shader effects (glow, transparency).",
+      "tasks": [
+        "Paint vertex colours on a mesh",
+        "Make parts of the model transparent",
+        "Enable emissive rendering for glowing areas"
+      ]
+    },
+    {
+      "name": "5.3 Import & Refine Existing Models",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1.5,
+      "dependencies": ["phase5_0"],
+      "notes": "Import a .obj/.glb from another tool and clean it up in Blockbench.",
+      "tasks": [
+        "Import an external model (e.g., from Sketchfab)",
+        "Optimise the mesh (remove doubles, fix normals)",
+        "Apply a new texture set to the imported model"
+      ]
+    }
+  ]
+}

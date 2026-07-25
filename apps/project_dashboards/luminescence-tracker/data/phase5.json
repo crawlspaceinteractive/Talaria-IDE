@@ -1,0 +1,48 @@
+{
+  "id": "phase5",
+  "icon": "🤝",
+  "title": "Phase 5 – Co‑op & Multiplayer",
+  "systems": [
+    {
+      "name": "5.1 Local Co‑op Implementation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_0", "phase2_0"],
+      "notes": "Two players on same screen. Shared arena, dynamic camera. Both use same or different unicorns.",
+      "tasks": [
+        "Add second player input (separate gamepad or keyboard)",
+        "Dynamic camera: zoom out to keep both players visible",
+        "Character select for both players",
+        "Shared enemy pool and wave progression"
+      ]
+    },
+    {
+      "name": "5.2 Co‑op Mechanics & Synergy",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase5_0"],
+      "notes": "Revive, Link Power (combined horn powers), combo bonus damage, ping system.",
+      "tasks": [
+        "Revive: 3‑second channel, reviver vulnerable",
+        "Link Power: both horn powers within 3s = enhanced effect",
+        "Combo bonus: enemies between both players take extra damage",
+        "Ping system (mark enemies, call for help)"
+      ]
+    },
+    {
+      "name": "5.3 Online Co‑op (Future)",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 30,
+      "dependencies": ["phase5_0"],
+      "notes": "Use Star Multiplayer SDK for online play. Host‑authoritative combat.",
+      "tasks": [
+        "Integrate Star Multiplayer SDK into engine",
+        "Sync player states, enemy positions, wave state",
+        "Implement host migration and reconnection"
+      ]
+    }
+  ]
+}

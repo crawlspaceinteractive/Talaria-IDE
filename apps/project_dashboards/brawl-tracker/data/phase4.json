@@ -1,0 +1,48 @@
+{
+  "id": "phase4",
+  "icon": "🏟️",
+  "title": "Phase 4 – Arenas & Level Design",
+  "systems": [
+    {
+      "name": "4.1 Arena Tilemap System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Build a tilemap loader or procedural arena generator for platform layouts. Include moving platforms, breakable blocks, and hazards.",
+      "tasks": [
+        "Design 4 distinct arena themes (factory, rooftop, jungle, lava)",
+        "Create tilemap format and renderer",
+        "Add moving and breakable platforms",
+        "Implement stage hazards (spikes, conveyors, fire)"
+      ]
+    },
+    {
+      "name": "4.2 Dynamic Camera System",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase4_0"],
+      "notes": "Implement a dynamic camera that tracks all players and zooms to keep everyone visible. Use smooth interpolation.",
+      "tasks": [
+        "Compute bounding box of all alive players",
+        "Smooth camera movement and zoom",
+        "Clamp to arena boundaries",
+        "Add camera shake on impactful hits"
+      ]
+    },
+    {
+      "name": "4.3 Environmental Storytelling",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase4_0"],
+      "notes": "Add background details, parallax layers, and ambient animations to bring each arena to life.",
+      "tasks": [
+        "Parallax scrolling backgrounds",
+        "Particle effects (steam, sparks, leaves)",
+        "Crowd or animal ambient animations"
+      ]
+    }
+  ]
+}

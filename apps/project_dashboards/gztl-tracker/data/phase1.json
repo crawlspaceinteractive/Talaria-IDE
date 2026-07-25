@@ -1,0 +1,105 @@
+{
+  "id": "phase1",
+  "icon": "🔩",
+  "title": "Phase 1 – Core Translation Layer",
+  "systems": [
+    {
+      "name": "1.1 Lump Routing & Parsing",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Discover lumps from PK3, directory, and WAD sources. Route them to the correct parser based on namespace and priority order (MAPINFO before DECORATE, etc.).",
+      "tasks": [
+        "Scan PK3 / directory / WAD and collect all lump names",
+        "Priority-ordered parsing: MAPINFO, SNDINFO, etc.",
+        "Handle WAD namespace subdirectories (maps/, sprites/, etc.)",
+        "Support nested PK3 loading within PK3s"
+      ]
+    },
+    {
+      "name": "1.2 DeHackEd / BEX Translation",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_0"],
+      "notes": "Parse DeHackEd and BEX patches. Apply runtime table patches to entity directory, frame table, cheats, etc.",
+      "tasks": [
+        "Parse DEHACKED lump as text (or BEX format)",
+        "Patch entity properties (health, speed, flags)",
+        "Modify frame table (sprite, duration, next frame, codepointer)",
+        "Apply cheat, ammo, and misc patches"
+      ]
+    },
+    {
+      "name": "1.3 MAPINFO / ZMAPINFO Parser",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_0"],
+      "notes": "Translate map metadata: map name, music, sky, par time, episode flow, cluster definitions.",
+      "tasks": [
+        "Parse MAPINFO / ZMAPINFO lumps",
+        "Set map metadata (level name, next map, secret map)",
+        "Assign music, sky textures, and par times",
+        "Define episode / hub structures"
+      ]
+    },
+    {
+      "name": "1.4 SNDINFO / ANIMDEFS / TERRAIN / LOCKDEFS",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_0"],
+      "notes": "Parse sound aliases, animated flats/textures, footstep terrain definitions, and key lock definitions.",
+      "tasks": [
+        "Parse SNDINFO – sound aliases and random sounds",
+        "Parse ANIMDEFS – animated textures and switches",
+        "Parse TERRAIN – footstep sound assignments",
+        "Parse LOCKDEFS – key definitions and lock types"
+      ]
+    },
+    {
+      "name": "1.5 ACS Load & Execution",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase1_0"],
+      "notes": "Load BEHAVIOR bytecode, run OPEN scripts, handle line-triggered scripts, implement TagWait and PolyWait. Requires native GDExtension VM.",
+      "tasks": [
+        "Load BEHAVIOR lump as raw bytecode (binary, not string)",
+        "Start OPEN scripts on map load",
+        "Execute line-triggered scripts via specials 80/82",
+        "Implement TagWait / PolyWait suspension and resumption",
+        "Notify sector tag completion when doors/floors/lifts finish"
+      ]
+    },
+    {
+      "name": "1.6 GPU Actor Tic & Codepointer Fallback",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase1_1"],
+      "notes": "Run actor state ticks at 35 Hz. Use GPU compute shaders for performance; fall back to CPU codepointers when necessary.",
+      "tasks": [
+        "Implement GPU-based actor frame tick at 35 Hz",
+        "CPU codepointer fallback for unsupported actions",
+        "Synchronise actor state with Godot scene tree",
+        "Handle state jumps, loops, and stops"
+      ]
+    },
+    {
+      "name": "1.7 Line Special Round-Trip",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_4"],
+      "notes": "Ensure line specials invoked by ACS (e.g., Door_Open) correctly call LevelBuilder functions and that sector tag completions are reported back.",
+      "tasks": [
+        "Route line specials 80/81/82/226/228 to ACS VM",
+        "Map ACS special numbers to LevelBuilder functions",
+        "Automatically notify TagWait when sector action completes"
+      ]
+    }
+  ]
+}

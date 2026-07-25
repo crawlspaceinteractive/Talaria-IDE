@@ -1,0 +1,51 @@
+{
+  "id": "phase3",
+  "icon": "🎨",
+  "title": "Phase 3 – Texturing & UV Mastery",
+  "systems": [
+    {
+      "name": "3.1 Painting Textures in Blockbench",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 2,
+      "dependencies": ["phase2_0"],
+      "notes": "Use the built‑in paint tool to create pixel‑art textures directly on your model.",
+      "tasks": [
+        "Create a new texture for a model",
+        "Paint faces using the fill, brush, and shape tools",
+        "Use layers to organise your painting",
+        "Export the texture as a PNG"
+      ]
+    },
+    {
+      "name": "3.2 External Image Editing",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1,
+      "dependencies": ["phase3_0"],
+      "notes": "Work with Photoshop / GIMP / Aseprite alongside Blockbench.",
+      "tasks": [
+        "Export UV template from Blockbench",
+        "Paint the texture in an external editor",
+        "Re‑import the texture and see the updates",
+        {
+          "text": "Tutorial: external texturing workflow",
+          "link": "https://www.blockbench.net/wiki/tutorials/#texturing"
+        }
+      ]
+    },
+    {
+      "name": "3.3 Advanced UV Techniques",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 1.5,
+      "dependencies": ["phase3_0"],
+      "notes": "Mirror UVs, atlasing, and texture optimisation.",
+      "tasks": [
+        "Mirror one half of a symmetrical model",
+        "Pack multiple UV islands onto one texture sheet",
+        "Use the Auto‑UV tools for complex shapes"
+      ]
+    }
+  ]
+}

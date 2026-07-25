@@ -1,0 +1,62 @@
+{
+  "id": "phase1",
+  "icon": "👊",
+  "title": "Phase 1 – Core Combat & Character Feel",
+  "systems": [
+    {
+      "name": "1.1 Punch / Kick / Jump Combo System",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Refine combo chains, hitstop, pushback, and input buffering. Implement basic juggle and groundbounce for advanced combos.",
+      "tasks": [
+        "Polish punch → punch → kick → super chain timing",
+        "Add hitstop (brief freeze on impact) and screen shake",
+        "Implement juggle states and air recovery",
+        "Input buffer window for special moves (QCF, HCF, etc.)"
+      ]
+    },
+    {
+      "name": "1.2 Enemy AI & Wave Spawning",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "AI needs to surround player, take turns attacking, and use special moves. Wave composition should scale with player count.",
+      "tasks": [
+        "Basic approach / surround behaviour",
+        "Attack staggering (one enemy at a time)",
+        "Enemy special attacks (dash, throw, projectile)",
+        "Dynamic wave composition based on player skill / count"
+      ]
+    },
+    {
+      "name": "1.3 Collision & Hitbox Polish",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "Accurate hurtboxes and hitboxes for all characters and enemies. Use multiple boxes per frame (attack, body, grab).",
+      "tasks": [
+        "Per-frame hitbox data for all characters",
+        "Hitbox visualization debug toggle",
+        "Grab and throw detection"
+      ]
+    },
+    {
+      "name": "1.4 Grabs & Throws",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_2"],
+      "notes": "Implement SoR-style grappling: walk-up grab, pummel, throw forward/backward, team throw synergy.",
+      "tasks": [
+        "Grab initiation and escape mechanic",
+        "Pummel damage while grabbed",
+        "Forward/backward throw animations",
+        "Throw into other enemies for chain damage"
+      ]
+    }
+  ]
+}

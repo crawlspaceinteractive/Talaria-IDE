@@ -1,0 +1,75 @@
+{
+  "id": "phase1",
+  "icon": "🔩",
+  "title": "Phase 1 – Solidify the Foundation",
+  "systems": [
+    {
+      "name": "1.1 Host-Authoritative Network Model",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Core networking layer. Must be completed first — all other sync depends on it. Test with high latency and packet loss scenarios.",
+      "tasks": [
+        {
+          "text": "Define message types (BLOCK_PLACE_REQUEST, CHEST_UPDATE, etc.)",
+          "priority": "high",
+          "notes": "Use a shared enum accessible by both host and client code."
+        },
+        {
+          "text": "Host validates placement (distance, inventory, permissions)",
+          "priority": "high",
+          "notes": "Reject invalid placements silently; log for debugging."
+        },
+        "Broadcast confirmed state to all clients",
+        "Client reconciliation (apply confirmed block changes)",
+        {
+          "text": "Optional: client-side prediction with rollback",
+          "priority": "low",
+          "notes": "Improves feel but adds complexity. Defer if time is tight."
+        }
+      ]
+    },
+    {
+      "name": "1.2 Chest Inventory Synchronisation",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Depends on the basic message pipeline from 1.1. Chests need unique IDs and a locking mechanism to prevent conflicts.",
+      "tasks": [
+        "Assign unique chest IDs (coordinate + GUID)",
+        "Open request → host sends full inventory",
+        "Item move deltas validated by host & broadcast",
+        "Save chest data in chunk storage (containers object)"
+      ]
+    },
+    {
+      "name": "1.3 Custom Model Loading & Instantiation",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "Only needs block placement sync (1.1) to work. Use Star Asset SDK for platform consistency; fallback to GLTFLoader for local testing.",
+      "tasks": [
+        "Preload .glb models (Star Assets or GLTFLoader)",
+        "Cache & clone on block placement",
+        "Ensure shadows & lit materials work with dynamic weather",
+        "All clients instantiate model on confirmed block sync"
+      ]
+    },
+    {
+      "name": "1.4 Persistence Layer",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase1_1"],
+      "notes": "Start with IndexedDB for larger storage capacity. Keep save format extensible (versioned) for future phases.",
+      "tasks": [
+        "Save/load world chunks + chest data (IndexedDB/LocalStorage)",
+        "Persist camp tier, Tub upgrades, Grub loyalty, blueprints",
+        "Host save triggers periodic; clients can snapshot"
+      ]
+    }
+  ]
+}

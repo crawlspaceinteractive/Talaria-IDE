@@ -1,0 +1,49 @@
+{
+  "id": "phase2",
+  "icon": "🏰",
+  "title": "Phase 2 – Procedural Dungeons & World Depth",
+  "systems": [
+    {
+      "name": "2.1 Dungeon Tileset Generator",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": [],
+      "notes": "Replace flat overworld with multi‑level dungeon generation. Use BSP or room‑corridor placement for tight Diablo‑1 catacombs, caves, and hell levels.",
+      "tasks": [
+        "Implement BSP dungeon layout generator",
+        "Dungeon theme tilesets (cathedral, caves, hell)",
+        "Doors, gates, and destructible walls",
+        "Lighting per tile (darkness, torch light radius)"
+      ]
+    },
+    {
+      "name": "2.2 Town Hub & NPCs",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_0"],
+      "notes": "Create a Tristram‑style hub town with procedural buildings, NPC vendors, and quest givers. Town is safe zone with stashes and healer.",
+      "tasks": [
+        "Town layout with fixed buildings and procedural homes",
+        "Vendor NPCs (blacksmith, potion seller, gambler)",
+        "Shared stash chest for account storage",
+        "Healer that fully restores HP/mana for gold"
+      ]
+    },
+    {
+      "name": "2.3 Quest System & Story",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_1"],
+      "notes": "Add randomized quests from NPCs: kill unique monster, rescue NPC, fetch item. Quest rewards grant permanent character bonuses or unique loot.",
+      "tasks": [
+        "Quest journal UI",
+        "Random quest pool per dungeon run",
+        "Unique boss spawns for quest targets",
+        "Act progression (Cathedral → Catacombs → Caves → Hell)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "💾",
+  "title": "Phase 5 – Menus & Save System",
+  "systems": [
+    {
+      "name": "5.1 Main Menu & Title",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Atmospheric title screen with eerie music. New Game, Load Game, Options. Typewriter‑style save slots.",
+      "tasks": [
+        "Title screen with animated fog / candle",
+        "Menu navigation (keyboard/controller)",
+        "Options: audio, controls, brightness"
+      ]
+    },
+    {
+      "name": "5.2 Save / Load System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase2_0", "phase3_0"],
+      "notes": "Save points (typewriter or safe room). Save state includes player health, inventory, room states, and enemy positions.",
+      "tasks": [
+        "Serialize game state to JSON",
+        "Save to localStorage (or file download)",
+        "Multiple save slots",
+        "Autosave on room entry (optional, hardcore mode)"
+      ]
+    },
+    {
+      "name": "5.3 In‑Game Pause & Map",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 6,
+      "dependencies": ["phase5_0"],
+      "notes": "Pause overlay with inventory, file, map. Map shows explored rooms and player location.",
+      "tasks": [
+        "Pause menu (resume, inventory, map, quit)",
+        "Room map (grid‑based, fog of war)",
+        "Current location indicator"
+      ]
+    }
+  ]
+}

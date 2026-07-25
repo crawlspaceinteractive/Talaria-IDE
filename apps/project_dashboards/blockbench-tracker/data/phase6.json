@@ -1,0 +1,37 @@
+{
+  "id": "phase6",
+  "icon": "🔌",
+  "title": "Phase 6 – Plugins & Scripting",
+  "systems": [
+    {
+      "name": "6.1 Essential Plugins",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 1,
+      "dependencies": [],
+      "notes": "Install and use community plugins to speed up your workflow.",
+      "tasks": [
+        "Install the 'Minecraft Entity Wizard' plugin",
+        "Install 'Auto Model' for procedural generation",
+        "Explore the plugin repository and pick two more"
+      ]
+    },
+    {
+      "name": "6.2 JavaScript Scripting",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 3,
+      "dependencies": ["phase6_0"],
+      "notes": "Write your own simple plugin using Blockbench’s JavaScript API.",
+      "tasks": [
+        {
+          "text": "Watch the plugin development tutorial",
+          "link": "https://www.blockbench.net/wiki/api/"
+        },
+        "Create a plugin that adds a custom menu item",
+        "Manipulate selected elements from script",
+        "Bundle your plugin and share it"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "id": "phase10",
+  "icon": "🦾",
+  "title": "Phase 10 – Dreadnaught Construction & Multi‑Crew Gameplay",
+  "systems": [
+    {
+      "name": "10.1 Dreadnaught Assembly at Camp",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase4_1", "phase4_2", "phase9_2"],
+      "notes": "Use Tub's forge to combine recovered components. Requires scaffolding first: build a dreadnaught hangar via Bub. Assembly stages visible in world.",
+      "tasks": [
+        "Add hangar camp expansion option (Bub)",
+        "Implement dreadnaught assembly recipe (multiple stages)",
+        "Show partially built dreadnaught in hangar",
+        "Require specific components from dungeons"
+      ]
+    },
+    {
+      "name": "10.2 Two‑Player Crew Roles (Pilot & Engineer)",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 25,
+      "dependencies": ["phase8_3", "phase5_0"],
+      "notes": "Pilot (movement, colossal drill, primary weapons). Engineer (boiler management, repair, shield modulation). Grub can fill Engineer seat at reduced efficiency.",
+      "tasks": [
+        "Implement dual input mapping for dreadnaught",
+        "Create Engineer UI (boiler pressure, heat, damage readouts)",
+        "AI Grub engineer behavior (repair priority, fuel management)",
+        "Sync both roles across multiplayer"
+      ]
+    },
+    {
+      "name": "10.3 Kaiju‑Scale Movement & Terrain Impact",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase10_0", "phase1_0"],
+      "notes": "Slow but massive: 7×7 tunnel bore, flatten hills, wade through lava. Camera zooms out. Fuel consumption scales with actions; requires supply caravans from camp.",
+      "tasks": [
+        "Implement 7×7 drill area destruction",
+        "Terrain flattening on movement",
+        "Lava immunity while in dreadnaught",
+        "Fuel consumption model (actions + distance)",
+        "Camera zoom out and smooth follow"
+      ]
+    },
+    {
+      "name": "10.4 Dreadnaught Upgrade Modules",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 14,
+      "dependencies": ["phase10_0", "phase9_2"],
+      "notes": "Ancient‑tier module slots unique to dreadnaughts. Find in Ghost King dungeons. Include seismic stomp, void drill, emergency reactor purge.",
+      "tasks": [
+        "Design upgrade module data (stats, effects, visuals)",
+        "Implement module slot UI for dreadnaught",
+        "Add unique abilities: stomp, void drill, purge",
+        "Balance module costs and rarity"
+      ]
+    }
+  ]
+}

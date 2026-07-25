@@ -1,0 +1,47 @@
+{
+  "id": "phase2",
+  "icon": "🎨",
+  "title": "Phase 2 – Texture & Palette Handling",
+  "systems": [
+    {
+      "name": "2.1 ART & Palette Loading",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Witchaven/TekWar use .ART tiles with custom palettes (PALETTE.DAT). Ensure the tool can load these and correctly render textures in the preview. Provide batch loading for all game ART files.",
+      "tasks": [
+        "Support loading multiple ART files and merging tile sets",
+        "Correctly apply Witchaven's palette (256 colors) to all tiles",
+        "Add palette auto-detection from game directory"
+      ]
+    },
+    {
+      "name": "2.2 Texture Remapping to Doom Names",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0"],
+      "notes": "Build picnums must be mapped to human-readable texture names in UDMF. Create default mapping tables for Witchaven textures and allow user overrides via the remapper UI.",
+      "tasks": [
+        "Generate default TILE0000–TILEXXXX names",
+        "Create remapping presets for Witchaven 1/2 and TekWar",
+        "Load and use external WAD texture definitions for Doom equivalents",
+        "Save/Load remap tables from file"
+      ]
+    },
+    {
+      "name": "2.3 Visual Preview with Textures",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase2_0"],
+      "notes": "The preview canvas already draws floor polygons with tile images. Extend to wall textures (or at least correct palette) and sprite rendering with correct rotations.",
+      "tasks": [
+        "Draw wall textures on 2D top-down view as lines or filled polygons",
+        "Ensure sprite images use correct ART tiles and are not stretched",
+        "Add palette cycling preview if needed"
+      ]
+    }
+  ]
+}

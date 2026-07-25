@@ -1,0 +1,61 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Testing, Balancing & Release",
+  "systems": [
+    {
+      "name": "7.1 Playtesting & Balance",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["all"],
+      "notes": "Internal and external playtesting. Tune enemy HP, damage, drop rates, co‑op scaling. Ensure all difficulty modes are fair.",
+      "tasks": [
+        "Recruit playtesters (friends, online community)",
+        "Collect feedback on combat feel, progression pace",
+        "Adjust weapon and horn power balance",
+        "Ensure Story Mode is forgiving, Mythical is challenging"
+      ]
+    },
+    {
+      "name": "7.2 Bug Fixing & QA",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase7_0"],
+      "notes": "Fix all known bugs: collision, save corruption, co‑op desyncs, UI glitches.",
+      "tasks": [
+        "Create bug tracker and prioritise issues",
+        "Regression testing after fixes",
+        "Test all controller types and keyboard layouts"
+      ]
+    },
+    {
+      "name": "7.3 Packaging & Distribution",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Prepare game for release on itch.io, possibly Steam. Create store page, trailer, press kit.",
+      "tasks": [
+        "Export final build (Windows, Mac, Linux, Web?)",
+        "Create gameplay trailer",
+        "Set up itch.io page with screenshots",
+        "Write press release and community announcement"
+      ]
+    },
+    {
+      "name": "7.4 Post‑Launch Support",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": "ongoing",
+      "dependencies": ["phase7_2"],
+      "notes": "Plan for seasonal events, new cosmetics, enemy variants, and community feedback.",
+      "tasks": [
+        "Monitor bug reports post‑launch",
+        "Plan content roadmap (seasonal updates)",
+        "Engage with player community on Discord"
+      ]
+    }
+  ]
+}

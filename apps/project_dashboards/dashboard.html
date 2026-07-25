@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Dashboards – Win95 Tracker Overview</title>
+<style>
+  /* Windows 95 System Font */
+  body {
+    background: #008080;
+    font-family: 'Microsoft Sans Serif', 'MS Sans Serif', sans-serif;
+    font-size: 11px;
+    color: #000;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Desktop area */
+  .desktop {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* Main window */
+  .window {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    width: 100%;
+    max-width: 1100px;
+    box-shadow: 1px 1px 0 0 #000;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Title bar */
+  .title-bar {
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: #fff;
+    font-weight: bold;
+    padding: 3px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    user-select: none;
+  }
+  .title-bar .icon {
+    font-size: 16px;
+  }
+  .title-bar .buttons {
+    display: flex;
+    gap: 2px;
+  }
+  .title-bar .buttons button {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'Microsoft Sans Serif', sans-serif;
+    color: #000;
+  }
+  .title-bar .buttons button:active {
+    border-color: #808080 #fff #fff #808080;
+    background: #a0a0a0;
+  }
+
+  /* Menu bar */
+  .menu-bar {
+    background: #c0c0c0;
+    border-bottom: 1px solid #808080;
+    padding: 2px 4px;
+    font-size: 11px;
+    display: flex;
+    gap: 4px;
+  }
+  .menu-bar span {
+    padding: 2px 6px;
+    cursor: default;
+  }
+  .menu-bar span:hover {
+    background: #000080;
+    color: #fff;
+  }
+
+  /* Content area */
+  .content {
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  /* Project card – looks like a Win95 group box */
+  .card {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    padding: 10px;
+    box-shadow: 1px 1px 0 0 #000;
+    cursor: pointer;
+    transition: 0.1s;
+  }
+  .card:active {
+    border-color: #808080 #fff #fff #808080;
+    box-shadow: none;
+    transform: translate(1px, 1px);
+  }
+  .card-title {
+    font-weight: bold;
+    font-size: 12px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .card-bar {
+    background: #fff;
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    height: 14px;
+    margin: 6px 0;
+    overflow: hidden;
+  }
+  .card-fill {
+    background: #000080;
+    height: 100%;
+    width: 0%;
+    transition: width 0.4s;
+  }
+  .card-meta {
+    font-size: 11px;
+    color: #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .card-link {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    padding: 2px 6px;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: none;
+    color: #000;
+    font-family: 'Microsoft Sans Serif', sans-serif;
+  }
+  .card-link:active {
+    border-color: #808080 #fff #fff #808080;
+  }
+  .error {
+    color: #800000;
+  }
+
+  /* Status bar */
+  .status-bar {
+    border-top: 1px solid #808080;
+    padding: 3px 6px;
+    background: #c0c0c0;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #000;
+  }
+
+  /* Taskbar */
+  .taskbar {
+    background: #c0c0c0;
+    border-top: 2px solid #fff;
+    padding: 4px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    box-shadow: 0 -1px 0 #808080;
+  }
+  .start-button {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    padding: 2px 10px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: 'Microsoft Sans Serif', sans-serif;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .start-button:active {
+    border-color: #808080 #fff #fff #808080;
+  }
+  .taskbar-time {
+    border: 2px solid;
+    border-color: #808080 #fff #fff #808080;
+    padding: 2px 8px;
+    background: #c0c0c0;
+  }
+
+  /* Overlay window */
+  #overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  #overlay.active {
+    display: flex;
+  }
+  .overlay-window {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    width: 90%;
+    max-width: 1100px;
+    box-shadow: 2px 2px 8px #000;
+    display: flex;
+    flex-direction: column;
+  }
+  .overlay-title-bar {
+    background: linear-gradient(90deg, #000080, #1084d0);
+    color: #fff;
+    font-weight: bold;
+    padding: 3px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    user-select: none;
+  }
+  .overlay-title-bar .buttons button {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    font-family: 'Microsoft Sans Serif', sans-serif;
+  }
+  .overlay-title-bar .buttons button:active {
+    border-color: #808080 #fff #fff #808080;
+    background: #a0a0a0;
+  }
+  #tracker-iframe {
+    width: 100%;
+    height: 80vh;
+    border: none;
+    background: #fff;
+  }
+
+  /* Miscellaneous */
+  .refresh-btn {
+    background: #c0c0c0;
+    border: 2px solid;
+    border-color: #fff #808080 #808080 #fff;
+    padding: 4px 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    font-family: 'Microsoft Sans Serif', sans-serif;
+    font-size: 11px;
+  }
+  .refresh-btn:active {
+    border-color: #808080 #fff #fff #808080;
+  }
+</style>
+</head>
+<body>
+<div class="desktop">
+  <div class="window">
+    <div class="title-bar">
+      <span class="icon">📊</span>
+      <span>Project Dashboards</span>
+      <div class="buttons">
+        <button>🗕</button>
+        <button>🗖</button>
+        <button onclick="window.close()">✕</button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <span>File</span>
+      <span>View</span>
+      <span>Help</span>
+    </div>
+    <div class="content" id="grid"></div>
+    <div class="status-bar">
+      <span id="status-text">Ready</span>
+      <span>Windows 95</span>
+    </div>
+  </div>
+</div>
+
+<!-- Taskbar -->
+<div class="taskbar">
+  <div class="start-button" onclick="location.reload()">
+    🏁 Start
+  </div>
+  <div class="taskbar-time" id="clock"></div>
+</div>
+
+<!-- Overlay -->
+<div id="overlay">
+  <div class="overlay-window">
+    <div class="overlay-title-bar">
+      <span id="overlay-title"></span>
+      <div class="buttons">
+        <button onclick="closeOverlay()">✕</button>
+      </div>
+    </div>
+    <iframe id="tracker-iframe" src=""></iframe>
+  </div>
+</div>
+
+<script>
+// ---------- Project registry ----------
+const PROJECTS = [
+  { name: "APEX THEORY",         folder: "apex-tracker",         key: "apex_roadmap",        icon: "🏁" },
+  { name: "Beat 'Em Up Engine",  folder: "bmup-tracker",         key: "bmup_roadmap",        icon: "🥊" },
+  { name: "Brawl.io",            folder: "brawl-tracker",        key: "brawl_roadmap",       icon: "💥" },
+  { name: "Computerror",         folder: "computerror-tracker",  key: "computerror_roadmap", icon: "💾" },
+  { name: "Cryptic Prophecy",    folder: "cryptic-tracker",      key: "cryptic_roadmap",     icon: "🕯️" },
+  { name: "Deepsmoke Star",      folder: "deepsmoke-tracker",   key: "deepsmoke_roadmap",   icon: "⛏️" },
+  { name: "froyo-engine",        folder: "froyo-tracker",        key: "froyo_roadmap",       icon: "🍧" },
+  { name: "Forge Maps",                folder: "forge-maps-tracker",         key: "forge-maps_roadmap",        icon: "M" },
+  { name: "gameofdeath",         folder: "gameofdeath-tracker",      key:"gameofdeath_roadmap",      icon: "X"},
+  { name: "GOON",                folder: "goon-tracker",         key: "goon_roadmap",        icon: "💀" },
+  { name: "GZTL",                folder: "gztl-tracker",         key: "gztl_roadmap",        icon: "⚙️" },
+  { name: "LOCNAR",              folder: "locnar-tracker",       key: "locnar_roadmap",      icon: "💀" },
+  { name: "Luminescence [release]",        folder: "luminescence-tracker",    key: "luminescence_roadmap",   icon: "🦄" },
+  { name: "Mimic's Toll'",        folder: "mimicstoll-tracker",    key: "mimicstoll_roadmap",   icon: "U" },
+  { name: "PixelRealm MMO",      folder: "pixelrealm-tracker",   key: "pixelrealm_roadmap",  icon: "⚔️" },
+  { name: "SIXPAC",              folder: "sixpac-tracker",       key: "sixpac_roadmap",      icon: "🚀" },
+  { name: "UNREALITY.TV",        folder: "unreality-tracker",    key: "unreality_roadmap",   icon: "📡" },
+  { name: "Witchaven & TekWar → UDMF", folder: "wh-tekwar-tracker", key: "wh_tekwar_roadmap", icon: "🏰" }
+];
+
+async function loadProject(proj) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="card-title">${proj.icon} ${proj.name}</div>
+    <div class="card-bar"><div class="card-fill" id="fill-${proj.key}"></div></div>
+    <div class="card-meta">
+      <span class="error" id="status-${proj.key}">Loading…</span>
+      <span class="card-link" onclick="event.stopPropagation(); openTracker('${proj.name}', '${proj.folder}')">Open</span>
+    </div>`;
+  card.addEventListener('click', () => openTracker(proj.name, proj.folder));
+  return card;
+}
+
+async function fetchTotalTasks(proj) {
+  try {
+    const manifestResp = await fetch(`./${proj.folder}/data/phases.json`);
+    if (!manifestResp.ok) throw new Error('Manifest not found');
+    const manifest = await manifestResp.json();
+    let total = 0;
+    for (const filename of manifest) {
+      const phaseResp = await fetch(`./${proj.folder}/data/${filename}`);
+      if (!phaseResp.ok) continue;
+      const phase = await phaseResp.json();
+      if (phase.systems) {
+        for (const sys of phase.systems) {
+          if (sys.tasks) total += sys.tasks.length;
+        }
+      }
+    }
+    return total;
+  } catch (e) {
+    console.warn(`Failed to fetch tasks for ${proj.name}:`, e);
+    return -1;
+  }
+}
+
+function getCompletedCount(storageKey) {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return 0;
+    const state = JSON.parse(raw);
+    let count = 0;
+    for (const [k, v] of Object.entries(state)) {
+      if (k === 'images' || k === 'openPhases') continue;
+      if (v === true) count++;
+    }
+    return count;
+  } catch (e) {
+    return 0;
+  }
+}
+
+async function loadAll() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  document.getElementById('status-text').textContent = 'Loading projects…';
+
+  for (const proj of PROJECTS) {
+    const card = await loadProject(proj);
+    grid.appendChild(card);
+
+    const fillEl = document.getElementById(`fill-${proj.key}`);
+    const statusEl = document.getElementById(`status-${proj.key}`);
+
+    const total = await fetchTotalTasks(proj);
+    const completed = getCompletedCount(proj.key);
+
+    if (total <= 0) {
+      statusEl.textContent = 'Could not read tasks';
+      fillEl.style.width = '0%';
+      continue;
+    }
+
+    const pct = Math.round((completed / total) * 100);
+    fillEl.style.width = pct + '%';
+    statusEl.textContent = `${completed}/${total} tasks · ${pct}% complete`;
+    statusEl.className = '';
+  }
+
+  document.getElementById('status-text').textContent = `${PROJECTS.length} projects loaded`;
+}
+
+// ---------- Overlay handling ----------
+function openTracker(name, folder) {
+  document.getElementById('overlay-title').textContent = name;
+  document.getElementById('tracker-iframe').src = `./${folder}/index.html`;
+  document.getElementById('overlay').classList.add('active');
+}
+
+function closeOverlay() {
+  document.getElementById('overlay').classList.remove('active');
+  document.getElementById('tracker-iframe').src = '';
+}
+
+// ---------- Taskbar clock ----------
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Initial load
+loadAll();
+</script>
+</body>
+</html>

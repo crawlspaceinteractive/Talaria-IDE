@@ -1,0 +1,60 @@
+{
+  "id": "phase7",
+  "icon": "🚀",
+  "title": "Phase 7 – Content & Release",
+  "systems": [
+    {
+      "name": "7.1 Map & Environment Variety",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Add multiple arenas with different layouts and themes: industrial, sewers, rooftop, laboratory. Use procedural generation or hand‑crafted layouts.",
+      "tasks": [
+        "Create 4 distinct arena tilesets with matching DataTextures",
+        "Implement hazard zones (lava, electric floor, crusher)",
+        "Add dynamic arena events (collapsing pillars, rising platforms)"
+      ]
+    },
+    {
+      "name": "7.2 Enemy & Weapon Roster Expansion",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": ["phase2_0"],
+      "notes": "Increase variety to 8+ enemy types and 10+ weapons, each with unique behaviour and visual identity.",
+      "tasks": [
+        "Design and model 4 new enemy types (brute, spectre, turret, summoner)",
+        "Add 3 new weapons (flamethrower, crossbow, tesla gun)",
+        "Create unique weapon models using procedural geometry"
+      ]
+    },
+    {
+      "name": "7.3 Distribution & Community",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Package the game for itch.io and GitHub Pages. Create a trailer and promote on social media.",
+      "tasks": [
+        "Generate offline HTML build with inlined assets",
+        "Deploy to itch.io and set up a custom domain",
+        "Create a 60‑second gameplay trailer",
+        "Set up Discord server for community feedback"
+      ]
+    },
+    {
+      "name": "7.4 Post‑Launch Updates",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": "ongoing",
+      "dependencies": ["phase7_2"],
+      "notes": "Plan seasonal events, new game modes (survival, capture the flag), and user‑created map support.",
+      "tasks": [
+        "Seasonal leaderboard resets with unique rewards",
+        "Map editor (simple JSON format)",
+        "Steam Workshop integration (if possible)"
+      ]
+    }
+  ]
+}

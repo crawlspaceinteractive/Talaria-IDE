@@ -1,0 +1,106 @@
+🛤️ Deepsmoke Star – Updated Roadmap (Post‑v14c)
+🔩 Phase 1 – Co‑op Foundation (IN PROGRESS)
+
+    Host‑authoritative block placement & chest inventory sync (coop.js handlers).
+
+    Full multiplayer reconciliation for placed custom models.
+
+    Chest state broadcasting for late‑join players.
+
+    Currently the top priority. Once this lands, co‑op digging is truly shared.
+
+⚙️ Phase 2 – The World Fights Back (Not Started)
+
+    Stalactite falls – crack, rumble, damage (drop‑shadow readability).
+
+    Lava flows & steam vents – dynamic, spreading, tied to steam economy.
+
+    Cave‑ins – structural failure when supports are removed.
+
+    Dart traps & ancient machinery – hidden in ruins.
+
+    Fossil & coal seams – mineable, used for suit upgrades and lore.
+
+    Sound cues for every hazard (Star Audio SDK).
+
+🚂 Phase 3 – Advanced Rail Logistics (Partially Done)
+
+    Basic track placement (2D billboarded rails with drop shadows).
+
+    Steam‑hauler dispatch with route‑length‑based ETA.
+
+    Craftable hauler_track and steam_hauler.
+
+    Switches, junctions, and signalling.
+
+    Multiple carts, train schedules, and automated camp deliveries.
+
+    Player‑driven manual trains (optional).
+
+🧰 Phase 4 – Camp, Upgrades & Streamlined Crafting (Partially Done)
+
+    Camp tiers, Bub/Tub/Grub NPCs, basic inventory/chests.
+
+    Crafting of hauler, tracks, and basic items.
+
+    Tub’s module‑slot upgrade system (drill speed, fuel, armour, light, Grub recall).
+
+    Grub loyalty path (faster, carries more, airdrops).
+
+    Camp expansion UI via Bub (Titan Hangar, scanning table, etc.).
+
+    Complete removal of grid‑based crafting; everything through Tub’s forge and world interactions.
+
+🤝 Phase 5 – True Cooperative Mechanics (Not Started)
+
+    Throwable resource cans (aim, share fuel/ore mid‑dig).
+
+    Revive & drag downed teammate (Grub can also do it).
+
+    Shared camp inventory & resource banking (already partially synced).
+
+    Optional partner‑specific abilities (hazard sensing, stronger drill).
+
+🎈 Phase 6 – The Skies (Partially Done)
+
+    Floating island biome generation.
+
+    Dynamic sky systems (voxel clouds, weather, day/night).
+
+    Craftable hot‑air balloons (anchored at camp/outposts).
+
+    Wind‑based navigation tied to weather.
+
+    Balloon‑to‑balloon tethering & cooperative steering.
+
+👻 Phase 7 – Ghost Kings & Puzzle Vaults (Not Started)
+
+    Ancient sky‑castle structures already generate; populate with spectral goblin kings.
+
+    Quest dialogues (retrieve lost drill core, purify corrupted geode, re‑forge Crown Gear).
+
+    Unique upgrade plans as quest rewards.
+
+    Puzzle bosses: Crystal Heart, Furnace Bellows, Mirror Maze (environmental trials, no combat).
+
+    Two‑player required for some; solo scaling warning.
+
+    High‑tier materials, crown pieces, and permanent buffs as rewards.
+
+    Ghost kings reveal lore of the ancient goblin civilisation and hint at buried titans.
+
+⚙️ Phase 8 – Titans in the Dirt (Not Started)
+
+    Ancient Goblin Lexicon obtained from a Ghost King quest.
+
+    Bub’s scanning table locates colossal buried mechs in extreme biomes.
+
+    Co‑op excavation puzzle‑hazard events (unstable struts, fuel leaks, guardian automatons).
+
+    Restoration at camp via Tub: multiple build projects (limbs, boiler, drill‑arm, cockpit).
+
+    Piloting: two‑player vehicle (Pilot + Engineer) – terrain‑shaper, not combat.
+
+    Endgame biomes (Vaults of the Ancients) unlocked by titan.
+
+    Miniaturised titan‑tech modules for personal drill suits.

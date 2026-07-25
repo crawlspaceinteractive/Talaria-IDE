@@ -1,0 +1,49 @@
+{
+  "id": "phase9",
+  "icon": "🗝️",
+  "title": "Phase 9 – Ancient Goblin City Key & Ghost King Questline",
+  "systems": [
+    {
+      "name": "9.1 Key Fragment System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": ["phase7_0"],
+      "notes": "Fragments drop from sky-castle puzzles, boss caves, and deep ore veins. Three fragments assemble the City Key. Each fragment adds new dialogue with the Ghost King.",
+      "tasks": [
+        "Implement fragment drop logic (weighted per activity)",
+        "Create City Key assembly recipe at Tub's forge",
+        "Track fragment ownership per world (shared co-op)",
+        "Unlock new Ghost King dialogue branches per fragment"
+      ]
+    },
+    {
+      "name": "9.2 Expanded Ghost King Dialogue & Personality",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase7_0", "phase9_0"],
+      "notes": "Tired old uncle dwoblin persona. Offers blueprint coordinates, demands shiny tributes. Dialogue branches based on fragments, boss kills, dreadnaught status.",
+      "tasks": [
+        "Write dialogue tree with context-sensitive branches",
+        "Implement shiny tribute mechanic (rare gem/item gifts)",
+        "Add voice barks (weary, sarcastic tone)",
+        "Tie dialogue to world milestones (first titan, first dreadnaught)"
+      ]
+    },
+    {
+      "name": "9.3 Dungeon Waypoint & Retrieval System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 14,
+      "dependencies": ["phase7_1", "phase6_2"],
+      "notes": "Ghost King marks dungeons on player map; each contains a unique dreadnaught component. Dungeons are multi-room puzzle combat arenas.",
+      "tasks": [
+        "Generate dungeon waypoints on discovery map",
+        "Design dungeon room templates (puzzle + combat)",
+        "Place unique dreadnaught component at dungeon end",
+        "Ensure co-op dungeon completion logic"
+      ]
+    }
+  ]
+}

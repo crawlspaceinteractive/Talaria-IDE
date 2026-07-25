@@ -1,0 +1,96 @@
+{
+  "id": "phase2",
+  "icon": "⚙️",
+  "title": "Phase 2 – The World Fights Back",
+  "systems": [
+    {
+      "name": "2.1 Hazard Trigger System",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": ["phase1_0"],
+      "notes": "Builds on host-authoritative network model from Phase 1. Hazards are seeded from world seed to ensure deterministic generation for all clients. Start with stalactites as proof-of-concept, then layer others.",
+      "tasks": [
+        {
+          "text": "Generic hazard manager (place, activate, cleanup)",
+          "priority": "high",
+          "notes": "Central registry that owns all active hazards; handles lifecycle across chunks."
+        },
+        {
+          "text": "Stalactite falls: ceiling entities, random timer, raycast damage",
+          "priority": "high",
+          "notes": "Drop shadow on ground as warning. Test with multiple players nearby."
+        },
+        {
+          "text": "Lava flows: simplified cellular automaton spreading",
+          "priority": "medium",
+          "notes": "Use a tick-based spread; limit to X blocks per second for performance."
+        },
+        {
+          "text": "Cave-ins: structural integrity check, falling blocks",
+          "priority": "medium",
+          "notes": "Trigger when specific support blocks are removed. Consider a 'stress' map per chunk."
+        },
+        {
+          "text": "Dart traps: pressure plates + hidden dispenser blocks",
+          "priority": "low",
+          "notes": "Reuse existing block placement sync; darts are simple projectiles."
+        },
+        {
+          "text": "Steam vents: periodic eruption, push & heat damage",
+          "priority": "medium",
+          "notes": "Tie into suit overheating later (2.2); visual: particle burst."
+        },
+        {
+          "text": "Multiplayer: host authoritative, hazards seeded with world",
+          "priority": "high",
+          "notes": "Hazard activation events must be deterministic using world seed + time."
+        }
+      ]
+    },
+    {
+      "name": "2.2 Suit Damage & Emergency Mechanics",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_0"],
+      "notes": "Overheating and jamming make drilling tense. Needs network sync for jam state and recovery actions. Works independently but harmonises with hazard damage from 2.1.",
+      "tasks": [
+        "Heat accumulation model (drilling → heat)",
+        {
+          "text": "Suit jam state: player immobile, drill disabled",
+          "priority": "high",
+          "notes": "Visual + audio feedback; gauge redline, steam particles."
+        },
+        {
+          "text": "Unjam: player rapid-interact (wrench) or teammate coolant can",
+          "priority": "high",
+          "notes": "Teammate interaction encourages co-op; Grub can assist later (Phase 4)."
+        },
+        "Steam vent cooldown alternative",
+        {
+          "text": "Visual: gauge redline, steam particles",
+          "priority": "medium"
+        },
+        {
+          "text": "Network sync jam state and recovery",
+          "priority": "high",
+          "notes": "Host manages jam timers; clients show visual effects."
+        }
+      ]
+    },
+    {
+      "name": "2.3 Fossil & Coal Resource Integration",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "New block types and drops. Simple addition; will be used for suit upgrades in Phase 4 and fuel for steam engines later.",
+      "tasks": [
+        "Add fossil/coal blocks to world gen",
+        "Drop items (fossil → bone meal, coal → fuel)",
+        "Integration with Tub's forge later"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Talaria Subsystem // PDF Document Viewer</title>
+    <style>
+        :root {
+            --face: #c0c0c0;
+            --hilite: #ffffff;
+            --shadow: #808080;
+            --dark-shadow: #0a0a0a;
+            --font-stack: "Courier New", Courier, monospace;
+        }
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: var(--font-stack); font-size: 11px;
+            -webkit-font-smoothing: none; font-smooth: never;
+        }
+        body, html { width: 100%; height: 100%; background-color: var(--face); overflow: hidden; display: flex; flex-direction: column; }
+
+        /* ── Toolbar ── */
+        .pdf-control-deck {
+            display: flex; gap: 6px; padding: 4px; background-color: var(--face);
+            border-bottom: 2px solid var(--shadow); align-items: center; flex-shrink: 0;
+            position: relative; z-index: 20;
+        }
+        .btn-deck {
+            background-color: var(--face); border: 2px solid;
+            border-top-color: var(--hilite); border-left-color: var(--hilite);
+            border-right-color: var(--dark-shadow); border-bottom-color: var(--dark-shadow);
+            padding: 2px 6px; font-weight: bold; cursor: default; height: 26px;
+            display: flex; align-items: center; justify-content: center; white-space: nowrap;
+        }
+        .btn-deck:active {
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            padding: 3px 5px 1px 7px;
+        }
+        .btn-deck.active {
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+        }
+        .pdf-filename-bar {
+            flex: 1; height: 24px; font-family: var(--font-stack); background-color: #e0e0e0;
+            border: 2px solid; border-top-color: var(--shadow); border-left-color: var(--shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            padding: 4px 6px; color: #404040; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* ── OCR Dropdown Panel ── */
+        #ocr-panel {
+            position: absolute;
+            top: 100%; /* flush under toolbar */
+            left: 0; right: 0;
+            background-color: var(--face);
+            border-bottom: 2px solid var(--dark-shadow);
+            border-right: 2px solid var(--dark-shadow);
+            border-left: 2px solid var(--hilite);
+            z-index: 19;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.18s ease-out;
+        }
+        #ocr-panel.open { max-height: 420px; }
+
+        .ocr-inner {
+            padding: 8px;
+            border-top: 1px solid var(--shadow);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+
+        /* title bar strip */
+        .ocr-titlebar {
+            background: #000080; color: white;
+            padding: 3px 6px; font-weight: bold; letter-spacing: 0.5px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* progress */
+        #ocr-progress-container {
+            width: 100%; background: #808080; display: none;
+            border: 2px solid;
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+        }
+        #ocr-progress-bar { width: 0%; height: 14px; background: #000080; transition: width 0.2s; }
+
+        #ocr-status { color: #404040; min-height: 14px; }
+
+        /* output textarea */
+        #ocr-output {
+            width: 100%; height: 160px; resize: none;
+            background: #ffffff; color: #000000;
+            border: 2px solid;
+            border-top-color: var(--dark-shadow); border-left-color: var(--dark-shadow);
+            border-right-color: var(--hilite); border-bottom-color: var(--hilite);
+            padding: 4px; font-family: var(--font-stack); font-size: 11px;
+        }
+
+        /* bottom row of buttons */
+        .ocr-btn-row { display: flex; gap: 6px; align-items: center; }
+        .ocr-btn-row .pdf-filename-bar { font-size: 10px; color: #606060; }
+
+        /* viewport */
+        .pdf-viewport-pane { flex: 1; border: none; background-color: #555555; width: 100%; }
+
+        #hidden-pdf-picker { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="pdf-control-deck">
+        <input type="file" id="hidden-pdf-picker" accept="application/pdf">
+
+        <button class="btn-deck" id="pdf-btn-open" style="background-color: #e6b3b3; color: #400000;">OPEN PDF</button>
+        <div class="pdf-filename-bar" id="pdf-file-label">No Document Loaded (Standby...)</div>
+        <button class="btn-deck" id="ocr-toggle-btn" style="background-color: #b3cce6; color: #001a40;">OCR ▾</button>
+
+        <!-- OCR panel anchored inside the toolbar for position:absolute to work -->
+        <div id="ocr-panel">
+            <div class="ocr-titlebar">
+                <span>TALARIA // OCR SUBSYSTEM</span>
+                <span id="ocr-page-counter"></span>
+            </div>
+            <div class="ocr-inner">
+                <div class="ocr-btn-row">
+                    <button class="btn-deck" id="ocr-run-btn">▶ RUN OCR</button>
+                    <button class="btn-deck" id="ocr-copy-btn" style="display:none;">⎘ COPY</button>
+                    <div class="pdf-filename-bar" id="ocr-status">Awaiting document...</div>
+                </div>
+                <div id="ocr-progress-container">
+                    <div id="ocr-progress-bar"></div>
+                </div>
+                <textarea id="ocr-output" readonly placeholder="// OCR output will stream here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <iframe class="pdf-viewport-pane" id="pdf-frame-viewport"></iframe>
+
+    <!-- pdf.js v3 (exposes window.pdfjsLib global) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <script>
+        // ── pdf.js worker (blob trick so it works on localhost / file://) ──
+        const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const workerReady = fetch(PDFJS_WORKER)
+            .then(r => r.blob())
+            .then(b => { pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(b); })
+            .catch(() => { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER; });
+
+        // ── State ──
+        let currentFile = null;
+
+        // ── Elements ──
+        const picker      = document.getElementById('hidden-pdf-picker');
+        const openBtn     = document.getElementById('pdf-btn-open');
+        const label       = document.getElementById('pdf-file-label');
+        const viewport    = document.getElementById('pdf-frame-viewport');
+        const ocrToggle   = document.getElementById('ocr-toggle-btn');
+        const ocrPanel    = document.getElementById('ocr-panel');
+        const ocrRunBtn   = document.getElementById('ocr-run-btn');
+        const ocrCopyBtn  = document.getElementById('ocr-copy-btn');
+        const ocrStatus   = document.getElementById('ocr-status');
+        const ocrProgress = document.getElementById('ocr-progress-container');
+        const ocrBar      = document.getElementById('ocr-progress-bar');
+        const ocrOutput   = document.getElementById('ocr-output');
+        const ocrCounter  = document.getElementById('ocr-page-counter');
+
+        // ── Open PDF ──
+        openBtn.addEventListener('click', () => picker.click());
+
+        picker.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                alert('PDF_ERR: Mounted asset fails standard PDF validation.');
+                return;
+            }
+            currentFile = file;
+            const url = URL.createObjectURL(file);
+            viewport.src = url;
+            label.textContent = `FS://DRIVE/${file.name.toUpperCase()}`;
+            ocrStatus.textContent = 'Document loaded. Ready to run OCR.';
+            ocrOutput.value = '';
+            ocrCopyBtn.style.display = 'none';
+            ocrCounter.textContent = '';
+
+            window.parent.postMessage({ type: 'POST_COMPILED_DATA', appName: 'PDFVIEWER', fileName: file.name }, '*');
+        });
+
+        // ── OCR panel toggle ──
+        ocrToggle.addEventListener('click', () => {
+            const open = ocrPanel.classList.toggle('open');
+            ocrToggle.classList.toggle('active', open);
+            ocrToggle.textContent = open ? 'OCR ▴' : 'OCR ▾';
+        });
+
+        // ── Run OCR ──
+        ocrRunBtn.addEventListener('click', async () => {
+            if (!currentFile) {
+                alert('OCR_ERR: No document mounted. Open a PDF first.');
+                return;
+            }
+
+            ocrRunBtn.disabled = true;
+            ocrCopyBtn.style.display = 'none';
+            ocrOutput.value = '';
+            ocrProgress.style.display = 'block';
+            ocrBar.style.width = '0%';
+            ocrStatus.textContent = 'Initialising...';
+
+            try {
+                await workerReady;
+
+                const buf = await currentFile.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+                ocrCounter.textContent = `[0 / ${pdf.numPages} PG]`;
+
+                ocrStatus.textContent = 'Loading OCR engine...';
+
+                const worker = await Tesseract.createWorker('eng', 1, {
+                    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+                    corePath:   'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+                    logger: m => {
+                        if (m.progress != null) {
+                            ocrStatus.textContent = `${m.status} (${Math.round(m.progress * 100)}%)`;
+                            ocrBar.style.width = (m.progress * 100) + '%';
+                        }
+                    }
+                });
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page     = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 2.0 });
+                    const canvas   = document.createElement('canvas');
+                    canvas.height  = viewport.height;
+                    canvas.width   = viewport.width;
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+                    ocrStatus.textContent  = `Recognising page ${i} of ${pdf.numPages}...`;
+                    ocrCounter.textContent = `[${i} / ${pdf.numPages} PG]`;
+                    ocrBar.style.width = '0%';
+
+                    const { data: { text } } = await worker.recognize(canvas);
+                    ocrOutput.value += `--- PAGE ${i} ---\n${text}\n\n`;
+                }
+
+                await worker.terminate();
+                ocrStatus.textContent  = `COMPLETE // ${pdf.numPages} page(s) processed.`;
+                ocrBar.style.width     = '100%';
+                ocrCounter.textContent = `[${pdf.numPages} / ${pdf.numPages} PG]`;
+                ocrCopyBtn.style.display = 'inline-flex';
+
+            } catch (err) {
+                ocrStatus.textContent = `ERR: ${err.message}`;
+                console.error(err);
+            } finally {
+                ocrRunBtn.disabled = false;
+            }
+        });
+
+        // ── Copy ──
+        ocrCopyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(ocrOutput.value).then(() => {
+                ocrCopyBtn.textContent = '✓ COPIED';
+                setTimeout(() => { ocrCopyBtn.textContent = '⎘ COPY'; }, 1500);
+            });
+        });
+    </script>
+</body>
+</html>

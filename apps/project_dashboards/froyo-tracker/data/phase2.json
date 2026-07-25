@@ -1,0 +1,56 @@
+{
+  "id": "phase2",
+  "icon": "🧱",
+  "title": "Phase 2 – Level Building & Content Pipeline",
+  "systems": [
+    {
+      "name": "2.1 World Editing Tools",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 30,
+      "dependencies": [],
+      "notes": "Need a way to build levels efficiently. Can be an in‑engine editor or external tool (Blender export). Prioritize simplicity: textured quads + collision primitives.",
+      "tasks": [
+        {
+          "text": "Define level format (JSON or binary)",
+          "priority": "high",
+          "notes": "Store textured triangle lists + collision hulls."
+        },
+        {
+          "text": "Support Blender export script",
+          "priority": "high",
+          "notes": "Script that bakes mesh data into engine format."
+        },
+        "Basic in‑browser debug flycam to inspect levels",
+        "Hot‑reload level data for rapid iteration"
+      ]
+    },
+    {
+      "name": "2.2 Asset Import & Management",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Handle models, textures, and animations. Use existing Three.js GLB parser but convert to engine's internal format.",
+      "tasks": [
+        "GLB → engine mesh pipeline (vertex‑color, texture atlas)",
+        "Texture atlas packing to reduce draw calls",
+        "Automated spritesheet slicing for UI elements"
+      ]
+    },
+    {
+      "name": "2.3 PS1 Visual Authenticity",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": ["phase2_0"],
+      "notes": "Implement signature PS1 visual quirks: affine texture warping, vertex snapping, dithering, low draw distance fog.",
+      "tasks": [
+        "Affine texture mapping (no perspective correction)",
+        "Vertex snapping (jittery vertices)",
+        "Dithering filter (post‑process or per‑pixel)",
+        "Distance fog (color based on scene palette)"
+      ]
+    }
+  ]
+}

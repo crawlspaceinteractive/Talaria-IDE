@@ -1,0 +1,46 @@
+{
+  "id": "phase5",
+  "icon": "📐",
+  "title": "Phase 5 – Geometry & Slopes",
+  "systems": [
+    {
+      "name": "5.1 Heinum Slope Conversion",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "Witchaven uses sloped floors/ceilings via heinum. BUILD2UDMF already has slope plane math. Verify all slopes are correctly translated to UDMF plane equations.",
+      "tasks": [
+        "Test every sloped sector in Witchaven maps",
+        "Fix any incorrect floorplane/ceilingplane equations",
+        "Ensure slope collision works in GZDoom"
+      ]
+    },
+    {
+      "name": "5.2 Z-Scale & Floor Alignment",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_0"],
+      "notes": "Build's Z coordinates use different scale than Doom. Ensure the Z divisor (default 512) produces correct relative heights for all maps. Floor zeroing must not break multi-level areas.",
+      "tasks": [
+        "Determine optimal Z-scale per game (Witchaven vs TekWar)",
+        "Implement per-game preset for Z divisor",
+        "Test all maps for correct floor/ceiling heights"
+      ]
+    },
+    {
+      "name": "5.3 BSP & Collision Mesh",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0"],
+      "notes": "GZDoom uses a node builder for collision. Ensure the generated UDMF has no self-intersecting linedefs or invalid sector references that break node building.",
+      "tasks": [
+        "Run internal node builder on all converted maps",
+        "Check for 'Map has no nodes' errors",
+        "Fix overlapping linedefs or incorrect sidedefs"
+      ]
+    }
+  ]
+}

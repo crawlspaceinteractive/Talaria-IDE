@@ -1,0 +1,91 @@
+{
+  "id": "phase12",
+  "icon": "🌍",
+  "title": "Phase 12 – Player‑Driven World Progression (Terraria‑Style)",
+  "systems": [
+    {
+      "name": "12.1 Discovery‑Based Unlocks",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 18,
+      "dependencies": ["phase1_0", "phase7_0", "phase11_0"],
+      "notes": "World starts simple. As players reach depths, defeat bosses, or assemble key fragments, new content unlocks globally — new structures, harder enemies, advanced ores.",
+      "tasks": [
+        "Define unlock milestones (depth reached, bosses killed, items crafted)",
+        "Implement milestone check on chunk generation",
+        "Add new structures, enemies, and resources per milestone",
+        "Ensure seamless transition (no reload needed)"
+      ]
+    },
+    {
+      "name": "12.2 World State Machine",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase12_0"],
+      "notes": "Track global milestones: first sky-castle, first titan, first dreadnaught, Sun Engine active. Each triggers world-wide changes: NPCs, hazards, generation for future chunks.",
+      "tasks": [
+        "Implement world state data structure (shared across players)",
+        "Define state transitions and effects",
+        "Update world generation functions to read state",
+        "Notify players of world changes via UI and dialogue"
+      ]
+    },
+    {
+      "name": "12.3 Backward Compatibility & Opt‑Out",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase12_1"],
+      "notes": "Players who prefer a simpler experience can ignore quests and the ancient path; the world won't force complexity. The core mining loop remains intact. Old saves update seamlessly when players pursue new triggers.",
+      "tasks": [
+        "Ensure base game loop works unchanged",
+        "Allow players to disable escalation (creative/peaceful mode)",
+        "Test save migration from v1 to v2 world states",
+        "Add UI toggle for progression pace"
+      ]
+    },
+    {
+      "name": "12.4 Castle Expansion & Desert Structures",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_3", "phase7_1", "phase12_1"],
+      "notes": "Large fortified ruins in plains/forest, step pyramids in deserts with traps and treasure. Uses world state milestones for generation.",
+      "tasks": [
+        "Design castle generation: large fortified ruins in plains/forest biomes, includes towers, courtyards, and underground vaults; uses world state milestones",
+        "Desert pyramids: step pyramids with traps and treasure rooms, inspired by ancient goblin architecture; hazard triggers from Phase 2",
+        "Add new decorative blocks: castle walls, pillars, archways; use existing model loading (Phase 1.3) for custom assets",
+        "Ensure structures generate only after certain milestones; tie to discovery-based unlocks (Phase 12)"
+      ]
+    },
+    {
+      "name": "12.5 Per Biome Trees & Flora",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": ["phase12_1"],
+      "notes": "Tree types per biome (pine, palm, jungle, etc.), grass and flowers as decorative sprites. World-generation only, no collision.",
+      "tasks": [
+        "Define tree types per biome: pine, palm, jungle, dead, etc.; variation in shape, color, and leaf density; spawn on world gen",
+        "Grass & flowers: scatter small decorative sprites; use billboard sprites for performance; sync only world-gen data",
+        "Seasonal variation or colour shifts based on world state; optional: tie to Sun Engine activation or biome corruption",
+        "Ensure flora does not block building or pathfinding; replaceable on block placement; no collision for grass/flowers"
+      ]
+    },
+    {
+      "name": "12.6 Biome Blend & Terrain Polish",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase12_1"],
+      "notes": "Smooth biome transitions with blended block edges, biome-specific detail layers (pebbles, roots, crystals), improved river and cliff generation.",
+      "tasks": [
+        "Smooth biome transitions with blended block edges; use noise-based interpolation for grass/stone/soil colours",
+        "Add biome-specific detail layers (pebbles, roots, crystals); decals or small entities; purely visual",
+        "Improve river and cliff generation for natural look; adjust terrain heightmap and water placement",
+        "Optimise performance with LODs for distant biomes; use existing chunk LOD system"
+      ]
+    }
+  ]
+}

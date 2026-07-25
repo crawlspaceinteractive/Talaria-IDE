@@ -1,0 +1,63 @@
+{
+  "id": "phase5",
+  "icon": "🎨",
+  "title": "Phase 5 – Visuals & UI",
+  "systems": [
+    {
+      "name": "5.1 Sprite & Animation Polish",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Refine all character sprites: walk cycles, attack frames, idle stances. Ensure consistent art style.",
+      "tasks": [
+        "Eve walk cycle cleanup (8 frames)",
+        "Diesel idle/punch/kick frames final",
+        "Flare special poses and effects",
+        "Enemy sprite variety (gang members, bosses)"
+      ]
+    },
+    {
+      "name": "5.2 HUD & In‑Game UI",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Design a sleek, SoR‑inspired HUD with health bars, super meter, combo counter, and player indicators.",
+      "tasks": [
+        "Health bar per player (color‑coded)",
+        "Super meter gauge",
+        "Combo counter with hit scaling",
+        "Co‑op player labels and status"
+      ]
+    },
+    {
+      "name": "5.3 Background & Stage Design",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 18,
+      "dependencies": [],
+      "notes": "Create varied stage backgrounds with parallax layers, animated props, and stage‑specific hazards.",
+      "tasks": [
+        "Parallax sky and building layers",
+        "Stage props (trashcans, barrels, phone booths)",
+        "Breakable objects and weapon pickups",
+        "Stage hazards (car, falling debris)"
+      ]
+    },
+    {
+      "name": "5.4 Menus & Options",
+      "status": "in-progress",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Polish main menu, character select, and options screens. Add gallery and credits.",
+      "tasks": [
+        "Main menu with neon styling",
+        "Character select screen with stats",
+        "Sound and controls options",
+        "Unlockable gallery"
+      ]
+    }
+  ]
+}

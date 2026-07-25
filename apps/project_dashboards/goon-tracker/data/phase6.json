@@ -1,0 +1,48 @@
+{
+  "id": "phase6",
+  "icon": "⚡",
+  "title": "Phase 6 – Performance & Compatibility",
+  "systems": [
+    {
+      "name": "6.1 Rendering Optimizations",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Profile and optimize CPU/GPU usage. Reduce overdraw, optimize LUTs, and use requestAnimationFrame timing.",
+      "tasks": [
+        "Profile flamegraph of render loop",
+        "Reduce redundant calculations in _castBSPColumn",
+        "Optimize texture access patterns",
+        "Implement frame timing control"
+      ]
+    },
+    {
+      "name": "6.2 Mobile & Low-End Compatibility",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase6_0"],
+      "notes": "Test on lower-end hardware and mobile devices. Add performance options (lower resolution, simpler lighting).",
+      "tasks": [
+        "Add quality settings presets",
+        "Test on integrated GPUs",
+        "Touch controls for mobile"
+      ]
+    },
+    {
+      "name": "6.3 Bug Fixing & Regression Testing",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": "ongoing",
+      "dependencies": ["all"],
+      "notes": "Extensive playtesting to catch rendering bugs, collision issues, and gameplay exploits.",
+      "tasks": [
+        "Fix z-fighting and sprite clipping",
+        "Collision edge cases",
+        "Enemy AI bugs",
+        "Load/save edge cases"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "id": "phase3",
+  "icon": "⭐",
+  "title": "Phase 3 – Specials & Super System",
+  "systems": [
+    {
+      "name": "3.1 Character Special Moves",
+      "status": "in-progress",
+      "priority": "high",
+      "estimatedHours": 20,
+      "dependencies": ["phase1_0"],
+      "notes": "Balance and polish Eve's Meteor Slam, Diesel's Truck, Flare's Napalm. Add visual polish and audio cues.",
+      "tasks": [
+        "Eve meteor: smooth zip-off and crash sequence",
+        "Diesel truck: ripper damage tweaking, horn sound",
+        "Flare napalm: tighter spread, big shell finale",
+        "Special bar SP cost and regeneration"
+      ]
+    },
+    {
+      "name": "3.2 Blood Super / Desperation Move",
+      "status": "in-progress",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": ["phase3_0"],
+      "notes": "Blood super at 33% HP when SP bar empty. High risk, high reward. Needs its own visual flair.",
+      "tasks": [
+        "Blood super activation logic",
+        "Unique VFX per character",
+        "Cooldown and damage tuning"
+      ]
+    },
+    {
+      "name": "3.3 Super Meter & Combo Scaling",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": ["phase1_0", "phase3_0"],
+      "notes": "Implement a visible super meter that fills on hits and taking damage. Add damage scaling on long combos.",
+      "tasks": [
+        "HUD super meter (per player)",
+        "Meter gain on attack and hit taken",
+        "Damage scaling after 5+ hit combo"
+      ]
+    },
+    {
+      "name": "3.4 Special Move Input System",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": ["phase1_0"],
+      "notes": "Support motion inputs (QCF, HCF, charge) for specials and supers. Add input display in HUD.",
+      "tasks": [
+        "Motion input recognition engine",
+        "Input buffer and leniency windows",
+        "Training mode input display"
+      ]
+    }
+  ]
+}

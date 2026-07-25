@@ -1,0 +1,48 @@
+{
+  "id": "phase3",
+  "icon": "🔫",
+  "title": "Phase 3 – Weapons, Powerups & Upgrades",
+  "systems": [
+    {
+      "name": "3.1 Weapon Mods & Attachments",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 20,
+      "dependencies": [],
+      "notes": "Introduce weapon modifiers that change behavior: ricochet rounds, explosive bullets, freezing beams, poison darts. Mods drop as rare loot and can be applied in the shop.",
+      "tasks": [
+        "Design 8 weapon mods with VFX and SFX",
+        "Mod inventory and application UI in armory",
+        "Balance damage and effect duration per mod",
+        "Synergy system where mods combine (ricochet + explosive = cluster mines)"
+      ]
+    },
+    {
+      "name": "3.2 Powerup Evolutions & Synergies",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": ["phase3_0"],
+      "notes": "Powerups can stack or evolve: double nuke, blade barrier, monkey squad. Collecting the same powerup while active refreshes and upgrades its tier.",
+      "tasks": [
+        "Implement powerup tier system (I, II, III)",
+        "Visual scale-up and additional effects per tier",
+        "Prevent duplicate powerup drops when max tier reached"
+      ]
+    },
+    {
+      "name": "3.3 Trinkets & Passive Upgrades",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Expand trinket variety: dodge chance, life leech, bonus score, auto-collect radius, slow aura. Add rarity tiers (common, rare, legendary) with stat scaling.",
+      "tasks": [
+        "Design 12 new trinket types with unique icons",
+        "Rarity tier system affecting stat rolls",
+        "Trinket shop reroll mechanic",
+        "Set bonuses for equipping trinkets of same theme"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "id": "phase3",
+  "icon": "✨",
+  "title": "Phase 3 – Visual & Audio Polish",
+  "systems": [
+    {
+      "name": "3.1 Sprite Animation & Frames",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add 2‑frame animation for player (jet flame on/off), enemies (walk/flap), and pickups (sparkle). Cycle frames via a global tick counter.",
+      "tasks": [
+        "Design alternate sprite frames and store in ROM",
+        "Implement frame‑cycling logic in DRAW_SPRITE or render loop",
+        "Animate fuel pickup with a subtle glow"
+      ]
+    },
+    {
+      "name": "3.2 Background & Level Art",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Replace the solid color tile buffer with a more detailed starfield or platform landscape. Use the bottom tile buffer for a scrolling ground or decorative pipes.",
+      "tasks": [
+        "Design a 8×8 star tile and fill top half of play area with stars",
+        "Draw a ground/platform row at bottom of play area",
+        "Add parallax effect by shifting star rows each frame"
+      ]
+    },
+    {
+      "name": "3.3 Sound Effects & Music",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "If the Dragon Palm has a sound chip, add simple beeps for pickup, thrust, collision, and a looping chiptune. Otherwise omit.",
+      "tasks": [
+        "Implement a basic sound driver (if HW allows)",
+        "Compose short jingles for game start, pickup, death"
+      ]
+    }
+  ]
+}

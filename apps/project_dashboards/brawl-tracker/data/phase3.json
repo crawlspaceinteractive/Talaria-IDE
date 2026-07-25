@@ -1,0 +1,47 @@
+{
+  "id": "phase3",
+  "icon": "🌐",
+  "title": "Phase 3 – Multiplayer & Netcode",
+  "systems": [
+    {
+      "name": "3.1 Lobby & Matchmaking",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Create a lobby UI with room codes, player list, and ready‑up system. Use Star SDK's room management.",
+      "tasks": [
+        "Build lobby screen with player slots",
+        "Implement room code creation and joining",
+        "Add ready‑up and countdown to start"
+      ]
+    },
+    {
+      "name": "3.2 Host‑Authoritative Sync",
+      "status": "in‑progress",
+      "priority": "high",
+      "estimatedHours": 15,
+      "dependencies": ["phase1_0"],
+      "notes": "Already have host authority. Harden against packet loss, add input prediction for smooth remote movement, and fix any desyncs.",
+      "tasks": [
+        "Add client‑side prediction for local player",
+        "Implement interpolation for remote players",
+        "Add checksum validation to detect desyncs",
+        "Handle host migration if possible"
+      ]
+    },
+    {
+      "name": "3.3 In‑Game Communication",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 6,
+      "dependencies": ["phase3_0"],
+      "notes": "Add quick‑chat taunts and a minimal ping system to coordinate attacks.",
+      "tasks": [
+        "Implement emote/taunt system with sprites",
+        "Add targeting ping (click to highlight area)",
+        "Voice chat integration (optional)"
+      ]
+    }
+  ]
+}

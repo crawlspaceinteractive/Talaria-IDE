@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimic's Toll – Roadmap Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0a0505;
+    font-family: 'MedievalSharp', cursive;
+    color: #c0a0a0;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at 50% 20%, #1a0a0a 0%, #0a0505 80%);
+  }
+  .container { max-width: 900px; width: 100%; }
+  h1 {
+    text-align: center; font-size: 2.8rem; margin-bottom: 0.1em;
+    color: #8b0000; text-shadow: 0 0 15px #8b0000, 2px 2px 0 #000;
+    letter-spacing: 2px;
+  }
+  .subtitle {
+    text-align: center; color: #4a0000; margin-bottom: 2em;
+    font-size: 1.1rem; text-shadow: 0 0 8px #4a0000;
+  }
+  .phase {
+    background: rgba(15, 8, 8, 0.9);
+    border: 2px solid #8b0000;
+    border-radius: 8px;
+    margin-bottom: 1.8em; padding: 1em 1.2em;
+    box-shadow: 0 0 25px rgba(139,0,0,0.3), inset 0 0 20px rgba(0,0,0,0.8);
+    backdrop-filter: blur(2px);
+  }
+  .phase-header {
+    display: flex; justify-content: space-between; align-items: center;
+    cursor: pointer; user-select: none;
+  }
+  .phase-title {
+    font-size: 1.5rem; color: #c0392b; text-shadow: 0 0 8px #c0392b, 2px 2px 0 #000;
+    display: flex; align-items: center; gap: 0.5em;
+  }
+  .phase-title .icon { font-size:1.5rem; }
+  .phase-progress {
+    background: #1a0a0a; border-radius: 4px; height: 10px; width: 150px;
+    overflow: hidden; border: 1px solid #4a0000;
+  }
+  .phase-progress-fill { background: #c0392b; height: 100%; width: 0%; transition: width 0.3s; }
+  .phase-percentage { font-size: 0.9rem; color: #c0392b; min-width: 3em; text-align: right; }
+  .phase-body { margin-top: 1em; padding-left: 0.5em; display: none; }
+  .phase-body.open { display:block; }
+  .system {
+    margin-bottom: 1.2em; background: rgba(20, 10, 10, 0.9);
+    padding: 0.8em; border-radius: 6px; border: 1px solid #4a2020;
+    transition: border-color 0.3s;
+  }
+  .system.highlight {
+    border-color: #ff4444;
+    box-shadow: 0 0 12px rgba(255,68,68,0.4);
+  }
+  .system-name {
+    font-weight: 700; color: #ff4444; margin-bottom: 0.3em;
+    text-shadow: 0 0 5px #ff4444, 1px 1px 0 #000;
+  }
+  .task-list { padding-left: 1.8em; }
+  .task { margin: 0.25em 0; display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap; }
+  .task input[type="checkbox"] {
+    appearance: none; width: 16px; height: 16px; border: 2px solid #8b0000;
+    border-radius: 3px; background: #000; position: relative; cursor: pointer; flex-shrink: 0;
+  }
+  .task input[type="checkbox"]:checked { background: #8b0000; border-color: #8b0000; }
+  .task input[type="checkbox"]:checked::after {
+    content: "✓"; color: #c0a0a0; font-size: 12px; position: absolute;
+    top: -2px; left: 2px; text-shadow: none;
+  }
+  .task label { color: #c0a0a0; font-size: 0.95rem; text-shadow: 1px 1px 0 #000; flex: 1; }
+  .task.completed label { color: #554444; text-decoration: line-through; }
+  .images-section {
+    margin-top: 0.8em; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 0.5em;
+  }
+  .attach-btn {
+    background: #4a0000; color: #c0a0a0; border: 2px solid #2a0000; padding: 0.3em 0.8em;
+    border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.85rem;
+    text-shadow: none; box-shadow: 2px 2px 0 #000; margin-right: 0.5em;
+  }
+  .attach-btn:hover { background: #6a0000; }
+  .thumb-wrapper {
+    position: relative; display: inline-block; border: 2px solid #8b0000;
+    border-radius: 4px; background: #000; overflow: hidden;
+  }
+  .thumb-wrapper img { display: block; max-height: 100px; max-width: 150px; object-fit: cover; }
+  .thumb-remove {
+    position: absolute; top: 2px; right: 2px; background: #b91c1c; color: white;
+    border: 1px solid #7f1d1d; border-radius: 3px; font-size: 0.7rem; cursor: pointer;
+    line-height: 1; padding: 0 3px; font-family: inherit;
+  }
+  .thumb-remove:hover { background: #dc2626; }
+  .reset-btn {
+    display: block; margin: 2em auto 0; padding: 0.5em 2em;
+    font-family: 'MedievalSharp', cursive; font-size: 1rem;
+    background: #4a0000; color: #c0a0a0; border: 2px solid #2a0000;
+    border-radius: 6px; cursor: pointer; text-shadow: none; box-shadow: 2px 2px 0 #000;
+  }
+  .reset-btn:hover { background: #6a0000; }
+  .overall-bar {
+    background: #1a0a0a; border: 2px solid #8b0000; border-radius: 6px;
+    height: 16px; width: 100%; margin: 1em 0; overflow: hidden;
+  }
+  .overall-fill { background: #c0392b; height: 100%; width: 0%; transition: width 0.3s; }
+  .overall-text { text-align: center; margin-bottom: 0.5em; color: #c0392b; text-shadow: 0 0 5px #c0392b; }
+  .quota-warning { color: #f87171; font-size: 0.8rem; margin-top: 0.3em; }
+  .load-indicator { text-align: center; color: #c0392b; margin: 2em 0; font-size: 1.2rem; }
+  .badge {
+    display: inline-block; font-size: 0.7rem; padding: 0.1em 0.5em; border-radius: 3px;
+    text-transform: uppercase; line-height: 1.4;
+  }
+  .system-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em; margin-bottom: 0.3em; }
+  .system-notes { font-size: 0.8rem; color: #886666; margin-bottom: 0.4em; }
+  .dep-link {
+    font-size: 0.75rem; color: #ff4444; cursor: pointer; text-decoration: underline;
+    background: none; border: none; font-family: inherit; padding: 0;
+  }
+  .dep-link:hover { color: #ff8888; }
+  .task-priority { font-size: 0.6rem; padding: 0 0.3em; border-radius: 2px; text-transform: uppercase; margin-left: 0.5em; }
+  .task-notes-icon { cursor: help; font-size: 0.9rem; margin-left: 0.3em; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>💀 Mimic's Toll</h1>
+  <div class="subtitle">Asymmetric Horror — Roadmap Tracker</div>
+  <div class="overall-text">Overall Completion: <span id="overall-percent">0</span>%</div>
+  <div class="overall-bar"><div class="overall-fill" id="overall-fill"></div></div>
+  <div class="load-indicator" id="load-msg">Loading roadmap data…</div>
+  <div id="phases-container"></div>
+  <button class="reset-btn" id="reset-btn">⟲ Reset All Progress</button>
+</div>
+
+<script>
+// ---------- Pure renderer ----------
+let roadmapData = [];
+let state = { images: {}, openPhases: ["phase1"] };
+const phaseSystemMap = new Map();
+const PRIORITY_COLORS = {
+  low: '#555',
+  medium: '#d97706',
+  high: '#dc2626',
+  critical: '#7f1d1d'
+};
+const STATUS_COLORS = {
+  planned: '#4b5563',
+  'in-progress': '#2563eb',
+  complete: '#16a34a'
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('mimicstoll_roadmap');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.images) state.images = parsed.images;
+      if (parsed.openPhases) state.openPhases = parsed.openPhases;
+      Object.keys(parsed).forEach(key => {
+        if (key !== 'images' && key !== 'openPhases') state[key] = parsed[key];
+      });
+    }
+  } catch(e) { console.warn('Failed to load state.'); }
+}
+
+function saveState() {
+  try {
+    const toSave = { ...state };
+    localStorage.setItem('mimicstoll_roadmap', JSON.stringify(toSave));
+    document.querySelector('.quota-warning')?.remove();
+  } catch(e) {
+    if (e.name === 'QuotaExceededError') {
+      const warn = document.createElement('div');
+      warn.className = 'quota-warning';
+      warn.textContent = '⚠️ Storage full! Remove some images to save changes.';
+      document.querySelector('.container').insertBefore(warn, document.querySelector('#phases-container'));
+    }
+  }
+}
+
+function scrollToSystem(sysDiv) {
+  sysDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  sysDiv.classList.add('highlight');
+  setTimeout(() => sysDiv.classList.remove('highlight'), 2000);
+}
+
+function renderAll() {
+  const container = document.getElementById('phases-container');
+  container.innerHTML = '';
+  document.getElementById('load-msg').style.display = 'none';
+  phaseSystemMap.clear();
+
+  roadmapData.forEach(phase => {
+    const phaseDiv = document.createElement('div');
+    phaseDiv.className = 'phase';
+    phaseDiv.id = `phase-${phase.id}`;
+    phaseDiv.innerHTML = `
+      <div class="phase-header">
+        <div class="phase-title"><span class="icon">${phase.icon}</span> ${phase.title}</div>
+        <div style="display:flex; align-items:center; gap:0.8em;">
+          <div class="phase-progress"><div class="phase-progress-fill"></div></div>
+          <div class="phase-percentage"><span>0</span>%</div>
+        </div>
+      </div>
+      <div class="phase-body"></div>`;
+    const body = phaseDiv.querySelector('.phase-body');
+
+    phase.systems.forEach((sys, sysIdx) => {
+      const sysDiv = document.createElement('div');
+      sysDiv.className = 'system';
+      sysDiv.id = `sys-${phase.id}-${sysIdx}`;
+      const sysKey = `${phase.id}_${sysIdx}`;
+      phaseSystemMap.set(sysKey, sysDiv);
+
+      const headerLine = document.createElement('div');
+      headerLine.className = 'system-name';
+      headerLine.textContent = `▸ ${sys.name}`;
+      sysDiv.appendChild(headerLine);
+
+      if (sys.priority || sys.status || sys.estimatedHours || (sys.dependencies && sys.dependencies.length > 0)) {
+        const metaRow = document.createElement('div');
+        metaRow.className = 'system-meta';
+        if (sys.priority) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.style.background = PRIORITY_COLORS[sys.priority] || '#6b7280';
+          badge.textContent = sys.priority;
+          metaRow.appendChild(badge);
+        }
+        if (sys.status) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.style.background = STATUS_COLORS[sys.status] || '#4b5563';
+          badge.textContent = sys.status.replace('-', ' ');
+          metaRow.appendChild(badge);
+        }
+        if (sys.estimatedHours) {
+          const hours = document.createElement('span');
+          hours.style.fontSize = '0.8rem';
+          hours.style.color = '#9ca3af';
+          hours.textContent = `⏱ ${sys.estimatedHours}h`;
+          metaRow.appendChild(hours);
+        }
+        if (sys.dependencies && sys.dependencies.length > 0) {
+          sys.dependencies.forEach(depId => {
+            const depBtn = document.createElement('button');
+            depBtn.className = 'dep-link';
+            depBtn.textContent = `🔗 ${depId}`;
+            depBtn.title = `Navigate to ${depId}`;
+            depBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const targetSysDiv = phaseSystemMap.get(depId);
+              if (targetSysDiv) {
+                const parentPhaseBody = targetSysDiv.closest('.phase-body');
+                if (parentPhaseBody && !parentPhaseBody.classList.contains('open')) {
+                  parentPhaseBody.classList.add('open');
+                  const phaseId = parentPhaseBody.closest('.phase').id.replace('phase-', '');
+                  if (!state.openPhases.includes(phaseId)) {
+                    state.openPhases.push(phaseId);
+                    saveState();
+                  }
+                }
+                scrollToSystem(targetSysDiv);
+              } else {
+                alert(`System ${depId} not found on the current roadmap.`);
+              }
+            });
+            metaRow.appendChild(depBtn);
+          });
+        }
+        sysDiv.appendChild(metaRow);
+      }
+
+      if (sys.notes) {
+        const notesDiv = document.createElement('div');
+        notesDiv.className = 'system-notes';
+        notesDiv.textContent = sys.notes;
+        sysDiv.appendChild(notesDiv);
+      }
+
+      const taskList = document.createElement('div');
+      taskList.className = 'task-list';
+      sys.tasks.forEach((task, idx) => {
+        const taskText = typeof task === 'string' ? task : task.text;
+        const taskPriority = (typeof task === 'object' && task.priority) ? task.priority : null;
+        const taskNotes = (typeof task === 'object' && task.notes) ? task.notes : null;
+
+        const key = `${phase.id}_${sys.name}_${idx}`;
+        const isChecked = !!state[key];
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'task' + (isChecked ? ' completed' : '');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = key;
+        checkbox.checked = isChecked;
+        checkbox.addEventListener('change', e => {
+          state[key] = e.target.checked;
+          taskDiv.classList.toggle('completed', e.target.checked);
+          saveState();
+          updatePhaseProgress(phaseDiv, phase);
+          updateOverall();
+        });
+
+        const label = document.createElement('label');
+        label.htmlFor = key;
+        label.textContent = taskText;
+
+        taskDiv.appendChild(checkbox);
+        taskDiv.appendChild(label);
+
+        if (taskPriority) {
+          const pBadge = document.createElement('span');
+          pBadge.className = 'task-priority';
+          pBadge.style.background = PRIORITY_COLORS[taskPriority] || '#6b7280';
+          pBadge.textContent = taskPriority;
+          taskDiv.appendChild(pBadge);
+        }
+        if (taskNotes) {
+          const noteIcon = document.createElement('span');
+          noteIcon.className = 'task-notes-icon';
+          noteIcon.textContent = '💬';
+          noteIcon.title = taskNotes;
+          taskDiv.appendChild(noteIcon);
+        }
+
+        taskList.appendChild(taskDiv);
+      });
+      sysDiv.appendChild(taskList);
+
+      const imgKey = `${phase.id}_${sys.name}`;
+      const images = state.images[imgKey] || [];
+      const section = document.createElement('div');
+      section.className = 'images-section';
+      const attachBtn = document.createElement('button');
+      attachBtn.className = 'attach-btn';
+      attachBtn.textContent = '📎 Attach Image';
+      attachBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const input = document.createElement('input');
+        input.type = 'file'; input.accept = 'image/*'; input.style.display = 'none';
+        input.addEventListener('change', ev => {
+          const file = ev.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = re => {
+            if (!state.images[imgKey]) state.images[imgKey] = [];
+            state.images[imgKey].push(re.target.result);
+            saveState();
+            renderAll();
+          };
+          reader.readAsDataURL(file);
+        });
+        document.body.appendChild(input);
+        input.click();
+        document.body.removeChild(input);
+      });
+      section.appendChild(attachBtn);
+      images.forEach((url, idx) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'thumb-wrapper';
+        wrapper.innerHTML = `<img src="${url}" alt="attached"><button class="thumb-remove">✕</button>`;
+        wrapper.querySelector('.thumb-remove').addEventListener('click', ev => {
+          ev.stopPropagation();
+          state.images[imgKey].splice(idx, 1);
+          if (state.images[imgKey].length === 0) delete state.images[imgKey];
+          saveState();
+          renderAll();
+        });
+        section.appendChild(wrapper);
+      });
+      sysDiv.appendChild(section);
+
+      body.appendChild(sysDiv);
+    });
+
+    if (state.openPhases.includes(phase.id)) body.classList.add('open');
+    const header = phaseDiv.querySelector('.phase-header');
+    header.addEventListener('click', () => {
+      body.classList.toggle('open');
+      if (body.classList.contains('open')) {
+        if (!state.openPhases.includes(phase.id)) state.openPhases.push(phase.id);
+      } else {
+        state.openPhases = state.openPhases.filter(id => id !== phase.id);
+      }
+      saveState();
+    });
+    container.appendChild(phaseDiv);
+    updatePhaseProgress(phaseDiv, phase);
+  });
+  updateOverall();
+}
+
+function updatePhaseProgress(phaseEl, phase) {
+  const checks = phaseEl.querySelectorAll('input[type="checkbox"]');
+  const checked = phaseEl.querySelectorAll('input[type="checkbox"]:checked').length;
+  const pct = checks.length ? Math.round((checked / checks.length) * 100) : 0;
+  phaseEl.querySelector('.phase-progress-fill').style.width = pct + '%';
+  phaseEl.querySelector('.phase-percentage span').textContent = pct;
+}
+
+function updateOverall() {
+  let total = 0, done = 0;
+  roadmapData.forEach(phase => {
+    phase.systems.forEach(sys => {
+      sys.tasks.forEach((_, idx) => {
+        total++;
+        if (state[`${phase.id}_${sys.name}_${idx}`]) done++;
+      });
+    });
+  });
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('overall-percent').textContent = pct;
+  document.getElementById('overall-fill').style.width = pct + '%';
+}
+
+async function loadRoadmap() {
+  try {
+    const manifestResp = await fetch('data/phases.json');
+    if (!manifestResp.ok) throw new Error('Manifest not found');
+    const manifest = await manifestResp.json();
+
+    const phasePromises = manifest.map(async (filename) => {
+      const resp = await fetch(`data/${filename}`);
+      if (!resp.ok) throw new Error(`Failed to load ${filename}`);
+      return resp.json();
+    });
+
+    roadmapData = await Promise.all(phasePromises);
+    renderAll();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('load-msg').textContent = '⚠️ Could not load roadmap data. Check console.';
+  }
+}
+
+loadState();
+loadRoadmap();
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Reset all progress and remove all images?')) {
+    state = { images: {}, openPhases: ["phase1"] };
+    saveState();
+    renderAll();
+  }
+});
+</script>
+</body>
+</html>

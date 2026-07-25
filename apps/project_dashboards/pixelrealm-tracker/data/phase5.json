@@ -1,0 +1,47 @@
+{
+  "id": "phase5",
+  "icon": "🕯️",
+  "title": "Phase 5 – Atmosphere & UI (Diablo 1 Aesthetic)",
+  "systems": [
+    {
+      "name": "5.1 Gothic UI Overhaul",
+      "status": "planned",
+      "priority": "medium",
+      "estimatedHours": 15,
+      "dependencies": [],
+      "notes": "Replace current UI with a dark fantasy Diablo 1 style: stone paneling, gold trim, serif fonts, health/mana orbs, and grim color palette.",
+      "tasks": [
+        "Health and mana orbs (filled with blood/mana)",
+        "Inventory and character panel reskin",
+        "Diablo‑style buttons and scroll bars",
+        "Loading screen with gothic art"
+      ]
+    },
+    {
+      "name": "5.2 Music & Ambient Sound",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 12,
+      "dependencies": [],
+      "notes": "Add looping dungeon music tracks, ambient sounds (dripping water, distant screams, chanting), and contextual SFX for spells and hits.",
+      "tasks": [
+        "Music player with crossfade between areas",
+        "Ambient sound emitter placed per dungeon theme",
+        "Voice acting for key NPCs (optional)"
+      ]
+    },
+    {
+      "name": "5.3 Visual Effects & Gore",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": [],
+      "notes": "Add blood splatters, corpse destruction, spell impact decals, and dynamic lighting from spells and torches.",
+      "tasks": [
+        "Blood decal system on floor tiles",
+        "Corpse explosion and gibs",
+        "Spell lighting (fireball lights nearby tiles)"
+      ]
+    }
+  ]
+}

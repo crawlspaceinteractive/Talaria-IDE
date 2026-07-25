@@ -1,0 +1,46 @@
+{
+  "id": "phase7",
+  "icon": "📡",
+  "title": "Phase 7 – Release & Community",
+  "systems": [
+    {
+      "name": "7.1 Distribution & Packaging",
+      "status": "planned",
+      "priority": "high",
+      "estimatedHours": 8,
+      "dependencies": [],
+      "notes": "Package as standalone web app with offline support. Deploy to itch.io, GitHub Pages, and a dedicated unreality.tv domain.",
+      "tasks": [
+        "Create offline HTML build (all assets inlined or cached)",
+        "Service worker for offline play",
+        "Setup domain and hosting"
+      ]
+    },
+    {
+      "name": "7.2 Trailer & Marketing",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 10,
+      "dependencies": ["phase7_0"],
+      "notes": "Produce a dieselpunk-style announcement trailer with glitched CRT effects, heavy industrial music, and voiceover.",
+      "tasks": [
+        "Capture gameplay footage with cinematic camera",
+        "Edit trailer with scanline and glitch overlays",
+        "Write press kit and social media posts"
+      ]
+    },
+    {
+      "name": "7.3 Modding & Community Tools",
+      "status": "planned",
+      "priority": "low",
+      "estimatedHours": 15,
+      "dependencies": ["phase7_0"],
+      "notes": "Allow players to create custom sectors, enemies, and weapons via JSON definitions. Provide a level editor and sprite packer.",
+      "tasks": [
+        "Define modding schema (enemy, weapon, sector)",
+        "In-game mod loader and validator",
+        "Documentation and example mods"
+      ]
+    }
+  ]
+}
