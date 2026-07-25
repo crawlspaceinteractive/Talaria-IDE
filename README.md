@@ -5,7 +5,8 @@
 ```
 TALARIA ENGINE COMPILER MANAGER // SYSTEM_WORKSPACE_MAIN
 ```
-
+Live Demo:
+https://crawlspaceinteractive.github.io/Talaria-IDE/
 ---
 
 ## ⚠️ STATUS: INCOMPLETE / USE AS-IS
