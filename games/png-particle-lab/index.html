@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Win98 Particle Lab - Multi-Asset Edition</title>
+    <style>
+        :root {
+            --win-gray: #c0c0c0;
+            --win-blue: #000080;
+            --win-border-light: #ffffff;
+            --win-border-dark: #808080;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #008080; 
+            font-family: "MS Sans Serif", "Tahoma", sans-serif;
+            user-select: none;
+        }
+
+        .window {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 300px;
+            background: var(--win-gray);
+            border: 2px solid;
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+            box-shadow: 1px 1px 0 0 black;
+            z-index: 100;
+            padding: 2px;
+        }
+
+        .title-bar {
+            background: var(--win-blue);
+            color: white;
+            padding: 3px 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .window-body {
+            padding: 10px;
+            font-size: 11px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+            border: 1px solid var(--win-border-dark);
+            padding: 8px;
+            position: relative;
+        }
+
+        .group-label {
+            position: absolute;
+            top: -8px;
+            left: 10px;
+            background: var(--win-gray);
+            padding: 0 4px;
+        }
+
+        .btn {
+            background: var(--win-gray);
+            border: 2px solid;
+            border-color: var(--win-border-light) var(--win-border-dark) var(--win-border-dark) var(--win-border-light);
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        .btn.active {
+            border-color: var(--win-border-dark) var(--win-border-light) var(--win-border-light) var(--win-border-dark);
+            background: #d0d0d0;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .file-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        svg {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="window">
+        <div class="title-bar">
+            <span>Particle_Lab_v3.exe</span>
+            <div style="background: var(--win-gray); color: black; width: 14px; height: 14px; text-align: center; line-height: 12px; border: 1px solid black; cursor: pointer;">?</div>
+        </div>
+        <div class="window-body">
+            
+            <div class="control-group">
+                <span class="group-label">Physics Toggles</span>
+                <button id="toggleGravity" class="btn active">Gravity</button>
+                <button id="toggleRepel" class="btn active">Repel</button>
+            </div>
+
+            <div class="control-group">
+                <span class="group-label">Fan Power: <span id="fanVal">0.0</span></span>
+                <input type="range" id="fanSlider" min="-100" max="100" value="0">
+            </div>
+
+            <div class="control-group">
+                <span class="group-label">Density: <span id="countVal">60</span></span>
+                <input type="range" id="countSlider" min="1" max="300" value="60">
+            </div>
+
+            <div class="control-group">
+                <span class="group-label">Asset Management (4 Slots)</span>
+                <div class="file-list">
+                    <input type="file" class="asset-up" data-idx="0" accept="image/*">
+                    <input type="file" class="asset-up" data-idx="1" accept="image/*">
+                    <input type="file" class="asset-up" data-idx="2" accept="image/*">
+                    <input type="file" class="asset-up" data-idx="3" accept="image/*">
+                </div>
+            </div>
+            
+            <div style="text-align: right; color: #444;">System Optimized</div>
+        </div>
+    </div>
+
+    <svg id="canvas"></svg>
+
+    <script>
+        const svg = document.getElementById('canvas');
+        const countSlider = document.getElementById('countSlider');
+        const fanSlider = document.getElementById('fanSlider');
+        const countVal = document.getElementById('countVal');
+        const fanVal = document.getElementById('fanVal');
+        const btnGravity = document.getElementById('toggleGravity');
+        const btnRepel = document.getElementById('toggleRepel');
+        const fileInputs = document.querySelectorAll('.asset-up');
+
+        let particles = [];
+        let gravityEnabled = true;
+        let repelEnabled = true;
+        let windForce = 0;
+        let particleCount = 60;
+        
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        let mouse = { x: -1000, y: -1000 };
+        let customAssets = [null, null, null, null];
+
+        const gravityConst = 0.2;
+        const friction = 0.985;
+        const repelStrength = 180;
+
+        function createParticle(index) {
+            const size = 40;
+            // Pick an asset from the list, or null if empty
+            const assetSrc = customAssets[index % 4];
+            
+            const p = {
+                x: Math.random() * width,
+                y: Math.random() * height,
+                vx: (Math.random() - 0.5) * 6,
+                vy: (Math.random() - 0.5) * 6,
+                size: size,
+                isImage: assetSrc !== null,
+                element: document.createElementNS("http://www.w3.org/2000/svg", assetSrc ? "image" : "circle")
+            };
+
+            if (p.isImage) {
+                p.element.setAttributeNS('http://www.w3.org/1999/xlink', 'href', assetSrc);
+                p.element.setAttribute('width', p.size);
+                p.element.setAttribute('height', p.size);
+            } else {
+                const defaultColors = ['#00ff00', '#ff00ff', '#00ffff', '#ffff00'];
+                p.element.setAttribute('r', 4);
+                p.element.setAttribute('fill', defaultColors[index % 4]);
+            }
+
+            svg.appendChild(p.element);
+            return p;
+        }
+
+        function init() {
+            svg.innerHTML = '';
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(createParticle(i));
+            }
+        }
+
+        function update() {
+            for (let p of particles) {
+                if (gravityEnabled) p.vy += gravityConst;
+                p.vx += windForce;
+
+                if (repelEnabled) {
+                    const dx = (p.isImage ? p.x + p.size/2 : p.x) - mouse.x;
+                    const dy = (p.isImage ? p.y + p.size/2 : p.y) - mouse.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < repelStrength) {
+                        const force = (repelStrength - dist) / repelStrength;
+                        p.vx += (dx / dist) * force * 5;
+                        p.vy += (dy / dist) * force * 5;
+                    }
+                }
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= friction;
+                p.vy *= friction;
+
+                // X-Axis Wrapping (Wind Tunnel Logic)
+                if (Math.abs(windForce) > 0.01) {
+                    if (p.x > width) p.x = -p.size;
+                    if (p.x < -p.size) p.x = width;
+                } else {
+                    // Bounce if no wind
+                    if (p.x < 0 || p.x > width - (p.isImage ? p.size : 0)) {
+                        p.vx *= -0.8;
+                        p.x = p.x < 0 ? 0 : width - (p.isImage ? p.size : 0);
+                    }
+                }
+
+                // Vertical Bounce
+                const limitY = height - (p.isImage ? p.size : 0);
+                if (p.y < 0 || p.y > limitY) {
+                    p.vy *= -0.7;
+                    p.y = p.y < 0 ? 0 : limitY;
+                }
+
+                // Render
+                if (p.isImage) {
+                    p.element.setAttribute('x', p.x);
+                    p.element.setAttribute('y', p.y);
+                } else {
+                    p.element.setAttribute('cx', p.x);
+                    p.element.setAttribute('cy', p.y);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Listeners
+        btnGravity.onclick = () => {
+            gravityEnabled = !gravityEnabled;
+            btnGravity.classList.toggle('active');
+        };
+
+        btnRepel.onclick = () => {
+            repelEnabled = !repelEnabled;
+            btnRepel.classList.toggle('active');
+        };
+
+        fanSlider.oninput = (e) => {
+            const val = parseFloat(e.target.value);
+            windForce = val / 200; // Normalized force
+            fanVal.innerText = (val / 10).toFixed(1);
+        };
+
+        countSlider.oninput = (e) => {
+            particleCount = e.target.value;
+            countVal.innerText = particleCount;
+            init();
+        };
+
+        fileInputs.forEach(input => {
+            input.onchange = (e) => {
+                const idx = e.target.getAttribute('data-idx');
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        customAssets[idx] = event.target.result;
+                        init();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        });
+
+        window.onmousemove = (e) => { mouse.x = e.clientX; mouse.y = e.clientY; };
+        window.onresize = () => { width = window.innerWidth; height = window.innerHeight; };
+
+        init();
+        update();
+    </script>
+</body>
+</html>

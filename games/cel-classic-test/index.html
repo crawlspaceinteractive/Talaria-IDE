@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Cel Classic — Expanded World</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: #000; overflow: hidden; touch-action: none; }
+canvas { display: block; width: 100vw; height: 100vh; image-rendering: pixelated; }
+#debug { position: absolute; top: 10px; right: 10px; color: #0f0; font-family: monospace; font-size: 12px; pointer-events: none; background: rgba(0,0,0,0.5); padding: 5px; }
+</style>
+</head>
+<body>
+<div id="debug"></div>
+<script>
+// ─── Local Star SDK with Deterministic Input ────────────────────────────────
+window.TEST_INPUTS = []; 
+window.currentTick = 0;
+window.isTestMode = false;
+
+function game(initFn) {
+  const canvas = document.createElement('canvas');
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const g = {
+    canvas, ctx,
+    width: 0, height: 0,
+    loop(updateFn) {
+      const step = () => {
+        if (window.isTestMode) {
+          window.currentTick++;
+          const test = window.TEST_INPUTS.find(t => t.tick === window.currentTick);
+          if (test) {
+            window.extMoveX = test.moveX;
+            window.extMoveZ = test.moveZ;
+            window.extYaw = test.yaw;
+            window.extPitch = test.pitch;
+          }
+        }
+        updateFn(0.016);
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+  };
+  const resize = () => {
+    g.width = canvas.width = window.innerWidth;
+    g.height = canvas.height = window.innerHeight;
+  };
+  window.addEventListener('resize', resize);
+  resize();
+  initFn(g);
+}
+
+// ─── CONSTANTS ──────────────────────────────────────────────────────────────
+const SW = 320, SH = 240;
+const HALF_W = 160, HALF_H = 120;
+const FOCAL_X = 134, FOCAL_Y = 143;
+const NEAR_Z = 0.1; 
+const TILE = 2.0;
+
+// ─── BAM TRIGONOMETRY (0-65535) ──────────────────────────────────
+const BAM_SIZE = 65536;
+const SIN = new Float32Array(BAM_SIZE), COS = new Float32Array(BAM_SIZE);
+for (let i = 0; i < BAM_SIZE; i++) {
+  const r = (i / BAM_SIZE) * Math.PI * 2;
+  SIN[i] = Math.sin(r); COS[i] = Math.cos(r);
+}
+const sinB = (b) => SIN[b & 0xFFFF], cosB = (b) => COS[b & 0xFFFF];
+
+const pixBuf = new Uint32Array(SW * SH), zBuf = new Float32Array(SW * SH);
+const imgData = new ImageData(SW, SH);
+const offscreenCanvas = document.createElement('canvas');
+offscreenCanvas.width = SW; offscreenCanvas.height = SH;
+const offCtx = offscreenCanvas.getContext('2d');
+
+function clearBuffers() { pixBuf.fill(0xFF1A0A05); zBuf.fill(0); }
+
+function clipAndDrawTri(v0, v1, v2, r, g, b) {
+  const pts = [v0, v1, v2];
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    const p1 = pts[i], p2 = pts[(i + 1) % 3];
+    if (p1.cz >= NEAR_Z) {
+      if (p2.cz >= NEAR_Z) { out.push(p2); } else {
+        const t = (NEAR_Z - p1.cz) / (p2.cz - p1.cz);
+        out.push({ cx: p1.cx + (p2.cx - p1.cx) * t, cy: p1.cy + (p2.cy - p1.cy) * t, cz: NEAR_Z });
+      }
+    } else {
+      if (p2.cz >= NEAR_Z) {
+        const t = (NEAR_Z - p1.cz) / (p2.cz - p1.cz);
+        out.push({ cx: p1.cx + (p2.cx - p1.cx) * t, cy: p1.cy + (p2.cy - p1.cy) * t, cz: NEAR_Z });
+        out.push(p2);
+      }
+    }
+  }
+  if (out.length < 3) return;
+  for (let i = 1; i < out.length - 1; i++) { drawTri(out[0], out[i], out[i+1], r, g, b); }
+}
+
+function drawTri(v0, v1, v2, r, g, b) {
+  const sx0 = (HALF_W + (v0.cx/v0.cz)*FOCAL_X), sy0 = (HALF_H - (v0.cy/v0.cz)*FOCAL_Y), sz0 = 1/v0.cz;
+  const sx1 = (HALF_W + (v1.cx/v1.cz)*FOCAL_X), sy1 = (HALF_H - (v1.cy/v1.cz)*FOCAL_Y), sz1 = 1/v1.cz;
+  const sx2 = (HALF_W + (v2.cx/v2.cz)*FOCAL_X), sy2 = (HALF_H - (v2.cy/v2.cz)*FOCAL_Y), sz2 = 1/v2.cz;
+  const cross = (sx1-sx0)*(sy2-sy0)-(sy1-sy0)*(sx2-sx0);
+  if (cross <= 0) return; 
+  scanTri(sx0, sy0, sz0, sx1, sy1, sz1, sx2, sy2, sz2, r, g, b);
+}
+
+function scanTri(x0, y0, iz0, x1, y1, iz1, x2, y2, iz2, cr, cg, cb) {
+  if (y1 < y0) { [x0,x1]=[x1,x0]; [y0,y1]=[y1,y0]; [iz0,iz1]=[iz1,iz0]; }
+  if (y2 < y0) { [x0,x2]=[x2,x0]; [y0,y2]=[y2,y0]; [iz0,iz2]=[iz2,iz0]; }
+  if (y2 < y1) { [x1,x2]=[x2,x1]; [y1,y2]=[y2,y1]; [iz1,iz2]=[iz2,iz1]; }
+  const totalH = y2 - y0; if (totalH === 0) return;
+  for (let y = Math.max(0, Math.ceil(y0)); y <= Math.min(SH-1, Math.floor(y2)); y++) {
+    const second = y > y1 || y1 === y0;
+    const segH = second ? y2-y1 : y1-y0; if (segH === 0) continue;
+    const ta = (y - y0) / totalH, tb = second ? (y - y1) / segH : (y - y0) / segH;
+    let xa = x0 + (x2-x0)*ta, xb = second ? x1 + (x2-x1)*tb : x0 + (x1-x0)*tb;
+    let za = iz0 + (iz2-iz0)*ta, zb = second ? iz1 + (iz2-iz1)*tb : iz0 + (iz1-iz0)*tb;
+    if (xa > xb) { [xa,xb]=[xb,xa]; [za,zb]=[zb,za]; }
+    const span = xb - xa; if (span <= 0) continue;
+    let curZ = za + (zb-za)*(Math.max(0,xa)-xa)/span;
+    const zStep = (zb-za)/span, base = y * SW;
+    for (let x = Math.max(0, Math.ceil(xa)); x <= Math.min(SW-1, Math.floor(xb)); x++) {
+      if (curZ > zBuf[base+x]) { zBuf[base+x] = curZ; pixBuf[base+x] = (0xff<<24)|(cb<<16)|(cg<<8)|cr; }
+      curZ += zStep;
+    }
+  }
+}
+
+window.CAM = { x:0, y:3, z:0, yaw: 0, pitch: 0 };
+window.PLAYER = { x: 8*TILE, z: 8*TILE, y: 0, yaw: 0, pitch: 3276 };
+
+function worldToCamera(wx, wy, wz) {
+  const dx = wx - window.CAM.x, dy = wy - window.CAM.y, dz = wz - window.CAM.z;
+  const sY = sinB(window.CAM.yaw), cY = cosB(window.CAM.yaw), sP = sinB(window.CAM.pitch), cP = cosB(window.CAM.pitch);
+  const rx = dx*cY - dz*sY, rz = dx*sY + dz*cY;
+  return { cx: rx, cy: dy*cP + rz*sP, cz: -dy*sP + rz*cP };
+}
+
+function quad(tris, p0, p1, p2, p3, r, g, b) {
+  tris.push({ v0:p0, v1:p1, v2:p2, r,g,b });
+  tris.push({ v0:p0, v1:p2, v2:p3, r,g,b });
+}
+
+function buildCube(cx, cy, cz, hw, hh, hd, r, g, b, yaw = 0) {
+  const tris = []; const sY = sinB(yaw), cY = cosB(yaw);
+  const P = (lx, ly, lz) => ({ x: cx + (lx*cY + lz*sY), y: cy + ly, z: cz + (-lx*sY + lz*cY) });
+  const [x0,x1] = [-hw, hw], [y0,y1] = [0, hh*2], [z0,z1] = [-hd, hd];
+  quad(tris, P(x0,y1,z1), P(x1,y1,z1), P(x1,y1,z0), P(x0,y1,z0), r, g, b); // Top
+  quad(tris, P(x0,y0,z1), P(x1,y0,z1), P(x1,y1,z1), P(x0,y1,z1), r*0.8, g*0.8, b*0.8); // Front
+  quad(tris, P(x1,y0,z0), P(x0,y0,z0), P(x0,y1,z0), P(x1,y1,z0), r*0.8, g*0.8, b*0.8); // Back
+  quad(tris, P(x0,y0,z0), P(x0,y0,z1), P(x0,y1,z1), P(x0,y1,z0), r*0.7, g*0.7, b*0.7); // Left
+  quad(tris, P(x1,y0,z1), P(x1,y0,z0), P(x1,y1,z0), P(x1,y1,z1), r*0.7, g*0.7, b*0.7); // Right
+  quad(tris, P(x0,y0,z0), P(x1,y0,z0), P(x1,y0,z1), P(x0,y0,z1), r*0.5, g*0.5, b*0.5); // Bottom
+  return tris;
+}
+
+const worldOpaque = [];
+// Floor
+for (let i=0; i<16; i++) for (let j=0; j<16; j++) {
+  const c = ((i+j)%2===0) ? 60 : 40;
+  worldOpaque.push(...buildCube(i*TILE, -0.2, j*TILE, TILE/2, 0.1, TILE/2, c, c, c));
+}
+// Walls
+for (let i=0; i<16; i++) {
+  worldOpaque.push(...buildCube(i*TILE, 0, -TILE/2, TILE/2, 2, 0.1, 120, 100, 80)); // North
+  worldOpaque.push(...buildCube(i*TILE, 0, 15.5*TILE, TILE/2, 2, 0.1, 120, 100, 80)); // South
+  worldOpaque.push(...buildCube(-TILE/2, 0, i*TILE, 0.1, 2, TILE/2, 100, 120, 80)); // West
+  worldOpaque.push(...buildCube(15.5*TILE, 0, i*TILE, 0.1, 2, TILE/2, 100, 120, 80)); // East
+}
+// Platforms
+worldOpaque.push(...buildCube(4*TILE, 1, 4*TILE, TILE, 0.5, TILE, 150, 50, 50));
+worldOpaque.push(...buildCube(12*TILE, 2, 12*TILE, TILE, 0.5, TILE, 50, 150, 50));
+// Stairs
+for (let i=0; i<5; i++) {
+  worldOpaque.push(...buildCube(8*TILE, i*0.4, (4+i)*0.5*TILE, TILE/2, 0.2, 0.25*TILE, 100, 100, 150));
+}
+
+const KEYS = {};
+document.addEventListener('keydown', e => { KEYS[e.code] = true; });
+document.addEventListener('keyup', e => { KEYS[e.code] = false; });
+
+game(g => {
+  g.loop(() => {
+    let moveX = window.extMoveX || 0, moveZ = window.extMoveZ || 0;
+    if (window.extYaw !== undefined) window.PLAYER.yaw = window.extYaw;
+    if (window.extPitch !== undefined) window.PLAYER.pitch = window.extPitch;
+    if (!window.isTestMode) {
+      if (KEYS['KeyQ']) window.PLAYER.yaw -= 800;
+      if (KEYS['KeyE']) window.PLAYER.yaw += 800;
+      if (KEYS['KeyW']) moveZ += 1;
+      if (KEYS['KeyS']) moveZ -= 1;
+      if (KEYS['KeyA']) moveX -= 1;
+      if (KEYS['KeyD']) moveX += 1;
+    }
+    const sY = sinB(window.PLAYER.yaw), cY = cosB(window.PLAYER.yaw);
+    window.PLAYER.x += (moveX*cY + moveZ*sY) * 0.08;
+    window.PLAYER.z += (-moveX*sY + moveZ*cY) * 0.08;
+
+    const DIST = 6, HEIGHT = 3;
+    const sP = sinB(window.PLAYER.pitch), cP = cosB(window.PLAYER.pitch);
+    window.CAM.x = window.PLAYER.x - sY * DIST * cP;
+    window.CAM.z = window.PLAYER.z - cY * DIST * cP;
+    window.CAM.y = window.PLAYER.y + HEIGHT - sP * DIST;
+    window.CAM.yaw = window.PLAYER.yaw;
+    window.CAM.pitch = window.PLAYER.pitch;
+
+    clearBuffers();
+    const scene = [...worldOpaque];
+    scene.push(...buildCube(window.PLAYER.x, window.PLAYER.y, window.PLAYER.z, 0.3, 0.3, 0.3, 200, 100, 50, window.PLAYER.yaw));
+    const fx = window.PLAYER.x + sY*0.31*cP, fz = window.PLAYER.z + cY*0.31*cP, fy = window.PLAYER.y+0.3+sP*0.31;
+    scene.push(...buildCube(fx, fy, fz, 0.1, 0.1, 0.1, 255, 255, 255, window.PLAYER.yaw));
+
+    const projected = scene.map(t => ({
+      v0: worldToCamera(t.v0.x, t.v0.y, t.v0.z), v1: worldToCamera(t.v1.x, t.v1.y, t.v1.z), v2: worldToCamera(t.v2.x, t.v2.y, t.v2.z),
+      r: t.r, g: t.g, b: t.b
+    }));
+    projected.sort((a,b) => (b.v0.cz+b.v1.cz+b.v2.cz) - (a.v0.cz+a.v1.cz+a.v2.cz));
+    projected.forEach(t => clipAndDrawTri(t.v0, t.v1, t.v2, t.r, t.g, t.b));
+
+    const u8 = new Uint8ClampedArray(pixBuf.buffer);
+    imgData.data.set(u8); offCtx.putImageData(imgData, 0, 0);
+    g.ctx.imageSmoothingEnabled = false; g.ctx.drawImage(offscreenCanvas, 0, 0, g.canvas.width, g.canvas.height);
+    document.getElementById('debug').innerText = `TICK: ${window.currentTick}\nYAW: ${window.PLAYER.yaw}\nPOS: ${window.PLAYER.x.toFixed(2)}, ${window.PLAYER.z.toFixed(2)}`;
+  });
+});
+window.runAudit = (inputs) => { window.isTestMode = true; window.currentTick = 0; window.TEST_INPUTS = inputs; };
+</script>
+</body>
+</html>

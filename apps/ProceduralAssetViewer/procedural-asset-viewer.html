@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asset Viewer</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Micro+5&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --face: #535353;
+      --bg: #3a3a3a;
+      --workspace: #252526;
+      --titlebar: #535353;
+      --text: #afafaf;
+      --text-sel: #ffffff;
+      --disabled: #8c8c8c;
+      --btn: #464646;
+      --btn-hot: #6b6b6b;
+      --btn-sel: #212121;
+      --list: #464646;
+      --list-sel: #6b6b6b;
+      --scrollbar-bg: #1f1f1f;
+      --scrollbar-thumb: #464646;
+      --border-light: #6b6b6b;
+      --border-dark: #6b6b6b;
+      --sep: #ffffff;
+      --checkbox: #1f1f1f;
+      --shadow: #000000;
+      --bevel-hi: #8c8c8c;
+      --bevel-lo: #1f1f1f;
+      --bv: -1px 0 0 var(--bevel-hi), 0 -1px 0 var(--bevel-hi), 1px 0 0 var(--bevel-lo), 0 1px 0 var(--bevel-lo);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text); font-family: 'Micro 5', monospace;
+      height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+      -webkit-font-smoothing: none; font-smooth: never;
+      text-shadow: 1px 1px 0 #000;
+    }
+    .header {
+      background: var(--titlebar); border-bottom: 3px solid var(--border-dark); box-shadow: 0 1px 0 var(--bevel-lo);
+      padding: 6px 14px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 4px 0 var(--shadow);
+    }
+    .header h1 { font-size: 34px; font-weight: bold; color: var(--text-sel); letter-spacing: 1px; text-transform: uppercase; }
+    .header .status { font-size: 24px; color: var(--disabled); }
+    .layout { display: grid; grid-template-columns: 1fr 420px; flex: 1; min-height: 0; }
+    .tab-bar { display: flex; gap: 0; background: var(--bg); padding: 4px 4px 0 4px; flex-shrink: 0; }
+    .tab {
+      font-size: 24px; font-family: 'Micro 5', monospace;
+      text-transform: uppercase; letter-spacing: 1px;
+      padding: 6px 20px 4px; cursor: pointer;
+      background: var(--bg); color: var(--disabled);
+      border: 3px solid var(--border-dark); border-bottom: none;
+      position: relative; top: 3px; border-radius: 0;
+    }
+    .tab::before, .tab::after {
+      content: ''; position: absolute; width: 3px; height: 3px;
+      background: var(--border-dark);
+    }
+    .tab::before { top: -3px; left: -3px; }
+    .tab::after { top: -3px; right: -3px; }
+    .tab.active {
+      background: var(--face); color: var(--text-sel);
+      z-index: 2;
+      box-shadow: inset 0 -3px 0 var(--face), inset 0 2px 0 #fff;
+    }
+    .tab:not(.active) { box-shadow: inset 0 -3px 0 var(--bg); }
+    .tab:hover:not(.active) { background: var(--btn); color: var(--text); }
+    .tab-content { display: none; flex: 1; min-height: 0; position: relative; z-index: 0; }
+    .tab-content.active { display: flex; flex-direction: column; min-height: 0; z-index: 1; }
+    .tab-content.active::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: var(--bevel-hi); pointer-events: none; z-index: 10;
+    }
+    .tab-content.active::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+      background: var(--bevel-lo); pointer-events: none; z-index: 10;
+    }
+    .code-editor-wrap {
+      flex: 1; min-height: 0; display: flex;
+      border-right: 2px solid var(--border-dark); box-shadow: 1px 0 0 var(--bevel-lo);
+    }
+    #codeEditor {
+      flex: 1; min-height: 0; width: 100%; resize: none;
+      background: var(--workspace); color: var(--text-sel);
+      font-family: 'Micro 5', monospace; font-size: 20px;
+      border: none; outline: none; padding: 12px;
+      -webkit-font-smoothing: none; font-smooth: never;
+      text-shadow: 1px 1px 0 #000;
+      line-height: 1.5; tab-size: 2;
+    }
+    #codeEditor::selection { background: var(--list-sel); color: var(--text-sel); }
+    .code-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 10px; border-bottom: 1px solid var(--border-dark);
+      cursor: pointer; font-size: 18px;
+    }
+    .code-item:hover { background: var(--list-sel); }
+    .code-item.active { background: var(--list-sel); color: var(--text-sel); }
+    .ci-label { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .code-item.active .ci-label { color: var(--text-sel); }
+    .ci-src { color: var(--disabled); font-size: 14px; margin-left: 6px; flex-shrink: 0; }
+    .vfs-group { border-left: 2px solid var(--border-dark); margin-left: 8px; }
+    .vfs-group-title { font-size: 20px !important; padding: 4px 10px !important; background: var(--list) !important; }
+    .viewport-wrap {
+      display: flex; flex-direction: column;
+      border-right: 2px solid var(--border-dark); box-shadow: 1px 0 0 var(--bevel-lo); min-height: 0;
+      box-shadow: 4px 0 0 var(--shadow);
+    }
+    .viewport { flex: 1; position: relative; background: var(--workspace); min-height: 0; overflow: hidden; }
+    .viewport canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+    .viewport-label {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-size: 24px; color: var(--disabled); letter-spacing: 0.5px;
+      text-transform: uppercase; pointer-events: none; z-index: 10;
+      background: var(--workspace); padding: 3px 8px;
+    }
+    .palette {
+      display: flex; flex-direction: column; min-height: 0;
+      overflow-y: auto; overflow-x: hidden;
+      background: var(--face);
+      box-shadow: -4px 0 0 var(--shadow);
+    }
+    .palette-section { display: flex; flex-direction: column; }
+    .palette-title {
+      font-size: 26px; color: var(--text-sel); letter-spacing: 1px;
+      text-transform: uppercase; padding: 8px 14px;
+      border-bottom: 3px solid var(--border-dark); box-shadow: 0 1px 0 var(--bevel-lo), inset 0 2px 0 #000; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none; position: sticky; top: 0;
+      background: var(--titlebar); z-index: 1;
+    }
+    .palette-title:hover { background: var(--btn-hot); }
+    .palette-title .count { color: var(--disabled); font-size: 24px; }
+    .palette-title::before {
+      content: 'V'; font-size: 20px; margin-right: 6px;
+      display: inline-block; transition: transform 0.15s;
+    }
+    .palette-section.collapsed .palette-title::before { transform: rotate(-90deg); }
+    .palette-section.collapsed .palette-body { display: none; }
+    .palette-body { overflow-y: auto; min-height: 0; background: var(--bg); }
+    .palette::-webkit-scrollbar { width: 8px; }
+    .palette::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+    .palette::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
+    .palette::-webkit-scrollbar-thumb:hover { background: var(--btn-hot); }
+    .palette-body::-webkit-scrollbar { width: 8px; }
+    .palette-body::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
+    .palette-body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); }
+    .palette-body::-webkit-scrollbar-thumb:hover { background: var(--btn-hot); }
+    .gallery { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
+    .model-card {
+      display: flex; align-items: center; gap: 10px; padding: 6px 8px;
+      border: 3px solid var(--border-dark); box-shadow: var(--bv); background: var(--list);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .model-card:hover { background: var(--btn-hot); border-color: var(--border-light); }
+    .model-card.active { background: var(--list-sel); border-color: var(--text-sel); }
+    .mc-thumb {
+      width: 56px; height: 56px; background: var(--workspace);
+      border: 3px solid var(--border-dark); box-shadow: var(--bv); flex-shrink: 0;
+      overflow: hidden; image-rendering: pixelated;
+    }
+    .mc-thumb canvas { width: 100%; height: 100%; display: block; }
+    .mc-info { flex: 1; min-width: 0; }
+    .mc-name {
+      font-size: 26px; color: var(--text-sel); font-weight: bold;
+      text-transform: uppercase; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .mc-meta { font-size: 20px; color: var(--disabled); }
+    .texture-list { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
+    .texture-item {
+      display: flex; align-items: center; gap: 10px; padding: 5px 8px;
+      border: 3px solid var(--border-dark); box-shadow: var(--bv); background: var(--list);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .texture-item:hover { background: var(--btn-hot); border-color: var(--border-light); }
+    .texture-item.active { background: var(--list-sel); border-color: var(--text-sel); }
+    .tx-thumb {
+      width: 36px; height: 36px; border: 3px solid var(--border-dark); box-shadow: var(--bv);
+      image-rendering: pixelated; flex-shrink: 0; background: var(--workspace);
+    }
+    .tx-thumb canvas { width: 100%; height: 100%; display: block; }
+    .tx-name { font-size: 24px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .controls-panel {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+      padding: 6px 12px; background: var(--face);
+      border-top: 3px solid var(--border-light); box-shadow: 0 -1px 0 var(--bevel-hi);
+      display: flex; flex-direction: row; align-items: center; gap: 12px;
+      box-shadow: 0 -4px 0 var(--shadow);
+      overflow: hidden;
+    }
+    .ctrl { display: flex; flex-direction: row; align-items: center; gap: 4px; flex: 0 0 auto; }
+    .ctrl label { font-size: 20px; color: var(--disabled); text-transform: uppercase; flex-shrink: 0; white-space: nowrap; }
+    .ctrl .val { font-size: 26px; color: var(--text-sel); font-weight: bold; flex-shrink: 0; white-space: nowrap; }
+    .ctrl input[type="range"] {
+      width: 80px; height: 6px; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      background: var(--scrollbar-bg); outline: none;
+    }
+    .ctrl input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 18px;
+      background: var(--scrollbar-thumb); cursor: pointer; border: 3px solid var(--border-dark); box-shadow: var(--bv);
+    }
+    .ctrl-row { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .ctrl-row input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--checkbox); }
+    .ctrl-row label { font-size: 24px; color: var(--text); cursor: pointer; white-space: nowrap; }
+    .btn-row { display: flex; gap: 4px; flex: 0 0 auto; }
+    .btn-row button { flex: none !important; padding: 4px 8px !important; gap: 4px !important; }
+    .cam-hint {
+      position: absolute; top: 9px; left: 9px; z-index: 15;
+      font-size: 20px; color: var(--disabled); pointer-events: none;
+      background: var(--workspace); padding: 3px 6px;
+      box-shadow: 1px 1px 0 var(--shadow);
+    }
+    .tl-transport { display: flex; gap: 4px; flex-shrink: 0; }
+    .tl-btn {
+      background: var(--btn); border: 3px solid var(--border-dark); box-shadow: var(--bv);
+      color: var(--text); padding: 0; margin: 0;
+      cursor: pointer; flex: none;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; position: relative;
+    }
+    .tl-btn .i {
+      display: block; width: 1px; height: 1px;
+      transform: scale(2); transform-origin: top left;
+      position: absolute; top: 4px; left: 4px;
+    }
+    .tl-btn .i-play {
+      background: #afafaf;
+      box-shadow: 2px 0 0 #afafaf, 1px 1px 0 #afafaf, 2px 1px 0 #afafaf,
+        0px 2px 0 #afafaf, 1px 2px 0 #afafaf, 2px 2px 0 #afafaf, 3px 2px 0 #afafaf,
+        0px 3px 0 #afafaf, 1px 3px 0 #afafaf, 2px 3px 0 #afafaf, 3px 3px 0 #afafaf, 4px 3px 0 #afafaf,
+        0px 4px 0 #afafaf, 1px 4px 0 #afafaf, 2px 4px 0 #afafaf, 3px 4px 0 #afafaf,
+        0px 5px 0 #afafaf, 1px 5px 0 #afafaf, 2px 5px 0 #afafaf,
+        0px 6px 0 #afafaf, 1px 6px 0 #afafaf;
+    }
+    .tl-btn .i-stop {
+      background: #afafaf;
+      box-shadow: 1px 0 0 #afafaf, 2px 0 0 #afafaf, 3px 0 0 #afafaf, 4px 0 0 #afafaf, 5px 0 0 #afafaf,
+        0px 1px 0 #afafaf, 1px 1px 0 #afafaf, 2px 1px 0 #afafaf, 3px 1px 0 #afafaf, 4px 1px 0 #afafaf, 5px 1px 0 #afafaf,
+        0px 2px 0 #afafaf, 1px 2px 0 #afafaf, 2px 2px 0 #afafaf, 3px 2px 0 #afafaf, 4px 2px 0 #afafaf, 5px 2px 0 #afafaf,
+        0px 3px 0 #afafaf, 1px 3px 0 #afafaf, 2px 3px 0 #afafaf, 3px 3px 0 #afafaf, 4px 3px 0 #afafaf, 5px 3px 0 #afafaf,
+        0px 4px 0 #afafaf, 1px 4px 0 #afafaf, 2px 4px 0 #afafaf, 3px 4px 0 #afafaf, 4px 4px 0 #afafaf, 5px 4px 0 #afafaf,
+        0px 5px 0 #afafaf, 1px 5px 0 #afafaf, 2px 5px 0 #afafaf, 3px 5px 0 #afafaf, 4px 5px 0 #afafaf, 5px 5px 0 #afafaf;
+    }
+    .tl-btn .i-loop {
+      background: #afafaf;
+      box-shadow: 2px 0 0 #afafaf, 3px 0 0 #afafaf, 4px 0 0 #afafaf,
+        1px 1px 0 #afafaf, 5px 1px 0 #afafaf,
+        0px 2px 0 #afafaf, 5px 2px 0 #afafaf,
+        0px 3px 0 #afafaf,
+        0px 4px 0 #afafaf,
+        1px 5px 0 #afafaf, 5px 5px 0 #afafaf,
+        2px 6px 0 #afafaf, 3px 6px 0 #afafaf, 4px 6px 0 #afafaf;
+    }
+    .tl-scrub {
+      flex: 1; height: 8px; -webkit-appearance: none; appearance: none;
+      background: var(--scrollbar-bg); outline: none; cursor: pointer; min-width: 40px;
+    }
+    .tl-scrub::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 14px; height: 15px;
+      background: var(--scrollbar-thumb); cursor: pointer; border: 3px solid var(--border-dark); box-shadow: var(--bv);
+    }
+    .tl-speed { width: 80px; flex: none; }
+    button {
+      flex: 1; background: var(--btn); min-width: 0;
+      border: 3px solid var(--border-dark); box-shadow: var(--bv); color: var(--text);
+      padding: 6px 10px; font-size: 24px;
+      font-family: 'Micro 5', monospace; text-transform: uppercase;
+      cursor: pointer; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    button:hover { background: var(--btn-hot); color: var(--text-sel); }
+    button:active { background: var(--btn-sel); color: var(--text-sel); }
+    .catalog-list { padding: 6px 14px; }
+    .catalog-group { margin-bottom: 6px; }
+    .catalog-group-title {
+      font-size: 24px; color: var(--text); text-transform: uppercase;
+      padding: 4px 0; border-bottom: 3px solid var(--border-dark); box-shadow: 0 1px 0 var(--bevel-lo);
+      margin-bottom: 3px; cursor: pointer;
+    }
+    .catalog-group-title:hover { color: var(--text-sel); }
+    .catalog-group-body { padding-left: 9px; }
+    .catalog-row {
+      font-size: 20px; color: var(--disabled); padding: 4px 0;
+      display: flex; gap: 9px; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .catalog-row .c-id { color: var(--text); min-width: 30px; text-align: right; }
+    .catalog-row .c-name { color: var(--text); }
+    .catalog-row .c-extra { color: var(--disabled); margin-left: auto; }
+    #soundViz { padding: 6px 14px; display: none; flex-shrink: 0; }
+    #soundViz.active { display: block; }
+    #soundViz canvas {
+      width: 100%; height: 48px; background: var(--workspace);
+      border: 3px solid var(--border-dark); box-shadow: var(--bv); display: block;
+    }
+    #soundViz-label { font-size: 20px; color: var(--disabled); margin-top: 4px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>ASSET VIEWER</h1>
+    <span class="status" id="statusText">Discovering modules...</span>
+  </div>
+  <div class="tab-bar">
+    <div class="tab active" data-tab="visual">VISUAL</div>
+    <div class="tab" data-tab="code">CODE</div>
+  </div>
+  <div class="tab-content active" id="tabVisual">
+  <div class="layout">
+    <div class="viewport-wrap">
+      <div class="viewport" id="viewport">
+        <canvas id="mainCanvas"></canvas>
+        <div class="viewport-label" id="viewportLabel"></div>
+        <div class="cam-hint" id="camHint">LMB orbit / RMB pan / scroll zoom</div>
+        <div id="soundViz">
+          <canvas id="soundVizCanvas"></canvas>
+          <div id="soundViz-label">waveform</div>
+        </div>
+        <div class="controls-panel">
+          <div class="ctrl"><label>SCALE</label><input type="range" id="scaleSlider" min="0.2" max="5" step="0.1" value="1"><span class="val" id="scaleVal">1.0x</span></div>
+          <div class="tl-transport">
+            <button class="tl-btn" id="tlPlay" title="Play/Pause"><span class="i i-play"></span></button>
+            <button class="tl-btn" id="tlStop" title="Stop"><span class="i i-stop"></span></button>
+            <button class="tl-btn" id="tlLoop" title="Loop"><span class="i i-loop"></span></button>
+          </div>
+          <input type="range" class="tl-scrub" id="tlScrub" min="0" max="1000" step="1" value="0">
+          <span class="val" id="tlTime">0.00s</span>
+          <div class="ctrl"><label>SPEED</label><input type="range" class="tl-speed" id="tlSpeed" min="0.1" max="3" step="0.1" value="1"><span class="val" id="tlSpeedVal">1.0x</span></div>
+          <div class="btn-row"><button id="resetView">RESET</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="palette">
+      <div class="palette-section" id="modelsSection" style="display:none;">
+        <div class="palette-title">MODELS <span class="count" id="modelCount"></span></div>
+        <div class="palette-body"><div class="gallery" id="gallery"></div></div>
+      </div>
+      <div class="palette-section" id="texturesSection" style="display:none;">
+        <div class="palette-title">TEXTURES <span class="count" id="textureCount"></span></div>
+        <div class="palette-body"><div class="texture-list" id="textureList"></div></div>
+      </div>
+      <div class="palette-section" id="catalogSection" style="display:none;">
+        <div class="palette-title">DATA CATALOG <span class="count" id="catalogCount"></span></div>
+        <div class="palette-body"><div class="catalog-list" id="catalogList"></div></div>
+      </div>
+    </div>
+  </div>
+  </div>
+  <div class="tab-content" id="tabCode">
+    <div class="layout">
+      <div class="code-editor-wrap">
+        <textarea id="codeEditor" spellcheck="false" placeholder="// select a module from the palette to view its source..."></textarea>
+      </div>
+      <div class="palette" id="paletteCode"></div>
+    </div>
+  </div>
+  <script>
+    // ===== CONFIGURATION =====
+    const MODULE_ROOT = '../modules/';
+
+    // ===== STATE =====
+    let loadedModels = {};
+    let loadedTextures = {};
+    let currentModelName = null;
+    let selectedTextureKey = null;
+    let viewMode = 'none';
+    let catalogData = {};
+    let texGenSource = '';
+    let vfsModuleOrder = [];
+
+    // ===== THREE.JS =====
+    let mainScene, mainCamera, mainRenderer, mainModelGroup, mainOrbit;
+    const baseZoom = 1.5;
+
+    function initMainViewport() {
+      const canvas = document.getElementById('mainCanvas');
+      const container = document.getElementById('viewport');
+      if (!canvas || !container) return;
+      mainScene = new THREE.Scene();
+      mainScene.background = new THREE.Color(0x1a1a1a);
+      mainCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+      mainCamera.position.set(0, 0.5, baseZoom);
+      mainCamera.lookAt(0, 0.3, 0);
+      mainRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      mainRenderer.setPixelRatio(window.devicePixelRatio);
+      mainScene.add(new THREE.AmbientLight(0xffffff, 0.8));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.6);
+      dl.position.set(1, 1.5, 1);
+      mainScene.add(dl);
+      mainModelGroup = new THREE.Group();
+      mainScene.add(mainModelGroup);
+      if (THREE.OrbitControls) {
+        mainOrbit = new THREE.OrbitControls(mainCamera, canvas);
+        mainOrbit.enableDamping = true;
+        mainOrbit.dampingFactor = 0.12;
+        mainOrbit.target.set(0, 0.3, 0);
+        mainOrbit.minDistance = 0.3;
+        mainOrbit.maxDistance = 8;
+      }
+      function resize() {
+        const w = container.clientWidth, h = container.clientHeight;
+        if (w === 0 || h === 0) return;
+        mainCamera.aspect = w / h;
+        mainCamera.updateProjectionMatrix();
+        mainRenderer.setSize(w, h);
+      }
+      resize();
+      window.addEventListener('resize', resize);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (mainOrbit) mainOrbit.update();
+      if (mainRenderer && mainScene && mainCamera) {
+        mainRenderer.render(mainScene, mainCamera);
+      }
+    }
+
+    function resetView() {
+      mainCamera.position.set(0, 0.5, baseZoom);
+      mainCamera.lookAt(0, 0.3, 0);
+      if (mainOrbit) { mainOrbit.target.set(0, 0.3, 0); mainOrbit.update(); }
+      document.getElementById('scaleSlider').value = 1;
+      document.getElementById('scaleVal').textContent = '1.0x';
+    }
+
+    function createMaterials() {
+      return {
+        M: (color) => new THREE.MeshPhongMaterial({ color }),
+        MB: (color) => new THREE.MeshPhongMaterial({ color, emissive: 0x222222 }),
+      };
+    }
+
+    function createBoxFunction() {
+      return (w, h, d, color) => {
+        const geo = new THREE.BoxGeometry(w, h, d);
+        const mat = new THREE.MeshPhongMaterial({ color });
+        return new THREE.Mesh(geo, mat);
+      };
+    }
+
+    function renderThumbToCanvas(modelData, canvas) {
+      const thumbScene = new THREE.Scene();
+      thumbScene.background = new THREE.Color(0x1a1a1a);
+      thumbScene.add(new THREE.AmbientLight(0xffffff, 0.9));
+      const dl = new THREE.DirectionalLight(0xffffff, 0.5);
+      dl.position.set(1, 1.5, 1);
+      thumbScene.add(dl);
+      if (modelData.grp) thumbScene.add(modelData.grp);
+      const thumbCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+      thumbCamera.position.set(0, 0.4, 1.2);
+      thumbCamera.lookAt(0, 0.3, 0);
+      const thumbRenderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: true });
+      thumbRenderer.setPixelRatio(1);
+      thumbRenderer.setSize(56, 56);
+      thumbRenderer.render(thumbScene, thumbCamera);
+      thumbRenderer.dispose();
+    }
+
+    // ===== MODULE LOADING =====
+    async function loadJSFile(filename, code) {
+      const errors = [];
+      try {
+        const mod = { exports: {} };
+        const THREE_ref = THREE;
+        let cleanCode = code
+          .replace(/import\s+\*\s+as\s+THREE\s+from\s+['"]three['"]/g, '')
+          .replace(/import\s+\*\s+as\s+(\w+)\s+from\s+['"]three['"]/g, 'const $1 = THREE')
+          .replace(/import\s+\{\s*([^}]+)\s*\}\s+from\s+['"][^'"]*['"]/g, (m, names) => {
+            return names.split(',').map(n => n.trim()).filter(n => n.length > 0).map(n =>
+              'const ' + n + ' = importCache[' + JSON.stringify(n) + '];'
+            ).join('\n');
+          })
+          .replace(/import\s+\*\s+as\s+(\w+)\s+from\s+['"][^'"]*['"]/g, 'const $1 = importCache')
+          .replace(/import\s+(\w+)\s+from\s+['"][^'"]*['"]/g, (m, name) =>
+            'const ' + name + ' = importCache[' + JSON.stringify(name) + '] || (() => {})')
+          .replace(/import\s+['"][^'"]*['"];?\s*\n?/g, '')
+          .replace(/export\s+/g, '');
+        const exportMatches = [...code.matchAll(/export\s+(?:function|const|let|var|class)\s+(\w+)/g)];
+        const exportedNames = exportMatches.map(m => m[1]);
+        if (exportedNames.length > 0) {
+          cleanCode += '\n// Auto-exported:\n';
+          exportedNames.forEach(name => {
+            cleanCode += 'if (typeof ' + name + ' !== "undefined") module.exports.' + name + ' = ' + name + ';\n';
+          });
+        }
+        const importCache = window.importCache || {};
+        window.importCache = importCache;
+        const fn = new Function('THREE', 'module', 'exports', 'window', 'importCache', cleanCode);
+        fn(THREE_ref, mod, mod.exports, window, importCache);
+        const exports = mod.exports;
+        for (const key of Object.keys(exports)) {
+          if (typeof exports[key] !== 'function' && key !== 'module' && key !== 'exports') {
+            importCache[key] = exports[key];
+          }
+        }
+        console.log('[' + filename + '] Exported:', Object.keys(exports).join(', '));
+
+        // --- Auto-detect 3D model builders ---
+        for (const key of Object.keys(exports)) {
+          if (typeof exports[key] === 'function' && key.toLowerCase().includes('build')) {
+            try {
+              const testResult = exports[key](Object.keys(loadedModels).length === 0 ? 'default' : 'test', { M: createMaterials().M, MB: createMaterials().MB, box: createBoxFunction() });
+              if (testResult && testResult.grp) {
+                const configs = [];
+                if (testResult.config) {
+                  configs.push(...(Array.isArray(testResult.config) ? testResult.config : [testResult.config]));
+                } else {
+                  configs.push({ type: 'default', category: 'model' });
+                }
+                loadedModels[filename] = { builder: exports[key], config: configs, name: filename.replace('.js', '') };
+                populateGallery(configs, filename);
+              }
+            } catch (e) { /* not a model builder */ }
+          }
+        }
+
+        // --- Auto-detect 2D textures ---
+        if (exports.makeTextures) {
+          texGenSource = exports.makeTextures.toString();
+          try {
+            const textures = exports.makeTextures();
+            loadedTextures = { ...loadedTextures, ...textures };
+            populateTextureList(loadedTextures);
+          } catch (e) { console.warn('makeTextures:', e); }
+        }
+        if (exports.createSpriteSet) {
+          try {
+            const result = exports.createSpriteSet();
+            if (result && result.textures) {
+              loadedTextures = { ...loadedTextures, ...result.textures };
+              populateTextureList(loadedTextures);
+            }
+          } catch (e) { console.warn('createSpriteSet:', e); }
+        }
+
+        // --- Auto-detect data catalogs ---
+        const skipExports = new Set(['module', 'exports', 'THREE', 'window', 'document']);
+        for (const key of Object.keys(exports)) {
+          if (skipExports.has(key)) continue;
+          const val = exports[key];
+          if (typeof val === 'function') continue;
+          if ((typeof val === 'object' && val !== null) || typeof val === 'number' || typeof val === 'string') {
+            const id = filename.replace('.js', '') + ':' + key;
+            addCatalog(id, filename.replace('.js', '') + ' / ' + key, val);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading ' + filename + ':', e);
+        errors.push(filename + ': ' + e.message);
+      }
+      return errors;
+    }
+
+    // ===== MODULE DISCOVERY =====
+    async function discoverModules() {
+      // Try modules.json first
+      try {
+        const resp = await fetch('modules.json');
+        if (resp.ok) {
+          const list = await resp.json();
+          if (Array.isArray(list) && list.length > 0) return list;
+        }
+      } catch (e) {}
+
+      // Fall back to directory listing
+      try {
+        const resp = await fetch(MODULE_ROOT);
+        if (resp.ok) {
+          const html = await resp.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const links = doc.querySelectorAll('a[href$=".js"]');
+          const files = [];
+          links.forEach(a => {
+            const href = a.getAttribute('href');
+            if (href && !href.startsWith('..') && !href.startsWith('/')) {
+              files.push(href);
+            }
+          });
+          if (files.length > 0) return files.sort();
+        }
+      } catch (e) {}
+
+      return [];
+    }
+
+    async function autoPreload() {
+      const status = document.getElementById('statusText');
+      const modules = await discoverModules();
+      if (modules.length === 0) {
+        status.textContent = 'No modules found (run scan-modules.js or enable directory listing)';
+        return;
+      }
+      let loaded = 0, allErrors = [];
+      for (const name of modules) {
+        try {
+          const resp = await fetch(MODULE_ROOT + name);
+          if (!resp.ok) throw new Error(resp.status);
+          const code = await resp.text();
+          const errs = await loadJSFile(name, code);
+          allErrors.push(...errs);
+          if (!vfsModuleOrder.includes(name)) vfsModuleOrder.push(name);
+          loaded++;
+          status.textContent = 'Loaded ' + loaded + '/' + modules.length;
+        } catch (e) {
+          console.warn('Auto-load failed for ' + name + ':', e);
+          allErrors.push(name + ': fetch failed');
+        }
+      }
+      const errCount = allErrors.length;
+      if (loaded > 0 && errCount === 0)
+        status.textContent = 'Loaded ' + loaded + '/' + modules.length + ' modules';
+      else if (loaded > 0)
+        status.textContent = 'Loaded ' + loaded + '/' + modules.length + ' (' + errCount + ' errors)';
+      else
+        status.textContent = 'Ready';
+    }
+
+    // ===== POPULATE VISUAL PALETTE =====
+    let modelTotal = 0;
+
+    async function populateGallery(config, sourceFile) {
+      const gallery = document.getElementById('gallery');
+      document.getElementById('modelsSection').style.display = '';
+      modelTotal += config.length;
+      document.getElementById('modelCount').textContent = modelTotal + ' items';
+      const mats = createMaterials();
+      const box = createBoxFunction();
+      const builder = loadedModels[sourceFile] && loadedModels[sourceFile].builder;
+
+      for (let idx = 0; idx < config.length; idx++) {
+        const cfg = config[idx];
+        const modelId = sourceFile + '-' + (cfg.type || 'item') + '-' + idx;
+        if (document.querySelector('[data-model-id="' + modelId + '"]')) continue;
+        const card = document.createElement('div');
+        card.className = 'model-card';
+        card.setAttribute('data-model-id', modelId);
+
+        const thumbWrap = document.createElement('div');
+        thumbWrap.className = 'mc-thumb';
+        const thumbCanvas = document.createElement('canvas');
+        thumbWrap.appendChild(thumbCanvas);
+
+        const info = document.createElement('div');
+        info.className = 'mc-info';
+        const nameEl = document.createElement('div');
+        nameEl.className = 'mc-name';
+        nameEl.textContent = cfg.type || 'item';
+        const metaEl = document.createElement('div');
+        metaEl.className = 'mc-meta';
+        metaEl.textContent = cfg.category || sourceFile.replace('.js', '');
+        info.appendChild(nameEl);
+        info.appendChild(metaEl);
+
+        card.appendChild(thumbWrap);
+        card.appendChild(info);
+        gallery.appendChild(card);
+
+        if (builder) {
+          try {
+            const modelData = builder(cfg.type, { M: mats.M, MB: mats.MB, box });
+            if (modelData && modelData.grp) {
+              try { renderThumbToCanvas(modelData, thumbCanvas); } catch (e2) { console.warn('[thumb]', modelId, e2); }
+              card.addEventListener('click', () => selectModel(modelId, modelData, nameEl.textContent));
+            }
+          } catch (e) { console.warn('[model]', modelId, e); }
+        }
+      }
+    }
+
+    function selectModel(modelId, modelData, name) {
+      currentModelName = name;
+      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('active'));
+      const card = document.querySelector('[data-model-id="' + modelId + '"]');
+      if (card) card.classList.add('active');
+      while (mainModelGroup.children.length > 0) mainModelGroup.remove(mainModelGroup.children[0]);
+      if (modelData.grp) mainModelGroup.add(modelData.grp);
+      document.getElementById('viewportLabel').textContent = name;
+      viewMode = 'model';
+    }
+
+    function populateTextureList(textures) {
+      const list = document.getElementById('textureList');
+      list.innerHTML = '';
+      document.getElementById('texturesSection').style.display = '';
+      const allKeys = Object.keys(textures).sort();
+      document.getElementById('textureCount').textContent = allKeys.length + ' items';
+
+      allKeys.forEach(key => {
+        const texture = textures[key];
+        const item = document.createElement('div');
+        item.className = 'texture-item';
+        item.setAttribute('data-key', key);
+
+        const thumbWrap = document.createElement('div');
+        thumbWrap.className = 'tx-thumb';
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = 28; thumbCanvas.height = 28;
+        thumbWrap.appendChild(thumbCanvas);
+        if (texture && texture.image) {
+          const ctx = thumbCanvas.getContext('2d');
+          ctx.imageSmoothingEnabled = false;
+          ctx.drawImage(texture.image, 0, 0, 28, 28);
+        }
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'tx-name';
+        nameSpan.textContent = key;
+
+        item.appendChild(thumbWrap);
+        item.appendChild(nameSpan);
+        list.appendChild(item);
+        item.addEventListener('click', () => selectTexture(key, texture));
+      });
+    }
+
+    function selectTexture(key, texture) {
+      selectedTextureKey = key;
+      document.querySelectorAll('.texture-item').forEach(t => t.classList.remove('active'));
+      const item = document.querySelector('.texture-item[data-key="' + key + '"]');
+      if (item) item.classList.add('active');
+      showTexture2D(key, texture);
+    }
+
+    function showTexture2D(key, texture) {
+      if (!texture || !texture.image) return;
+      while (mainModelGroup.children.length > 0) mainModelGroup.remove(mainModelGroup.children[0]);
+      const canvas = document.getElementById('mainCanvas');
+      const container = document.getElementById('viewport');
+      const w = container.clientWidth, h = container.clientHeight;
+      const img = texture.image;
+      const scale = Math.min(w / img.width, h / img.height) * 0.8;
+      const planeGeo = new THREE.PlaneGeometry(img.width * scale / 100, img.height * scale / 100);
+      const tex = new THREE.CanvasTexture(img);
+      tex.magFilter = THREE.NearestFilter;
+      tex.minFilter = THREE.NearestFilter;
+      const planeMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+      const plane = new THREE.Mesh(planeGeo, planeMat);
+      mainModelGroup.add(plane);
+      mainCamera.position.set(0, 0, 2);
+      mainCamera.lookAt(0, 0, 0);
+      if (mainOrbit) { mainOrbit.target.set(0, 0, 0); mainOrbit.update(); }
+      document.getElementById('viewportLabel').textContent = key;
+      viewMode = 'texture';
+    }
+
+    function addCatalog(id, label, data) {
+      if (catalogData[id]) return;
+      catalogData[id] = data;
+      const list = document.getElementById('catalogList');
+      document.getElementById('catalogSection').style.display = '';
+
+      const group = document.createElement('div');
+      group.className = 'catalog-group';
+      const title = document.createElement('div');
+      title.className = 'catalog-group-title';
+      title.textContent = label + ' (' + getCatalogSize(data) + ')';
+      const body = document.createElement('div');
+      body.className = 'catalog-group-body';
+      body.style.display = 'none';
+      title.addEventListener('click', () => {
+        body.style.display = body.style.display === 'none' ? '' : 'none';
+      });
+
+      if (typeof data === 'object' && data !== null) {
+        renderCatalogEntries(body, data);
+      } else {
+        const row = document.createElement('div');
+        row.className = 'catalog-row';
+        const nameEl = document.createElement('span');
+        nameEl.className = 'c-name';
+        nameEl.textContent = String(data);
+        row.appendChild(nameEl);
+        body.appendChild(row);
+      }
+
+      group.appendChild(title);
+      group.appendChild(body);
+      list.appendChild(group);
+
+      let total = 0;
+      for (const k in catalogData) total += getCatalogSize(catalogData[k]);
+      document.getElementById('catalogCount').textContent = total + ' entries';
+    }
+
+    function getCatalogSize(data) {
+      if (Array.isArray(data)) return data.length;
+      if (typeof data === 'object' && data !== null) return Object.keys(data).length;
+      return 1;
+    }
+
+    function renderCatalogEntries(body, data) {
+      if (Array.isArray(data)) {
+        data.forEach((item, i) => {
+          const row = document.createElement('div');
+          row.className = 'catalog-row';
+          row.innerHTML = '<span class="c-id">' + i + '</span><span class="c-name">' + (typeof item === 'object' ? JSON.stringify(item) : String(item)) + '</span>';
+          body.appendChild(row);
+        });
+      } else if (typeof data === 'object' && data !== null) {
+        Object.keys(data).forEach(key => {
+          const row = document.createElement('div');
+          row.className = 'catalog-row';
+          const val = data[key];
+          row.innerHTML = '<span class="c-name">' + key + '</span><span class="c-extra">' + (typeof val === 'object' ? JSON.stringify(val).substring(0, 60) : String(val).substring(0, 60)) + '</span>';
+          body.appendChild(row);
+        });
+      }
+    }
+
+    // ===== TIMELINE (stub) =====
+    let tlPlaying = false, tlTime = 0, tlDuration = 2, tlSpeed = 1, tlLoop = true;
+    let tlActiveAnims = [];
+
+    // ===== CODE PALETTE =====
+    const CODE_SECTIONS = [
+      { label: 'MODELS',          query: '#gallery .model-card',          getLabel: el => (el.querySelector('.mc-name') || {}).textContent || '', getMeta: el => (el.querySelector('.mc-meta') || {}).textContent || '' },
+      { label: 'TEXTURES',        query: '#textureList .texture-item',    getLabel: el => (el.querySelector('.tx-name') || {}).textContent || el.getAttribute('data-key') || '' },
+      { label: 'DATA CATALOG',    query: '#catalogList .catalog-group',  getLabel: el => (el.querySelector('.catalog-group-title') || {}).textContent || '' },
+    ];
+
+    function buildCodePalette() {
+      const pal = document.getElementById('paletteCode');
+      if (pal.children.length > 0) return;
+      const hasAny = CODE_SECTIONS.some(sec => document.querySelectorAll(sec.query).length > 0);
+      if (!hasAny) return;
+      pal.innerHTML = '';
+
+      CODE_SECTIONS.forEach(sec => {
+        const visItems = document.querySelectorAll(sec.query);
+        if (visItems.length === 0) return;
+
+        const moduleMap = {};
+        const moduleOrder = [];
+        function getOrCreate(mod) {
+          if (!moduleMap[mod]) { moduleMap[mod] = []; moduleOrder.push(mod); }
+          return moduleMap[mod];
+        }
+
+        visItems.forEach((el, i) => {
+          let mod = '';
+          if (sec.label === 'MODELS') {
+            const mid = el.getAttribute('data-model-id') || '';
+            mod = mid.split('-').slice(0, -1).join('-') || 'unknown';
+          } else if (sec.label === 'TEXTURES') {
+            mod = 'textures';
+          } else if (sec.label === 'DATA CATALOG') {
+            const title = (el.querySelector('.catalog-group-title') || {}).textContent || '';
+            const slashIdx = title.indexOf(' /');
+            mod = slashIdx !== -1 ? title.substring(0, slashIdx).trim() : 'data';
+          }
+          getOrCreate(mod).push({ el, idx: i });
+        });
+
+        moduleOrder.sort((a, b) => {
+          const ai = vfsModuleOrder.indexOf(a + '.js');
+          const bi = vfsModuleOrder.indexOf(b + '.js');
+          return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        });
+
+        const section = document.createElement('div');
+        section.className = 'palette-section';
+        const title = document.createElement('div');
+        title.className = 'palette-title';
+        title.innerHTML = sec.label + ' <span class="count">' + visItems.length + '</span>';
+        const body = document.createElement('div');
+        body.className = 'palette-body';
+
+        moduleOrder.forEach(mod => {
+          const items = moduleMap[mod];
+          const group = document.createElement('div');
+          group.className = 'palette-section vfs-group';
+          const gTitle = document.createElement('div');
+          gTitle.className = 'palette-title vfs-group-title';
+          gTitle.innerHTML = mod + ' <span class="count">' + items.length + '</span>';
+          const gBody = document.createElement('div');
+          gBody.className = 'palette-body vfs-group-body';
+
+          items.forEach(item => {
+            const label = sec.getLabel(item.el);
+            const meta = sec.getMeta ? sec.getMeta(item.el) : '';
+            const row = document.createElement('div');
+            row.className = 'code-item';
+            row.innerHTML = '<span class="ci-label">' + label + '</span>' + (meta ? '<span class="ci-src">' + meta + '</span>' : '');
+            row.addEventListener('click', () => {
+              document.querySelectorAll('#paletteCode .code-item').forEach(r => r.classList.remove('active'));
+              row.classList.add('active');
+              showSnippet(sec.label, item.el, item.idx);
+            });
+            gBody.appendChild(row);
+          });
+
+          gTitle.addEventListener('click', () => group.classList.toggle('collapsed'));
+          group.appendChild(gTitle);
+          group.appendChild(gBody);
+          body.appendChild(group);
+        });
+
+        title.addEventListener('click', () => section.classList.toggle('collapsed'));
+        section.appendChild(title);
+        section.appendChild(body);
+        pal.appendChild(section);
+      });
+    }
+
+    function showSnippet(section, visEl, idx) {
+      const editor = document.getElementById('codeEditor');
+      if (section === 'MODELS') {
+        const modelId = visEl.getAttribute('data-model-id') || '';
+        const parts = modelId.split('-');
+        const sourceFile = parts.slice(0, -1).join('-');
+        const name = (visEl.querySelector('.mc-name') || {}).textContent || '';
+        let code = '// model: ' + name + '\n// source: ' + sourceFile + '\n\n';
+        const entry = loadedModels[sourceFile];
+        if (entry && entry.builder) {
+          code += entry.builder.toString();
+        } else {
+          code += '// builder not available';
+        }
+        editor.value = code;
+      } else if (section === 'TEXTURES') {
+        const key = visEl.getAttribute('data-key');
+        let code = '// texture: ' + key + '\n\n';
+        if (texGenSource) {
+          const cb = extractTexCallback(texGenSource, key);
+          if (cb) { editor.value = code + cb; return; }
+        }
+        const tex = loadedTextures[key];
+        if (tex && tex.image) {
+          code += '// size: ' + tex.image.width + 'x' + tex.image.height;
+        } else {
+          code += '// not loaded';
+        }
+        editor.value = code;
+      } else if (section === 'DATA CATALOG') {
+        const titleEl = visEl.querySelector('.catalog-group-title');
+        const label = titleEl ? titleEl.textContent : '';
+        const keys = Object.keys(catalogData);
+        const key = keys.find(k => catalogData[k] && (label.includes(k.split(':')[0])));
+        const data = key ? catalogData[key] : null;
+        editor.value = '// ' + (label || 'catalog') + '\n\n' + (data ? JSON.stringify(data, null, 2) : '// not available');
+      }
+    }
+
+    function extractTexCallback(source, key) {
+      const patterns = ['T.' + key + ' = tex(', 'T["' + key + '"] = tex('];
+      let start = -1;
+      for (const p of patterns) { start = source.indexOf(p); if (start !== -1) break; }
+      if (start === -1) return null;
+      const arrowStart = source.indexOf('=>', start);
+      if (arrowStart === -1) return null;
+      const bodyStart = source.indexOf('{', arrowStart);
+      if (bodyStart === -1) return null;
+      let depth = 0;
+      for (let i = bodyStart; i < source.length; i++) {
+        if (source[i] === '{') depth++;
+        else if (source[i] === '}') {
+          depth--;
+          if (depth === 0) return source.slice(bodyStart, i + 1);
+        }
+      }
+      return null;
+    }
+
+    // ===== TABS =====
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('tab' + tab.dataset.tab.charAt(0).toUpperCase() + tab.dataset.tab.slice(1)).classList.add('active');
+        if (tab.dataset.tab === 'code') buildCodePalette();
+        if (tab.dataset.tab === 'visual' && mainRenderer) {
+          const container = document.getElementById('viewport');
+          mainRenderer.setSize(container.clientWidth, container.clientHeight);
+          mainCamera.aspect = container.clientWidth / container.clientHeight;
+          mainCamera.updateProjectionMatrix();
+        }
+      });
+    });
+
+    // ===== CONTROLS =====
+    document.getElementById('scaleSlider').addEventListener('input', e => {
+      const s = parseFloat(e.target.value);
+      document.getElementById('scaleVal').textContent = s.toFixed(1) + 'x';
+      mainModelGroup.scale.set(s, s, s);
+    });
+    document.getElementById('resetView').addEventListener('click', resetView);
+
+    // ===== COLLAPSE PALETTE TITLES =====
+    document.querySelectorAll('.palette-title').forEach(title => {
+      title.addEventListener('click', () => {
+        title.closest('.palette-section').classList.toggle('collapsed');
+      });
+    });
+
+    // ===== INIT =====
+    window.addEventListener('load', () => {
+      initMainViewport();
+      animate();
+      autoPreload();
+    });
+  </script>
+</body>
+</html>

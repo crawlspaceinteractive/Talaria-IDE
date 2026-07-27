@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HEX TETRIS - Arcade Edition</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --panel-color: #1a1a1a;
+            --accent-color: #00ffcc;
+            --text-color: #ffffff;
+            --font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        #game-container {
+            position: relative;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            border: 4px solid var(--accent-color);
+            background: var(--panel-color);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.3);
+        }
+
+        canvas {
+            background: #000;
+            border: 2px solid #333;
+        }
+
+        #ui-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 150px;
+        }
+
+        .stat-box {
+            border: 2px solid #444;
+            padding: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .stat-label { font-size: 12px; color: #888; margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--accent-color); }
+
+        #controls-hint {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+    <div id="ui-panel">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <!-- Base64 Logo Placeholder -->
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAAAyCAMAAAC9Z99XAAAABlBMVEUAAAD///+l2Z/dAAAAnUlEQVR4Ae3VQRGAIBRD0S8U/062BAnYfXvDDPBy786u667r3Xv06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR48ePXr06NGjR887egLpIQL786kAAAAASUVORK5CYII=" alt="HEX LOGO" style="width: 100px; height: auto; border: 1px solid var(--accent-color);">
+        </div>
+        <div>
+            <div class="stat-box">
+                <div class="stat-label">SCORE</div>
+                <div id="score" class="stat-value">000000</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">LEVEL</div>
+                <div id="level" class="stat-value">01</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">LINES</div>
+                <div id="lines" class="stat-value">0</div>
+            </div>
+        </div>
+        <div id="controls-hint">
+            ARROWS: MOVE/DROP<br>
+            Z/X: ROTATE<br>
+            SPACE: HARD DROP
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * HEX TETRIS - Core Game Logic
+ * Following the Game Dev Manual: Modular, Math-based, and Clean.
+ */
+
+const HEX_SIZE = 20;
+const GRID_WIDTH = 10;
+const GRID_HEIGHT = 20;
+const COLORS = {
+    background: '#000000',
+    grid: '#1a1a1a',
+    pieces: [
+        '#ff0055', // Red
+        '#00ffcc', // Cyan
+        '#ffff00', // Yellow
+        '#ff8800', // Orange
+        '#aa00ff', // Purple
+        '#00ff00', // Green
+        '#0088ff'  // Blue
+    ]
+};
+
+// Math Helpers for Hexagons
+const HexMath = {
+    // Pointy-top hex math
+    hexToPixel(q, r) {
+        const x = HEX_SIZE * Math.sqrt(3) * (q + r/2);
+        const y = HEX_SIZE * 3/2 * r;
+        return { x, y };
+    },
+    
+    drawHex(ctx, x, y, size, color, stroke = '#ffffff22') {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI / 180) * (60 * i - 30);
+            const px = x + size * Math.cos(angle);
+            const py = y + size * Math.sin(angle);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+};
+
+class Piece {
+    constructor(type) {
+        this.type = type;
+        this.color = COLORS.pieces[type % COLORS.pieces.length];
+        this.rotation = 0;
+        this.q = Math.floor(GRID_WIDTH / 2) - 2;
+        this.r = 0;
+        
+        // Shape definitions in axial coordinates relative to center (0,0)
+        // Using common tetra-hex shapes
+        this.shapes = [
+            [[0,0], [1,0], [-1,0], [2,0]],    // I
+            [[0,0], [1,0], [0,1], [1,-1]],    // Rhombus (O-ish)
+            [[0,0], [1,0], [2,0], [0,1]],     // L
+            [[0,0], [1,0], [2,0], [2,-1]],    // J
+            [[0,0], [1,0], [0,1], [-1,1]],    // S
+            [[0,0], [-1,0], [0,1], [1,-1]],   // Z
+            [[0,0], [1,0], [-1,0], [0,1]]     // T
+        ];
+        
+        this.currentShape = this.shapes[type];
+    }
+
+    rotate(dir) {
+        // Hex rotation in cube coordinates is easier, then convert back to axial
+        // Axial (q, r) -> Cube (x, y, z) where x=q, z=r, y=-x-z
+        // Rotate Cube (x, y, z) -> (-z, -x, -y) for 60deg CW
+        this.currentShape = this.currentShape.map(([q, r]) => {
+            let x = q;
+            let z = r;
+            let y = -x - z;
+            
+            if (dir > 0) { // Clockwise 60 deg
+                const nx = -z;
+                const ny = -x;
+                const nz = -y;
+                return [nx, nz];
+            } else { // Counter-clockwise 60 deg
+                const nx = -y;
+                const ny = -z;
+                const nz = -x;
+                return [nx, nz];
+            }
+        });
+    }
+
+    getCells() {
+        return this.currentShape.map(([dq, dr]) => [this.q + dq, this.r + dr]);
+    }
+}
+
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.scoreElement = document.getElementById('score');
+        this.levelElement = document.getElementById('level');
+        this.linesElement = document.getElementById('lines');
+        
+        this.grid = Array(GRID_HEIGHT).fill().map(() => Array(GRID_WIDTH).fill(null));
+        this.score = 0;
+        this.lines = 0;
+        this.level = 1;
+        this.gameOver = false;
+        
+        this.initCanvas();
+        this.spawnPiece();
+        this.lastTime = 0;
+        this.dropCounter = 0;
+        this.dropInterval = 1000;
+        
+        this.bindEvents();
+        requestAnimationFrame(this.loop.bind(this));
+    }
+
+    initCanvas() {
+        // Calculate canvas size based on hex grid
+        const width = HEX_SIZE * Math.sqrt(3) * (GRID_WIDTH + 0.5);
+        const height = HEX_SIZE * 1.5 * GRID_HEIGHT + HEX_SIZE * 0.5;
+        this.canvas.width = width;
+        this.canvas.height = height;
+    }
+
+    spawnPiece() {
+        const type = Math.floor(Math.random() * 7);
+        this.currentPiece = new Piece(type);
+        if (this.checkCollision()) {
+            this.gameOver = true;
+        }
+    }
+
+    checkCollision(dq = 0, dr = 0, cells = null) {
+        const currentCells = cells || this.currentPiece.getCells();
+        for (const [q, r] of currentCells) {
+            const nq = q + dq;
+            const nr = r + dr;
+            
+            // Bounds check
+            if (nr < 0 || nr >= GRID_HEIGHT) return true;
+            // Hex grid bounds: q_idx = q + floor(r/2)
+            const q_idx = nq + Math.floor(nr/2);
+            if (q_idx < 0 || q_idx >= GRID_WIDTH) return true;
+            
+            // Grid check
+            if (this.grid[nr] && this.grid[nr][q_idx]) return true;
+        }
+        return false;
+    }
+
+    lockPiece() {
+        const cells = this.currentPiece.getCells();
+        cells.forEach(([q, r]) => {
+            if (this.grid[r]) {
+                this.grid[r][q + Math.floor(r/2)] = this.currentPiece.color;
+            }
+        });
+        this.clearLines();
+        this.spawnPiece();
+    }
+
+    clearLines() {
+        let linesCleared = 0;
+        for (let r = GRID_HEIGHT - 1; r >= 0; r--) {
+            if (this.grid[r].every(cell => cell !== null)) {
+                this.grid.splice(r, 1);
+                this.grid.unshift(Array(GRID_WIDTH).fill(null));
+                linesCleared++;
+                r++; // Check the same row index again
+            }
+        }
+        
+        if (linesCleared > 0) {
+            this.lines += linesCleared;
+            this.score += [0, 100, 300, 500, 800][linesCleared] * this.level;
+            this.level = Math.floor(this.lines / 10) + 1;
+            this.dropInterval = Math.max(100, 1000 - (this.level - 1) * 100);
+            this.updateUI();
+        }
+    }
+
+    updateUI() {
+        this.scoreElement.innerText = this.score.toString().padStart(6, '0');
+        this.levelElement.innerText = this.level.toString().padStart(2, '0');
+        this.linesElement.innerText = this.lines;
+    }
+
+    move(dq, dr) {
+        if (!this.checkCollision(dq, dr)) {
+            this.currentPiece.q += dq;
+            this.currentPiece.r += dr;
+            return true;
+        }
+        if (dr > 0) {
+            this.lockPiece();
+        }
+        return false;
+    }
+
+    rotate(dir) {
+        const oldShape = [...this.currentPiece.currentShape];
+        this.currentPiece.rotate(dir);
+        if (this.checkCollision()) {
+            this.currentPiece.currentShape = oldShape;
+        }
+    }
+
+    drop() {
+        this.move(0, 1);
+        this.dropCounter = 0;
+    }
+
+    hardDrop() {
+        while (this.move(0, 1)) {}
+    }
+
+    bindEvents() {
+        window.addEventListener('keydown', e => {
+            if (this.gameOver) return;
+            switch(e.code) {
+                case 'ArrowLeft': this.move(-1, 0); break;
+                case 'ArrowRight': this.move(1, 0); break;
+                case 'ArrowDown': this.drop(); break;
+                case 'ArrowUp': 
+                case 'KeyX': this.rotate(1); break;
+                case 'KeyZ': this.rotate(-1); break;
+                case 'Space': this.hardDrop(); break;
+            }
+        });
+    }
+
+    draw() {
+        // Draw background pattern (Math-based)
+        this.ctx.fillStyle = COLORS.background;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.strokeStyle = '#111';
+        this.ctx.lineWidth = 1;
+        for(let i=0; i<this.canvas.width; i+=20) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(i, 0);
+            this.ctx.lineTo(i, this.canvas.height);
+            this.ctx.stroke();
+        }
+
+        // Draw Grid with offset to center it
+        const offsetX = HEX_SIZE;
+        const offsetY = HEX_SIZE;
+
+        for (let r = 0; r < GRID_HEIGHT; r++) {
+            for (let q_idx = 0; q_idx < GRID_WIDTH; q_idx++) {
+                const q = q_idx - Math.floor(r/2);
+                const { x, y } = HexMath.hexToPixel(q, r);
+                const color = this.grid[r][q_idx] || COLORS.grid;
+                HexMath.drawHex(this.ctx, x + offsetX, y + offsetY, HEX_SIZE - 1, color);
+            }
+        }
+
+        // Draw Ghost Piece
+        if (this.currentPiece && !this.gameOver) {
+            let ghostR = 0;
+            while (!this.checkCollision(0, ghostR + 1)) {
+                ghostR++;
+            }
+            const cells = this.currentPiece.getCells();
+            cells.forEach(([q, r]) => {
+                const { x, y } = HexMath.hexToPixel(q, r + ghostR);
+                HexMath.drawHex(this.ctx, x + offsetX, y + offsetY, HEX_SIZE - 1, 'transparent', this.currentPiece.color + '44');
+            });
+        }
+
+        // Draw Current Piece
+        if (this.currentPiece) {
+            const cells = this.currentPiece.getCells();
+            cells.forEach(([q, r]) => {
+                const { x, y } = HexMath.hexToPixel(q, r);
+                HexMath.drawHex(this.ctx, x + offsetX, y + offsetY, HEX_SIZE - 1, this.currentPiece.color, '#fff');
+            });
+        }
+
+        if (this.gameOver) {
+            this.ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            this.ctx.fillStyle = '#ff0055';
+            this.ctx.font = '30px Courier New';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('GAME OVER', this.canvas.width/2, this.canvas.height/2);
+        }
+    }
+
+    loop(time = 0) {
+        const deltaTime = time - this.lastTime;
+        this.lastTime = time;
+
+        this.dropCounter += deltaTime;
+        if (this.dropCounter > this.dropInterval) {
+            this.drop();
+        }
+
+        this.draw();
+        if (!this.gameOver) {
+            requestAnimationFrame(this.loop.bind(this));
+        }
+    }
+}
+
+// Start Game
+new Game();
+
+</script>
+</body>
+</html>
